@@ -11,7 +11,7 @@ import { AdminService } from './admin.service';
   providedIn: 'root'
 })
 export class UsuarioService {
-  private apiUrl: string = 'http://localhost:8080/usuarios';
+  private apiUrl: string = 'https://todotechbackend.onrender.com';
   private usuarioSubject = new BehaviorSubject<UsuarioDto | null>(null);
 
   constructor(

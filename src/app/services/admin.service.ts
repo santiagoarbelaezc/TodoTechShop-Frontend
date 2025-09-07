@@ -8,7 +8,7 @@ import { map, catchError } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class AdminService {
-  private apiUrl: string = 'http://localhost:8080';
+  private apiUrl: string = 'https://todotechbackend.onrender.com';
   private credentials = {
     username: 'admin',
     password: '0000'

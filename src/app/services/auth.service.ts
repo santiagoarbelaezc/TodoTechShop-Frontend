@@ -13,7 +13,7 @@ import { UsuarioService } from './usuario.service';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl: string = 'http://localhost:8080/usuarios';
+  private apiUrl: string = 'https://todotechbackend.onrender.com';
   private USUARIO_KEY = 'currentUser';
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   private currentUserSubject = new BehaviorSubject<UsuarioDto | null>(null);
