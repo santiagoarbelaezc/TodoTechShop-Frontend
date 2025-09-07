@@ -1,6 +1,6 @@
-// src/app/guards/auth.guard.ts - asegurar que no limpie sesión
+// src/app/guards/auth.guard.ts
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 @Injectable({
@@ -13,16 +13,20 @@ export class AuthGuard implements CanActivate {
     private router: Router
   ) {}
 
-  canActivate(): boolean {
-    console.log('AuthGuard verificando ruta:', this.router.url);
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
+    const currentUrl = state.url;
     
+    // Verificar si el usuario está autenticado
     if (this.authService.isLoggedIn()) {
-      console.log('AuthGuard: Usuario autenticado ✅');
       return true;
     } else {
-      console.log('AuthGuard: Acceso denegado 🔒 - Redirigiendo a login');
-      // IMPORTANTE: No llamar a logout() aquí, solo redirigir
-      this.router.navigate(['/login']);
+      // Redirigir al login con parámetro de returnUrl si no estamos ya en login
+      if (!currentUrl.includes('/login')) {
+        this.router.navigate(['/login'], {
+          queryParams: { returnUrl: currentUrl }
+        });
+      }
+      
       return false;
     }
   }

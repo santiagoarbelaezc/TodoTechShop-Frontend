@@ -928,6 +928,8 @@ body {
         transform: none;
     }
 }
+
+
 /* Ajustes específicos para Safari en iPhone 13 */
 @supports (-webkit-touch-callout: none) and (max-width: 430px) {
     body {
@@ -1101,4 +1103,247 @@ body {
     body {
         background-attachment: fixed;
     }
+}
+
+
+/* ===== RESPONSIVIDAD PARA TODOS LOS DISPOSITIVOS MÓVILES ===== */
+/* Ajustes generales para todos los móviles */
+@media screen and (max-width: 768px) {
+    body {
+        padding: 0 !important;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #1421cf 0%, #db1f1f 100%);
+        background-attachment: fixed;
+    }
+    
+    .login-container {
+        min-height: 100vh;
+        margin: 0;
+        max-width: 100%;
+        border-radius: 0;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    footer {
+        position: relative !important;
+        bottom: auto !important;
+        margin-top: 20px;
+        padding: 15px 20px;
+        width: 100%;
+        color: white;
+        text-align: center;
+        font-size: 12px;
+        background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .login-form {
+        padding: 40px 25px 30px 25px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .logo-section {
+        min-height: 200px;
+        padding: 30px 25px;
+    }
+    
+    /* Ajustar tamaño de fuente para mejor legibilidad */
+    .login-title {
+        font-size: 24px;
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+    
+    .login-subtitle {
+        font-size: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        color: #7f8c8d;
+    }
+    
+    /* Ajustar inputs para móviles */
+    .input-group {
+        margin-bottom: 25px;
+    }
+    
+    .input-group input {
+        padding: 16px 20px;
+        font-size: 16px;
+        width: 100%;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+        outline: none;
+    }
+    
+    /* Ajustar botón para móviles */
+    button[type="submit"] {
+        height: 52px;
+        font-size: 16px;
+        margin-top: 25px;
+        width: 100%;
+        background: linear-gradient(135deg, #000 0%, #2a2a2a 100%);
+        border-radius: 13px;
+        border: none;
+        cursor: pointer;
+        color: #fff;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    /* Asegurar que el contenido no se desborde */
+    .welcome-text {
+        margin-top: 15px;
+        text-align: center;
+    }
+    
+    .welcome-text h2 {
+        font-size: 20px;
+        margin-top: 20px;
+        color: white;
+    }
+    
+    .welcome-text p {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    /* Ajustar logo para móviles */
+    .logo {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Ocultar efectos visuales complejos en móviles para mejor rendimiento */
+    .wave-container,
+    .orbit-dots,
+    .particle {
+        display: none;
+    }
+    
+    /* Separador estético */
+    .divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+        margin: 20px 0;
+        width: 100%;
+    }
+}
+
+/* iPhone SE (320px) y dispositivos muy pequeños */
+@media screen and (max-width: 320px) {
+    .logo {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .login-title {
+        font-size: 22px;
+    }
+    
+    .login-subtitle {
+        font-size: 14px;
+    }
+    
+    .login-form {
+        padding: 30px 20px 25px 20px;
+    }
+    
+    .logo-section {
+        min-height: 180px;
+        padding: 25px 20px;
+    }
+    
+    footer {
+        font-size: 11px;
+        padding: 12px 15px;
+    }
+}
+
+/* Dispositivos plegables como Galaxy Z Fold (pantalla estrecha) */
+@media screen and (max-width: 334px) and (max-height: 800px) {
+    .login-container {
+        flex-direction: column;
+    }
+    
+    .logo-section {
+        min-height: 160px;
+        padding: 20px;
+    }
+    
+    .login-form {
+        padding: 25px 20px 35px 20px;
+    }
+    
+    .logo {
+        width: 85px;
+        height: 85px;
+    }
+}
+
+/* Modo landscape para móviles */
+@media screen and (max-height: 400px) and (orientation: landscape) {
+    .login-container {
+        flex-direction: row;
+        min-height: 100vh;
+    }
+    
+    .logo-section {
+        min-height: 100vh;
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .login-form {
+        padding: 20px;
+        flex: 1;
+        justify-content: center;
+    }
+    
+    footer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 10px;
+        margin-top: 0;
+    }
+}
+
+/* Prevenir zoom en inputs en iOS */
+@media screen and (max-width: 768px) {
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* Mejoras adicionales para Safari */
+@supports (-webkit-touch-callout: none) {
+    .login-form {
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+    }
+    
+    .login-container, .login-form, .logo-section {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+    }
+}
+
+/* Ajustes para tablets (se mantienen como están) */
+@media screen and (min-width: 769px) {
+    /* Los estilos originales para tablets y desktop se mantienen */
 }

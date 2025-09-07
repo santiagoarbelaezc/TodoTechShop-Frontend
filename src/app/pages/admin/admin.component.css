@@ -540,6 +540,22 @@ button:active,
     color: #1421cf;
 }
 
+
+.btn-eliminar {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  
+  transition: background-color 0.3s;
+}
+
+.btn-eliminar:hover {
+  background-color: #c82333;
+}
+
 .estado-activo {
     color: #0f9d58;
     font-weight: 500;

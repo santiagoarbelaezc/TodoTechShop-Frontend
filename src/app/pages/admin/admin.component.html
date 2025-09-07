@@ -89,10 +89,10 @@
         </div>
         
         <div class="form-group">
-          <label for="telefono">Teléfono</label>
+          <label for="telefono">Teléfono *</label>
           <input type="tel" id="telefono" name="telefono" [(ngModel)]="usuario.telefono" 
                  placeholder="Número de teléfono" pattern="[0-9]{7,10}" 
-                 title="El teléfono debe contener solo números (7-10 dígitos)" />
+                 title="El teléfono debe contener solo números (7-10 dígitos)" required />
         </div>
       </div>
       
@@ -123,8 +123,8 @@
         </div>
         
         <div class="form-group">
-          <label for="estado">Estado</label>
-          <select id="estado" name="estado" [(ngModel)]="usuario.estado">
+          <label for="estado">Estado *</label>
+          <select id="estado" name="estado" [(ngModel)]="usuario.estado" required>
             <option [value]="true">Activo</option>
             <option [value]="false">Inactivo</option>
           </select>
@@ -177,12 +177,17 @@
             <td>{{ u.fechaCreacion | date:'short' }}</td>
             <td>
               <div class="acciones-usuario">
-                <button (click)="editarUsuario(u)" title="Editar usuario">
-                  <i class="fas fa-edit"></i>
+                <button (click)="editarUsuario(u)" title="Editar usuario" class="btn-editar">
+                  <i class="fas fa-edit"></i> Editar
                 </button>
                 <button (click)="cambiarEstadoUsuario(u)" [class]="u.estado ? 'btn-desactivar' : 'btn-activar'" 
                         [title]="u.estado ? 'Desactivar usuario' : 'Activar usuario'">
-                  <i [class]="u.estado ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
+                  <i [class]="u.estado ? 'fas fa-user-slash' : 'fas fa-user-check'"></i> 
+                  {{ u.estado ? 'Inhabilitar' : 'Habilitar' }}
+                </button>
+                <!-- Botón para eliminar usuario -->
+                <button (click)="eliminarUsuario(u)" class="btn-eliminar" title="Eliminar usuario permanentemente">
+                  <i class="fas fa-trash-alt"></i> Eliminar
                 </button>
               </div>
             </td>

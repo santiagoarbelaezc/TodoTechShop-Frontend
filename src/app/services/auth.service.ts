@@ -1,4 +1,4 @@
-// src/app/services/auth.service.ts
+// src/app/services/auth.service.ts (mejoras adicionales)
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -13,8 +13,9 @@ import { UsuarioService } from './usuario.service';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl: string = 'https://todotechbackend.onrender.com';
+  private apiUrl: string = 'https://todotechbackend-iqb0.onrender.com/usuarios';
   private USUARIO_KEY = 'currentUser';
+  private TOKEN_KEY = 'authToken';
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   private currentUserSubject = new BehaviorSubject<UsuarioDto | null>(null);
 
@@ -29,8 +30,9 @@ export class AuthService {
   // Inicializar estado de autenticación desde localStorage
   private initializeAuthState(): void {
     const savedUser = localStorage.getItem(this.USUARIO_KEY);
+    const savedToken = localStorage.getItem(this.TOKEN_KEY);
     
-    if (savedUser) {
+    if (savedUser && savedToken) {
       try {
         const usuario = JSON.parse(savedUser);
         this.currentUserSubject.next(usuario);
@@ -43,7 +45,7 @@ export class AuthService {
     }
   }
 
-  // Método login
+  // Método login mejorado
   login(nombreUsuario: string, contrasena: string): Observable<boolean> {
     const params = new HttpParams()
       .set('nombreUsuario', nombreUsuario)
@@ -59,10 +61,15 @@ export class AuthService {
           throw new Error(response.mensaje);
         }
         
+        // Guardar token si está disponible
+        if (response.data.token) {
+          localStorage.setItem(this.TOKEN_KEY, response.data.token);
+        }
+        
         // Usar el servicio de usuario para manejar el estado
         this.usuarioService.setUsuario(response.data);
         
-        // Guardar solo el usuario (sin expiración)
+        // Guardar usuario
         localStorage.setItem(this.USUARIO_KEY, JSON.stringify(response.data));
         
         // Actualizar los subjects
@@ -74,9 +81,15 @@ export class AuthService {
       }),
       catchError(error => {
         console.error('Error en login:', error);
+        this.clearAuthState();
         return of(false);
       })
     );
+  }
+
+  // Obtener token de autenticación
+  getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 
   // Método redirigirPorRol
@@ -118,25 +131,28 @@ export class AuthService {
     return this.isAuthenticatedSubject.asObservable();
   }
 
-  // Limpiar solo si estamos en la página de login
+  // Método mejorado para limpieza en login
   clearIfOnLoginPage(): void {
     const currentRoute = this.router.url;
     
-    // Solo limpiar si estamos específicamente en la página de login
-    if (currentRoute === '/login' || currentRoute === '/') {
-      console.log('En página de login, limpiando sesión...');
+    // Limpiar si estamos en login, home, o cualquier ruta no protegida
+    if (currentRoute === '/login' || currentRoute === '/' || 
+        currentRoute.includes('public')) {
+      console.log('En página pública, limpiando sesión...');
       this.clearAuthState();
-    } else {
-      console.log('En página protegida, manteniendo sesión...');
     }
   }
 
-  // Método auxiliar para limpiar estado
-  private clearAuthState(): void {
+  // Hacer público el método clearAuthState
+  clearAuthState(): void {
+    console.log('Limpiando estado de autenticación completo');
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
     localStorage.removeItem(this.USUARIO_KEY);
     this.usuarioService.limpiarUsuario();
+    
+    // Limpiar también el estado del admin si existe
+    localStorage.removeItem('admin_state');
   }
 
   // Métodos de utilidad para verificación de roles

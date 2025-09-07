@@ -11,21 +11,86 @@ import { OrdenVentaComponent } from './pages/orden-venta/orden-venta.component';
 import { CajaComponent } from './pages/caja/caja.component';
 import { DespachoComponent } from './pages/despacho/despacho.component';
 import { AuthGuard } from './guards/auth.guard';
+import { PublicGuard } from './guards/public.guard';
+import { AccesoDenegadoComponent } from './pages/acceso-denegado/acceso-denegado.component';
+import { RoleGuard } from './guards/role.guard';
+
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent },
+  { 
+    path: '', 
+    redirectTo: 'login', 
+    pathMatch: 'full' 
+  },
+  { 
+    path: 'login', 
+    component: LoginComponent,
+    canActivate: [PublicGuard] 
+  },
+  { 
+    path: 'acceso-denegado', 
+    component: AccesoDenegadoComponent
+  },
   
-  // 🔒 TODAS estas rutas protegidas
-  { path: 'inicio', component: InicioComponent, canActivate: [AuthGuard] },
-  { path: 'admin', component: AdminComponent, canActivate: [AuthGuard] },
-  { path: 'phone', component: PhoneComponent, canActivate: [AuthGuard] },
-  { path: 'gaming', component: GamingComponent, canActivate: [AuthGuard] },
-  { path: 'laptops', component: LaptopsComponent, canActivate: [AuthGuard] },
-  { path: 'accesorios', component: AccesoriosComponent, canActivate: [AuthGuard] },
-  { path: 'caja', component: CajaComponent, canActivate: [AuthGuard] },
-  { path: 'despacho', component: DespachoComponent, canActivate: [AuthGuard] },
-  { path: 'ordenVenta', component: OrdenVentaComponent, canActivate: [AuthGuard] },
+  // 🔒 RUTAS PROTEGIDAS POR AUTENTICACIÓN Y ROLES
+  { 
+    path: 'inicio', 
+    component: InicioComponent, 
+    canActivate: [AuthGuard],
+    data: { roles: ['ADMIN', 'VENDEDOR', 'CAJERO', 'DESPACHADOR'] }
+  },
+  { 
+    path: 'admin', 
+    component: AdminComponent, 
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: 'ADMIN' }
+  },
+  { 
+    path: 'phone', 
+    component: PhoneComponent, 
+    canActivate: [AuthGuard],
+    data: { roles: ['ADMIN', 'VENDEDOR'] }
+  },
+  { 
+    path: 'gaming', 
+    component: GamingComponent, 
+    canActivate: [AuthGuard],
+    data: { roles: ['ADMIN', 'VENDEDOR'] }
+  },
+  { 
+    path: 'laptops', 
+    component: LaptopsComponent, 
+    canActivate: [AuthGuard],
+    data: { roles: ['ADMIN', 'VENDEDOR'] }
+  },
+  { 
+    path: 'accesorios', 
+    component: AccesoriosComponent, 
+    canActivate: [AuthGuard],
+    data: { roles: ['ADMIN', 'VENDEDOR'] }
+  },
+  { 
+    path: 'caja', 
+    component: CajaComponent, 
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: 'CAJERO' }
+  },
+  { 
+    path: 'despacho', 
+    component: DespachoComponent, 
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: 'DESPACHADOR' }
+  },
+  { 
+    path: 'ordenVenta', 
+    component: OrdenVentaComponent, 
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: 'VENDEDOR' }
+  },
   
-  { path: '**', redirectTo: 'login', pathMatch: 'full' }
+  { 
+    path: '**', 
+    redirectTo: 'login', 
+    pathMatch: 'full' 
+  }
 ];

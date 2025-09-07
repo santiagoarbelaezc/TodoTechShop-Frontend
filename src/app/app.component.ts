@@ -1,7 +1,8 @@
-// src/app/app.component.ts - solución simple
-import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+// src/app/app.component.ts (mejoras)
+import { Component, OnInit } from '@angular/core';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -9,16 +10,23 @@ import { AuthService } from './services/auth.service';
   imports: [RouterModule],
   template: '<router-outlet></router-outlet>'
 })
-export class AppComponent {
-  constructor(private authService: AuthService) {
-    // Solo limpiar si la URL actual es login
-    const currentPath = window.location.pathname;
-    if (currentPath === '/login' || currentPath === '/') {
-      console.log('Iniciando en login, limpiando sesión...');
-      this.authService.clearIfOnLoginPage();
-    } else {
-      console.log('Iniciando en ruta protegida:', currentPath);
-      // La sesión se mantiene automáticamente por el localStorage
-    }
+export class AppComponent implements OnInit {
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  ngOnInit() {
+    // Escuchar cambios de ruta
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: any) => {
+        console.log('Navegación a:', event.url);
+        
+        // Si la ruta es login, forzar limpieza de autenticación
+        if (event.url === '/login') {
+          this.authService.clearAuthState();
+        }
+      });
   }
 }

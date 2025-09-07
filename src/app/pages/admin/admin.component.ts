@@ -16,6 +16,7 @@ import { CajeroService } from '../../services/cajero.service';
 import { Router } from '@angular/router';
 import { ProductoReporteRequest } from '../../models/productoReporteRequest.dto';
 import { MensajeDto } from '../../models/mensaje.dto';
+import { AuthService } from '../../services/auth.service';
 
 export interface CrearUsuarioDTO {
   nombre: string;
@@ -28,15 +29,6 @@ export interface CrearUsuarioDTO {
   estado: boolean;
 }
 
-interface AdminState {
-  seccionActiva: string;
-  usuario: CrearUsuarioDTO;
-  usuarioEditando: boolean;
-  usuarioEditandoId: number | null;
-  terminoBusqueda: string;
-  nuevoProducto: CrearProductoDTO;
-}
-
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -46,8 +38,6 @@ interface AdminState {
 })
 export class AdminComponent implements OnInit {
   @ViewChild('formUsuario') formUsuario!: NgForm;
-  
-  private readonly STORAGE_KEY = 'admin_state';
   
   nombre: string = '';
   correo: string = '';
@@ -94,102 +84,26 @@ export class AdminComponent implements OnInit {
     private vendedorService: VendedorService,
     private despachadorService: DespachadorService,
     private cajeroService: CajeroService,
+    private authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit() {
-    this.cargarEstado();
-    
-    // Guardar estado antes de que la página se cierre/recargue
-    window.addEventListener('beforeunload', () => this.guardarEstado());
-  }
-
-  // GUARDAR ESTADO EN LOCALSTORAGE
-  private guardarEstado(): void {
-    const estado: AdminState = {
-      seccionActiva: this.seccionActiva,
-      usuario: { ...this.usuario },
-      usuarioEditando: this.usuarioEditando,
-      usuarioEditandoId: this.usuarioEditandoId,
-      terminoBusqueda: this.terminoBusqueda,
-      nuevoProducto: { ...this.nuevoProducto }
-    };
-
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(estado));
-    console.log('Estado guardado:', estado);
-  }
-
-  // CARGAR ESTADO DESDE LOCALSTORAGE
-  private cargarEstado(): void {
-    try {
-      const estadoGuardado = localStorage.getItem(this.STORAGE_KEY);
-      if (estadoGuardado) {
-        const estado: AdminState = JSON.parse(estadoGuardado);
-        
-        this.seccionActiva = estado.seccionActiva || 'bienvenida';
-        this.usuario = estado.usuario || this.getUsuarioDefault();
-        this.usuarioEditando = estado.usuarioEditando || false;
-        this.usuarioEditandoId = estado.usuarioEditandoId || null;
-        this.terminoBusqueda = estado.terminoBusqueda || '';
-        this.nuevoProducto = estado.nuevoProducto || this.getProductoDefault();
-
-        console.log('Estado cargado:', estado);
-        
-        // Si hay una sección activa, cargar los datos correspondientes
-        if (this.seccionActiva !== 'bienvenida') {
-          setTimeout(() => {
-            this.mostrarSeccion(this.seccionActiva);
-          }, 100);
-        }
-      }
-    } catch (error) {
-      console.error('Error al cargar el estado:', error);
-      this.limpiarEstado();
+    // Verificar que el usuario sea admin
+    const user = this.authService.getCurrentUser();
+    if (!user || user.tipoUsuario !== 'ADMIN') {
+      this.authService.logout();
+      this.router.navigate(['/login']);
+      return;
     }
-  }
-
-  // OBTENER USUARIO POR DEFECTO
-  private getUsuarioDefault(): CrearUsuarioDTO {
-    return {
-      nombre: '',
-      cedula: '',
-      correo: '',
-      telefono: '',
-      nombreUsuario: '',
-      contrasena: '',
-      tipoUsuario: 'VENDEDOR',
-      estado: true
-    };
-  }
-
-  // OBTENER PRODUCTO POR DEFECTO
-  private getProductoDefault(): CrearProductoDTO {
-    return {
-      id: 0,
-      nombre: '',
-      codigo: '',
-      descripcion: '',
-      precio: 0,
-      stock: 0,
-      categoria: '',
-      imagen: ''
-    };
-  }
-
-  // LIMPIAR ESTADO
-  limpiarEstado(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
-    this.seccionActiva = 'bienvenida';
-    this.usuario = this.getUsuarioDefault();
-    this.usuarioEditando = false;
-    this.usuarioEditandoId = null;
-    this.terminoBusqueda = '';
-    this.nuevoProducto = this.getProductoDefault();
+    
+    // Cargar datos iniciales si es necesario
+    this.nombre = user.nombre;
+    this.correo = user.correo;
   }
 
   mostrarSeccion(seccion: string) {
     this.seccionActiva = seccion;
-    this.guardarEstado();
     
     switch (seccion) {
       case 'usuarios':
@@ -233,78 +147,111 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  // GUARDAR USUARIO - CORREGIDO
-  guardarUsuario() {
-    console.log('Estado del formulario:', this.usuario.estado, typeof this.usuario.estado);
-    
-    if (this.usuarioEditando && this.usuarioEditandoId) {
-      // Actualizar usuario existente
-      const usuarioActualizado: UsuarioDto = {
-        id: this.usuarioEditandoId,
-        nombre: this.usuario.nombre,
-        cedula: this.usuario.cedula,
-        correo: this.usuario.correo,
-        telefono: this.usuario.telefono,
-        nombreUsuario: this.usuario.nombreUsuario,
-        contrasena: this.usuario.contrasena,
-        tipoUsuario: this.usuario.tipoUsuario,
-        fechaCreacion: new Date(),
-        estado: this.usuario.estado
-      };
-
-      console.log('Usuario a actualizar:', usuarioActualizado);
-
-      this.usuarioService.actualizarUsuarioAdmin(this.usuarioEditandoId, usuarioActualizado).subscribe({
-        next: (response: MensajeDto<string>) => {
-          if (!response.error) {
-            alert(response.mensaje);
-            this.limpiarFormulario();
-            this.cargarUsuarios();
-          } else {
-            alert('Error: ' + response.mensaje);
-          }
-        },
-        error: (error) => {
-          console.error('Error al actualizar usuario:', error);
-          alert('Error al actualizar usuario: ' + error.message);
-        }
-      });
-    } else {
-      // Crear nuevo usuario
-      const nuevoUsuario: UsuarioDto = {
-        id: 0,
-        nombre: this.usuario.nombre,
-        cedula: this.usuario.cedula,
-        correo: this.usuario.correo,
-        telefono: this.usuario.telefono,
-        nombreUsuario: this.usuario.nombreUsuario,
-        contrasena: this.usuario.contrasena,
-        tipoUsuario: this.usuario.tipoUsuario,
-        fechaCreacion: new Date(),
-        estado: this.usuario.estado
-      };
-
-      this.usuarioService.crearUsuario(nuevoUsuario).subscribe({
-        next: (response: MensajeDto<string>) => {
-          if (!response.error) {
-            alert(response.mensaje);
-            this.limpiarFormulario();
-            this.cargarUsuarios();
-          } else {
-            alert('Error: ' + response.mensaje);
-          }
-        },
-        error: (error) => {
-          console.error('Error al crear usuario:', error);
-          alert('Error al crear usuario: ' + error.message);
-        }
-      });
-    }
-    
-    this.guardarEstado();
+  // GUARDAR USUARIO
+guardarUsuario() {
+  // Validar que ningún campo esté vacío
+  if (this.validarCamposVacios()) {
+    return; // Detener la ejecución si hay campos vacíos
   }
+  
+  console.log('Estado del formulario:', this.usuario.estado, typeof this.usuario.estado);
+  
+  if (this.usuarioEditando && this.usuarioEditandoId) {
+    // Actualizar usuario existente
+    const usuarioActualizado: UsuarioDto = {
+      id: this.usuarioEditandoId,
+      nombre: this.usuario.nombre,
+      cedula: this.usuario.cedula,
+      correo: this.usuario.correo,
+      telefono: this.usuario.telefono,
+      nombreUsuario: this.usuario.nombreUsuario,
+      contrasena: this.usuario.contrasena,
+      tipoUsuario: this.usuario.tipoUsuario,
+      fechaCreacion: new Date(),
+      estado: this.usuario.estado
+    };
 
-  // EDITAR USUARIO - Versión corregida
+    console.log('Usuario a actualizar:', usuarioActualizado);
+
+    this.usuarioService.actualizarUsuarioAdmin(this.usuarioEditandoId, usuarioActualizado).subscribe({
+      next: (response: MensajeDto<string>) => {
+        if (!response.error) {
+          alert(response.mensaje);
+          this.limpiarFormulario();
+          this.cargarUsuarios();
+        } else {
+          alert('Error: ' + response.mensaje);
+        }
+      },
+      error: (error) => {
+        console.error('Error al actualizar usuario:', error);
+        alert('Error al actualizar usuario: ' + error.message);
+      }
+    });
+  } else {
+    // Crear nuevo usuario
+    const nuevoUsuario: UsuarioDto = {
+      id: 0,
+      nombre: this.usuario.nombre,
+      cedula: this.usuario.cedula,
+      correo: this.usuario.correo,
+      telefono: this.usuario.telefono,
+      nombreUsuario: this.usuario.nombreUsuario,
+      contrasena: this.usuario.contrasena,
+      tipoUsuario: this.usuario.tipoUsuario,
+      fechaCreacion: new Date(),
+      estado: this.usuario.estado
+    };
+
+    this.usuarioService.crearUsuario(nuevoUsuario).subscribe({
+      next: (response: MensajeDto<string>) => {
+        if (!response.error) {
+          alert(response.mensaje);
+          this.limpiarFormulario();
+          this.cargarUsuarios();
+        } else {
+          alert('Error: ' + response.mensaje);
+        }
+      },
+      error: (error) => {
+        console.error('Error al crear usuario:', error);
+        alert('Error al crear usuario: ' + error.message);
+      }
+    });
+  }
+}
+
+// Método para validar campos vacíos
+validarCamposVacios(): boolean {
+  const camposRequeridos = [
+    { nombre: 'nombre', valor: this.usuario.nombre, etiqueta: 'Nombre' },
+    { nombre: 'cedula', valor: this.usuario.cedula, etiqueta: 'Cédula' },
+    { nombre: 'correo', valor: this.usuario.correo, etiqueta: 'Correo electrónico' },
+    { nombre: 'telefono', valor: this.usuario.telefono, etiqueta: 'Teléfono' },
+    { nombre: 'nombreUsuario', valor: this.usuario.nombreUsuario, etiqueta: 'Nombre de usuario' },
+    { nombre: 'contrasena', valor: this.usuario.contrasena, etiqueta: 'Contraseña' }
+  ];
+
+  for (const campo of camposRequeridos) {
+    if (!campo.valor || campo.valor.trim() === '') {
+      alert(`El campo ${campo.etiqueta} es obligatorio.`);
+      
+      // Enfocar el campo vacío en el formulario
+      setTimeout(() => {
+        const elemento = document.querySelector(`[name="${campo.nombre}"]`) as HTMLElement;
+        if (elemento) {
+          elemento.focus();
+        }
+      }, 100);
+      
+      return true; // Hay campos vacíos
+    }
+  }
+  
+  return false; // Todos los campos están llenos
+}
+
+  // EDITAR USUARIO
   editarUsuario(usuario: UsuarioDto) {
     console.log('Usuario a editar:', usuario);
     console.log('Estado original:', usuario.estado, typeof usuario.estado);
@@ -322,9 +269,6 @@ export class AdminComponent implements OnInit {
       tipoUsuario: usuario.tipoUsuario as 'ADMIN' | 'VENDEDOR' | 'CAJERO' | 'DESPACHADOR',
       estado: usuario.estado
     };
-    
-    console.log('Estado en formulario:', this.usuario.estado, typeof this.usuario.estado);
-    this.guardarEstado();
   }
 
   // CAMBIAR ESTADO USUARIO
@@ -350,87 +294,100 @@ export class AdminComponent implements OnInit {
     }
   }
 
+
+  // Método para eliminar usuario
+eliminarUsuario(usuario: UsuarioDto) {
+  const confirmacion = confirm(`¿Estás seguro de que deseas eliminar permanentemente al usuario ${usuario.nombre}? Esta acción no se puede deshacer.`);
+  
+  if (confirmacion) {
+    this.usuarioService.eliminarUsuario(usuario.id).subscribe({
+      next: (response: MensajeDto<string>) => {
+        if (!response.error) {
+          alert(response.mensaje);
+          this.cargarUsuarios(); // Recargar la lista de usuarios
+        } else {
+          alert('Error: ' + response.mensaje);
+        }
+      },
+      error: (error) => {
+        console.error('Error al eliminar usuario:', error);
+        alert('Error al eliminar usuario: ' + error.message);
+      }
+    });
+  }
+}
+
   // LIMPIAR FORMULARIO
   limpiarFormulario() {
-    this.usuario = this.getUsuarioDefault();
+    this.usuario = {
+      nombre: '',
+      cedula: '',
+      correo: '',
+      telefono: '',
+      nombreUsuario: '',
+      contrasena: '',
+      tipoUsuario: 'VENDEDOR',
+      estado: true
+    };
     this.usuarioEditando = false;
     this.usuarioEditandoId = null;
     
     if (this.formUsuario) {
       this.formUsuario.resetForm();
     }
-    
-    this.guardarEstado();
-  }
-
-  // BOTÓN PARA LIMPIAR TODO EL ESTADO (opcional - puedes agregarlo en el HTML)
-  limpiarTodoEstado(): void {
-    if (confirm('¿Estás seguro de que deseas limpiar todos los datos y empezar de nuevo?')) {
-      this.limpiarEstado();
-      this.limpiarFormulario();
-      this.seccionActiva = 'bienvenida';
-      alert('Estado limpiado correctamente');
-    }
   }
 
   // Resto de métodos existentes...
   cargarProductos() {
-    this.guardarEstado();
     // Tu implementación aquí
   }
 
   cargarProductosReporte() {
-    this.guardarEstado();
     // Tu implementación aquí
   }
 
   cargarOrdenes() {
-    this.guardarEstado();
     // Tu implementación aquí
   }
 
   cargarReportePorVendedor() {
-    this.guardarEstado();
     // Tu implementación aquí
   }
 
   guardarProducto() {
-    this.guardarEstado();
     // Tu implementación aquí
   }
 
   filtrarOrdenes(tipo?: string) {
-    this.guardarEstado();
     // Tu implementación aquí
   }
 
   aplicarFiltroBusqueda() {
-    this.guardarEstado();
     // Tu implementación aquí
   }
 
   editarProducto(producto: ProductoDTO) {
-    this.guardarEstado();
     // Tu implementación aquí
   }
 
   eliminarProducto(producto: ProductoDTO) {
-    this.guardarEstado();
     // Tu implementación aquí
   }
 
   verDetallesProducto(producto: ProductoDTO) {
-    this.guardarEstado();
     // Tu implementación aquí
   }
 
   verDetallesOrden(orden: OrdenVentaDTO) {
-    this.guardarEstado();
     // Tu implementación aquí
   }
 
   actualizarProducto() {
-    this.guardarEstado();
     // Tu implementación aquí
+  }
+
+  salir() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

@@ -1,6 +1,6 @@
 // src/app/components/login/login.component.ts
 import { Component, ElementRef, AfterViewInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
@@ -17,16 +17,23 @@ export class LoginComponent implements AfterViewInit {
   contrasena: string = '';
   isLoading: boolean = false;
   private hasSwapped: boolean = false;
+  private returnUrl: string = '';
 
   constructor(
     private authService: AuthService,
     private router: Router,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
-    // Forzar limpieza al iniciar el componente de login
-    this.authService.clearIfOnLoginPage();
+    // Limpieza garantizada al entrar al login
+    this.authService.clearAuthState();
+    
+    // Obtener returnUrl de los query params si existe
+    this.route.queryParams.subscribe(params => {
+      this.returnUrl = params['returnUrl'] || '';
+    });
   }
 
   ngAfterViewInit(): void {
@@ -79,6 +86,7 @@ export class LoginComponent implements AfterViewInit {
     });
   }
 
+// Modificar el onLogin para manejar mejor los errores:
 onLogin(): void {
     if (!this.nombreUsuario || !this.contrasena) {
       alert('Por favor ingresa usuario y contraseña');
@@ -87,24 +95,18 @@ onLogin(): void {
     
     this.isLoading = true;
 
-    // Limpiar cualquier sesión previa antes de iniciar
-    this.authService.logout();
-
     this.authService.login(this.nombreUsuario, this.contrasena).subscribe({
       next: (success) => {
         this.isLoading = false;
         if (!success) {
           alert('Usuario o contraseña incorrectos');
-          this.authService.logout(); // Limpiar en caso de error
         }
       },
       error: (error) => {
         this.isLoading = false;
         console.error('Error en login:', error);
         alert(error.message || 'Error al intentar iniciar sesión');
-        this.authService.logout(); // Limpiar en caso de error
       }
     });
   }
-
 }

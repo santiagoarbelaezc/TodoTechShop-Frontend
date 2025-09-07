@@ -1,0 +1,38 @@
+<div class="denied-container">
+  <div class="denied-content">
+    <div class="icon-container">
+      <div class="shield-icon">
+        <svg viewBox="0 0 24 24" width="80" height="80">
+          <path fill="currentColor" d="M12,1L3,5v6c0,5.55,3.84,10.74,9,12c5.16-1.26,9-6.45,9-12V5L12,1z M12,11.99h7c-0.53,4.12-3.28,7.79-7,8.94V12H5V6.3l7-3.11V11.99z"/>
+        </svg>
+      </div>
+    </div>
+    
+    <h1 class="title">Acceso Denegado</h1>
+    
+    <p class="message">No tienes los permisos necesarios para acceder a esta sección.</p>
+    <p class="sub-message">Contacta al administrador si necesitas acceso.</p>
+    
+    <div class="button-group">
+      <button class="btn btn-primary" (click)="volverAlInicio()">
+        <span class="btn-icon">🏠</span>
+        Volver al Inicio
+      </button>
+      
+      <button class="btn btn-secondary" (click)="volverAlLogin()">
+        <span class="btn-icon">🔐</span>
+        Iniciar Sesión
+      </button>
+    </div>
+    
+    <div class="support-info">
+      <p>¿Necesitas ayuda? <a href="mailto:soporte@todotech.com" class="support-link">Contactar soporte</a></p>
+    </div>
+  </div>
+  
+  <div class="background-animation">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+    <div class="circle circle-3"></div>
+  </div>
+</div>
