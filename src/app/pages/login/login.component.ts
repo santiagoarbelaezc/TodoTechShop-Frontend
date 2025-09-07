@@ -25,10 +25,8 @@ export class LoginComponent implements AfterViewInit {
   ) {}
 
   ngOnInit() {
-    // Limpiar localStorage al iniciar (opcional)
-    if (this.authService.isLoggedIn()) {
-      this.router.navigate(['/']); // Redirigir si ya está logueado
-    }
+    // Forzar limpieza al iniciar el componente de login
+    this.authService.clearIfOnLoginPage();
   }
 
   ngAfterViewInit(): void {
@@ -81,7 +79,7 @@ export class LoginComponent implements AfterViewInit {
     });
   }
 
-  onLogin(): void {
+onLogin(): void {
     if (!this.nombreUsuario || !this.contrasena) {
       alert('Por favor ingresa usuario y contraseña');
       return;
@@ -89,18 +87,24 @@ export class LoginComponent implements AfterViewInit {
     
     this.isLoading = true;
 
+    // Limpiar cualquier sesión previa antes de iniciar
+    this.authService.logout();
+
     this.authService.login(this.nombreUsuario, this.contrasena).subscribe({
       next: (success) => {
         this.isLoading = false;
         if (!success) {
           alert('Usuario o contraseña incorrectos');
+          this.authService.logout(); // Limpiar en caso de error
         }
       },
       error: (error) => {
         this.isLoading = false;
         console.error('Error en login:', error);
         alert(error.message || 'Error al intentar iniciar sesión');
+        this.authService.logout(); // Limpiar en caso de error
       }
     });
   }
+
 }

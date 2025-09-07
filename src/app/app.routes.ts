@@ -1,3 +1,4 @@
+// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { InicioComponent } from './pages/inicio/inicio.component';
@@ -12,19 +13,19 @@ import { DespachoComponent } from './pages/despacho/despacho.component';
 import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-   { path: '', redirectTo: 'login', pathMatch: 'full' }, // Redirigir a login al inicio
-   { path: 'login', component: LoginComponent },
-   //{ path: 'inicio', component: InicioComponent , canActivate: [AuthGuard]},
-   { path: 'admin', component: AdminComponent },
-   { path: 'phone', component: PhoneComponent },
-   { path: 'gaming', component: GamingComponent },
-   { path: 'laptops', component: LaptopsComponent },
-   { path: 'accesorios', component: AccesoriosComponent },
-   { path: 'caja', component: CajaComponent },
-   { path: 'despacho', component: DespachoComponent },
-   //{ path: 'ordenVenta', component: OrdenVentaComponent, canActivate: [AuthGuard] },
-   { path: 'ordenVenta', component: OrdenVentaComponent },
-   
-
-   { path: '**', redirectTo: 'login', pathMatch: 'full' } // Rutas no encontradas -> login
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
+  
+  // 🔒 TODAS estas rutas protegidas
+  { path: 'inicio', component: InicioComponent, canActivate: [AuthGuard] },
+  { path: 'admin', component: AdminComponent, canActivate: [AuthGuard] },
+  { path: 'phone', component: PhoneComponent, canActivate: [AuthGuard] },
+  { path: 'gaming', component: GamingComponent, canActivate: [AuthGuard] },
+  { path: 'laptops', component: LaptopsComponent, canActivate: [AuthGuard] },
+  { path: 'accesorios', component: AccesoriosComponent, canActivate: [AuthGuard] },
+  { path: 'caja', component: CajaComponent, canActivate: [AuthGuard] },
+  { path: 'despacho', component: DespachoComponent, canActivate: [AuthGuard] },
+  { path: 'ordenVenta', component: OrdenVentaComponent, canActivate: [AuthGuard] },
+  
+  { path: '**', redirectTo: 'login', pathMatch: 'full' }
 ];

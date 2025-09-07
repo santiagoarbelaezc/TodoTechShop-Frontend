@@ -1,32 +1,55 @@
-// src/app/services/auth.service.ts (actualizado)
+// src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, catchError, tap, map } from 'rxjs';
-
-import { LoginResponse } from '../models/login-response.dto';
-import { UsuarioService } from './usuario.service';
+import { Router } from '@angular/router';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { MensajeDto } from '../models/mensaje.dto';
+import { UsuarioDto } from '../models/usuario.dto';
+import { UsuarioService } from './usuario.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/usuarios';
-  private tiempoExpiracion = 1000 * 60 * 30; // ⏰ 30 minutos
+  private apiUrl: string = 'http://localhost:8080/usuarios';
+  private USUARIO_KEY = 'currentUser';
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
+  private currentUserSubject = new BehaviorSubject<UsuarioDto | null>(null);
 
   constructor(
     private http: HttpClient,
     private router: Router,
-    private usuarioService: UsuarioService // Inyectar UsuarioService
-  ) {}
+    private usuarioService: UsuarioService
+  ) {
+    this.initializeAuthState();
+  }
 
+  // Inicializar estado de autenticación desde localStorage
+  private initializeAuthState(): void {
+    const savedUser = localStorage.getItem(this.USUARIO_KEY);
+    
+    if (savedUser) {
+      try {
+        const usuario = JSON.parse(savedUser);
+        this.currentUserSubject.next(usuario);
+        this.isAuthenticatedSubject.next(true);
+        console.log('Estado de autenticación restaurado desde localStorage');
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+        this.clearAuthState();
+      }
+    }
+  }
+
+  // Método login
   login(nombreUsuario: string, contrasena: string): Observable<boolean> {
     const params = new HttpParams()
       .set('nombreUsuario', nombreUsuario)
       .set('contrasena', contrasena);
 
-    return this.http.post<MensajeDto<LoginResponse>>(
+    return this.http.post<MensajeDto<any>>(
       `${this.apiUrl}/login`, 
       null,
       { params }
@@ -36,31 +59,17 @@ export class AuthService {
           throw new Error(response.mensaje);
         }
         
-        // Crear objeto UsuarioDto a partir de la respuesta
-        const usuario = {
-          id: 0,
-          nombre: response.data.nombre,
-          cedula: '',
-          correo: '',
-          telefono: '',
-          nombreUsuario: response.data.nombreUsuario,
-          contrasena: '',
-          tipoUsuario: response.data.tipoUsuario,
-          fechaCreacion: new Date(),
-          estado: true
-        };
-
-        // Guardar en el servicio de usuario
-        this.usuarioService.setUsuario(usuario);
-
-        // Guardar en localStorage para persistencia
-        const data = {
-          usuario,
-          exp: Date.now() + this.tiempoExpiracion
-        };
-        localStorage.setItem('usuario', JSON.stringify(data));
-
-        this.redirigirPorRol(usuario.tipoUsuario);
+        // Usar el servicio de usuario para manejar el estado
+        this.usuarioService.setUsuario(response.data);
+        
+        // Guardar solo el usuario (sin expiración)
+        localStorage.setItem(this.USUARIO_KEY, JSON.stringify(response.data));
+        
+        // Actualizar los subjects
+        this.currentUserSubject.next(response.data);
+        this.isAuthenticatedSubject.next(true);
+        
+        this.redirigirPorRol(response.data.tipoUsuario);
         return true;
       }),
       catchError(error => {
@@ -70,16 +79,7 @@ export class AuthService {
     );
   }
 
-  getUsuarioActual() {
-    return this.usuarioService.getUsuario();
-  }
-
-  logout(): void {
-    this.usuarioService.limpiarUsuario();
-    localStorage.removeItem('usuario');
-    this.router.navigate(['/login']);
-  }
-
+  // Método redirigirPorRol
   redirigirPorRol(tipoUsuario: string): void {
     switch (tipoUsuario) {
       case 'ADMIN':
@@ -100,15 +100,56 @@ export class AuthService {
     }
   }
 
-  isLoggedIn(): boolean {
-    const usuarioStr = localStorage.getItem('usuario');
-    if (!usuarioStr) return false;
+  // Métodos esenciales
+  logout(): void {
+    this.clearAuthState();
+    this.router.navigate(['/login']);
+  }
 
-    try {
-      const data = JSON.parse(usuarioStr);
-      return Date.now() <= data.exp;
-    } catch {
-      return false;
+  isLoggedIn(): boolean {
+    return this.isAuthenticatedSubject.value;
+  }
+
+  getCurrentUser(): UsuarioDto | null {
+    return this.currentUserSubject.value;
+  }
+
+  getAuthState(): Observable<boolean> {
+    return this.isAuthenticatedSubject.asObservable();
+  }
+
+  // Limpiar solo si estamos en la página de login
+  clearIfOnLoginPage(): void {
+    const currentRoute = this.router.url;
+    
+    // Solo limpiar si estamos específicamente en la página de login
+    if (currentRoute === '/login' || currentRoute === '/') {
+      console.log('En página de login, limpiando sesión...');
+      this.clearAuthState();
+    } else {
+      console.log('En página protegida, manteniendo sesión...');
     }
+  }
+
+  // Método auxiliar para limpiar estado
+  private clearAuthState(): void {
+    this.currentUserSubject.next(null);
+    this.isAuthenticatedSubject.next(false);
+    localStorage.removeItem(this.USUARIO_KEY);
+    this.usuarioService.limpiarUsuario();
+  }
+
+  // Métodos de utilidad para verificación de roles
+  hasRole(role: string): boolean {
+    const user = this.getCurrentUser();
+    return user?.tipoUsuario === role;
+  }
+
+  isAdmin(): boolean {
+    return this.hasRole('ADMIN');
+  }
+
+  isVendedor(): boolean {
+    return this.hasRole('VENDEDOR');
   }
 }

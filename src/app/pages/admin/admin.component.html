@@ -64,7 +64,7 @@
   <h2>Gestión de Usuarios</h2>
   
   <div class="form-container">
-    <h3>Crear Usuario</h3>
+    <h3>{{ usuarioEditando ? 'Editar' : 'Crear' }} Usuario</h3>
     <form #formUsuario="ngForm" (ngSubmit)="guardarUsuario()">
       <div class="form-row">
         <div class="form-group">
@@ -125,15 +125,21 @@
         <div class="form-group">
           <label for="estado">Estado</label>
           <select id="estado" name="estado" [(ngModel)]="usuario.estado">
-            <option value="true">Activo</option>
-            <option value="false">Inactivo</option>
+            <option [value]="true">Activo</option>
+            <option [value]="false">Inactivo</option>
           </select>
         </div>
       </div>
       
-      <div class="form-group button-group">
-        <button type="submit" [disabled]="!formUsuario.valid">Guardar Usuario</button>
+      <!-- GRUPO DE BOTONES CORREGIDO - SIN DESHABILITAR -->
+      <div class="button-group">
+        <button type="submit">
+          {{ usuarioEditando ? 'Actualizar' : 'Guardar' }} Usuario
+        </button>
         <button type="button" (click)="limpiarFormulario()">Limpiar</button>
+        <button type="button" *ngIf="usuarioEditando" (click)="limpiarFormulario()" class="btn-cancelar">
+          Cancelar Edición
+        </button>
       </div>
     </form>
   </div>

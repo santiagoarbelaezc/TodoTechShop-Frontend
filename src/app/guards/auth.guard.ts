@@ -1,4 +1,4 @@
-// src/app/guards/auth.guard.ts
+// src/app/guards/auth.guard.ts - asegurar que no limpie sesión
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -14,13 +14,15 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   canActivate(): boolean {
-    const usuario = this.authService.getUsuarioActual();
-    console.log('AuthGuard: Usuario actual ->', usuario);
-
-    if (usuario) {
-      return true; // ✅ Usuario autenticado y sesión válida
+    console.log('AuthGuard verificando ruta:', this.router.url);
+    
+    if (this.authService.isLoggedIn()) {
+      console.log('AuthGuard: Usuario autenticado ✅');
+      return true;
     } else {
-      this.router.navigate(['/login']); // 🔒 No autenticado o sesión expirada
+      console.log('AuthGuard: Acceso denegado 🔒 - Redirigiendo a login');
+      // IMPORTANTE: No llamar a logout() aquí, solo redirigir
+      this.router.navigate(['/login']);
       return false;
     }
   }

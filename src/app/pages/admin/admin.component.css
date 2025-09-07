@@ -867,22 +867,80 @@ h2::before {
     box-shadow: 0 2px 8px rgba(75, 85, 99, 0.25);
 }
 
-/* Botón deshabilitado */
-.form-group.button-group button[disabled] {
-    background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+/* BOTONES - ESTILOS CORREGIDOS */
+.button-group {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-start;
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
 }
+
+.button-group button {
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    min-width: 140px;
+    border: none;
+    cursor: pointer;
+    color: white;
+}
+
+/* Botón principal - Verde esmeralda profesional */
+.button-group button:first-child {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.button-group button:first-child:hover:not([disabled]) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+}
+
+.button-group button:first-child:active:not([disabled]) {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+/* Botón secundario - Azul grisáceo elegante */
+.button-group button:nth-child(2) {
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    box-shadow: 0 4px 12px rgba(75, 85, 99, 0.25);
+}
+
+.button-group button:nth-child(2):hover {
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(75, 85, 99, 0.35);
+}
+
+/* Botón cancelar */
+.button-group .btn-cancelar {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.button-group .btn-cancelar:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+}
+
 
 /* Estilos responsivos para los botones */
 @media screen and (max-width: 768px) {
-    .form-group.button-group {
+    .button-group {
         flex-direction: column;
         gap: 12px;
     }
     
-    .form-group.button-group button {
+    .button-group button {
         width: 100%;
         justify-content: center;
     }
