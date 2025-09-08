@@ -610,6 +610,136 @@ button:active,
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
 }
 
+
+.filtros-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eee;
+  margin-bottom: 25px;
+}
+
+.filtros-container h4 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+  font-weight: 600;
+  font-size: 18px;
+  border-bottom: 2px solid #f0f5ff;
+  padding-bottom: 10px;
+}
+
+.filtros-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: end;
+  margin-bottom: 15px;
+}
+
+.filtro-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  flex: 1;
+}
+
+.filtro-group label {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #495057;
+  font-size: 14px;
+}
+
+.filtro-group input,
+.filtro-group select {
+  padding: 12px 14px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+  transition: all 0.3s ease;
+}
+
+.filtro-group input:focus,
+.filtro-group select:focus {
+  outline: none;
+  border-color: #000;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.filtro-group button {
+  margin-top: 8px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #000 0%, #2a2a2a 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.filtro-group button:hover {
+  background: linear-gradient(135deg, #2a2a2a 0%, #4a4a4a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.filtro-group button:active {
+  transform: translateY(0);
+}
+
+.btn-limpiar {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+  padding: 12px 20px !important;
+  align-self: flex-end;
+  height: fit-content;
+}
+
+.btn-limpiar:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%) !important;
+}
+
+/* Ajustes para grupos de filtros de fecha */
+.filtro-group.fecha-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filtro-group.fecha-group label {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.filtro-group.fecha-group input {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .filtros-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .filtro-group {
+    width: 100%;
+  }
+  
+  .filtro-group.fecha-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 /* RESPONSIVE */
 @media screen and (max-width: 1024px) {
     .menu {

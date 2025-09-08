@@ -157,4 +157,92 @@ actualizarUsuarioAdmin(id: number, usuario: UsuarioDto): Observable<MensajeDto<s
       this.setUsuario(usuario);
     }
   }
+
+
+  // Buscar usuarios por nombre (búsqueda parcial)
+buscarUsuariosPorNombre(nombre: string): Observable<UsuarioDto[]> {
+  return this.adminService.get<MensajeDto<UsuarioDto[]>>(`/usuarios/buscar/nombre?nombre=${encodeURIComponent(nombre)}`).pipe(
+    map(response => response.data),
+    catchError(error => {
+      console.error('Error en buscarUsuariosPorNombre:', error);
+      throw error;
+    })
+  );
+}
+
+// Buscar usuarios por cédula (búsqueda parcial)
+buscarUsuariosPorCedula(cedula: string): Observable<UsuarioDto[]> {
+  return this.adminService.get<MensajeDto<UsuarioDto[]>>(`/usuarios/buscar/cedula?cedula=${encodeURIComponent(cedula)}`).pipe(
+    map(response => response.data),
+    catchError(error => {
+      console.error('Error en buscarUsuariosPorCedula:', error);
+      throw error;
+    })
+  );
+}
+
+// Obtener usuarios por tipo
+obtenerUsuariosPorTipo(tipo: string): Observable<UsuarioDto[]> {
+  return this.adminService.get<MensajeDto<UsuarioDto[]>>(`/usuarios/tipo/${tipo}`).pipe(
+    map(response => response.data),
+    catchError(error => {
+      console.error('Error en obtenerUsuariosPorTipo:', error);
+      throw error;
+    })
+  );
+}
+
+// Obtener usuarios por rango de fechas
+obtenerUsuariosPorFechaCreacion(fechaInicio: Date, fechaFin: Date): Observable<UsuarioDto[]> {
+  const fechaInicioStr = fechaInicio.toISOString();
+  const fechaFinStr = fechaFin.toISOString();
+  
+  return this.adminService.get<MensajeDto<UsuarioDto[]>>(
+    `/usuarios/fecha-creacion?fechaInicio=${fechaInicioStr}&fechaFin=${fechaFinStr}`
+  ).pipe(
+    map(response => response.data),
+    catchError(error => {
+      console.error('Error en obtenerUsuariosPorFechaCreacion:', error);
+      throw error;
+    })
+  );
+}
+
+// Obtener usuarios creados después de una fecha
+obtenerUsuariosCreadosDespuesDe(fecha: Date): Observable<UsuarioDto[]> {
+  const fechaStr = fecha.toISOString();
+  
+  return this.adminService.get<MensajeDto<UsuarioDto[]>>(
+    `/usuarios/fecha-creacion/despues?fecha=${fechaStr}`
+  ).pipe(
+    map(response => response.data),
+    catchError(error => {
+      console.error('Error en obtenerUsuariosCreadosDespuesDe:', error);
+      throw error;
+    })
+  );
+}
+
+// Obtener usuarios creados antes de una fecha
+obtenerUsuariosCreadosAntesDe(fecha: Date): Observable<UsuarioDto[]> {
+  const fechaStr = fecha.toISOString();
+  
+  return this.adminService.get<MensajeDto<UsuarioDto[]>>(
+    `/usuarios/fecha-creacion/antes?fecha=${fechaStr}`
+  ).pipe(
+    map(response => response.data),
+    catchError(error => {
+      console.error('Error en obtenerUsuariosCreadosAntesDe:', error);
+      throw error;
+    })
+  );
+}
+
+// Solicitar recordatorio de contraseña
+solicitarRecordatorioContrasena(correo: string): Observable<MensajeDto<string>> {
+  return this.adminService.post<MensajeDto<string>>(
+    `/usuarios/recordar-contrasena?correo=${encodeURIComponent(correo)}`,
+    {}
+  );
+}
 }

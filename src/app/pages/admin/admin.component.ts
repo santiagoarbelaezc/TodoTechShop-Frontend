@@ -54,6 +54,23 @@ export class AdminComponent implements OnInit {
   usuarioEditando: boolean = false;
   usuarioEditandoId: number | null = null;
 
+  terminoBusquedaNombre: string = '';
+  terminoBusquedaCedula: string = '';
+  tipoUsuarioFiltro: string = 'TODOS';
+  fechaInicioFiltro: string = '';
+  fechaFinFiltro: string = '';
+  fechaEspecificaFiltro: string = '';
+  tipoFiltroFecha: string = '';
+
+
+  tiposUsuario = [
+  { value: 'TODOS', label: 'Todos los tipos' },
+  { value: 'ADMIN', label: 'Administrador' },
+  { value: 'VENDEDOR', label: 'Vendedor' },
+  { value: 'CAJERO', label: 'Cajero' },
+  { value: 'DESPACHADOR', label: 'Despachador' }
+];
+
   usuario: CrearUsuarioDTO = {
     nombre: '',
     cedula: '',
@@ -149,11 +166,16 @@ export class AdminComponent implements OnInit {
 
   // GUARDAR USUARIO
 guardarUsuario() {
-  // Validar que ningún campo esté vacío
-  if (this.validarCamposVacios()) {
-    return; // Detener la ejecución si hay campos vacíos
+  // Validar que el formulario es válido antes de proceder
+  if (this.formUsuario.invalid) {
+    // Marcar todos los campos como touched para mostrar mensajes de error
+    Object.keys(this.formUsuario.controls).forEach(key => {
+      this.formUsuario.controls[key].markAsTouched();
+    });
+    alert('Por favor, complete todos los campos obligatorios correctamente.');
+    return;
   }
-  
+
   console.log('Estado del formulario:', this.usuario.estado, typeof this.usuario.estado);
   
   if (this.usuarioEditando && this.usuarioEditandoId) {
@@ -221,55 +243,34 @@ guardarUsuario() {
   }
 }
 
-// Método para validar campos vacíos
-validarCamposVacios(): boolean {
-  const camposRequeridos = [
-    { nombre: 'nombre', valor: this.usuario.nombre, etiqueta: 'Nombre' },
-    { nombre: 'cedula', valor: this.usuario.cedula, etiqueta: 'Cédula' },
-    { nombre: 'correo', valor: this.usuario.correo, etiqueta: 'Correo electrónico' },
-    { nombre: 'telefono', valor: this.usuario.telefono, etiqueta: 'Teléfono' },
-    { nombre: 'nombreUsuario', valor: this.usuario.nombreUsuario, etiqueta: 'Nombre de usuario' },
-    { nombre: 'contrasena', valor: this.usuario.contrasena, etiqueta: 'Contraseña' }
-  ];
-
-  for (const campo of camposRequeridos) {
-    if (!campo.valor || campo.valor.trim() === '') {
-      alert(`El campo ${campo.etiqueta} es obligatorio.`);
-      
-      // Enfocar el campo vacío en el formulario
-      setTimeout(() => {
-        const elemento = document.querySelector(`[name="${campo.nombre}"]`) as HTMLElement;
-        if (elemento) {
-          elemento.focus();
-        }
-      }, 100);
-      
-      return true; // Hay campos vacíos
-    }
-  }
+// EDITAR USUARIO
+editarUsuario(usuario: UsuarioDto) {
+  console.log('Usuario a editar:', usuario);
+  console.log('Estado original:', usuario.estado, typeof usuario.estado);
   
-  return false; // Todos los campos están llenos
+  this.usuarioEditando = true;
+  this.usuarioEditandoId = usuario.id;
+  
+  this.usuario = {
+    nombre: usuario.nombre,
+    cedula: usuario.cedula,
+    correo: usuario.correo,
+    telefono: usuario.telefono,
+    nombreUsuario: usuario.nombreUsuario,
+    contrasena: usuario.contrasena,
+    tipoUsuario: usuario.tipoUsuario as 'ADMIN' | 'VENDEDOR' | 'CAJERO' | 'DESPACHADOR',
+    estado: usuario.estado
+  };
+  
+  // Forzar la validación del formulario después de establecer los valores
+  setTimeout(() => {
+    if (this.formUsuario) {
+      Object.keys(this.formUsuario.controls).forEach(key => {
+        this.formUsuario.controls[key].markAsTouched();
+      });
+    }
+  });
 }
-
-  // EDITAR USUARIO
-  editarUsuario(usuario: UsuarioDto) {
-    console.log('Usuario a editar:', usuario);
-    console.log('Estado original:', usuario.estado, typeof usuario.estado);
-    
-    this.usuarioEditando = true;
-    this.usuarioEditandoId = usuario.id;
-    
-    this.usuario = {
-      nombre: usuario.nombre,
-      cedula: usuario.cedula,
-      correo: usuario.correo,
-      telefono: usuario.telefono,
-      nombreUsuario: usuario.nombreUsuario,
-      contrasena: usuario.contrasena,
-      tipoUsuario: usuario.tipoUsuario as 'ADMIN' | 'VENDEDOR' | 'CAJERO' | 'DESPACHADOR',
-      estado: usuario.estado
-    };
-  }
 
   // CAMBIAR ESTADO USUARIO
   cambiarEstadoUsuario(usuario: UsuarioDto) {
@@ -336,6 +337,111 @@ eliminarUsuario(usuario: UsuarioDto) {
       this.formUsuario.resetForm();
     }
   }
+
+
+  // Métodos de búsqueda
+buscarPorNombre() {
+  if (this.terminoBusquedaNombre.trim()) {
+    this.usuarioService.buscarUsuariosPorNombre(this.terminoBusquedaNombre).subscribe({
+      next: (usuarios) => {
+        this.usuarios = usuarios;
+      },
+      error: (error) => {
+        console.error('Error al buscar por nombre:', error);
+        alert('Error al buscar usuarios por nombre');
+      }
+    });
+  } else {
+    this.cargarUsuarios();
+  }
+}
+
+buscarPorCedula() {
+  if (this.terminoBusquedaCedula.trim()) {
+    this.usuarioService.buscarUsuariosPorCedula(this.terminoBusquedaCedula).subscribe({
+      next: (usuarios) => {
+        this.usuarios = usuarios;
+      },
+      error: (error) => {
+        console.error('Error al buscar por cédula:', error);
+        alert('Error al buscar usuarios por cédula');
+      }
+    });
+  } else {
+    this.cargarUsuarios();
+  }
+}
+
+filtrarPorTipo() {
+  if (this.tipoUsuarioFiltro !== 'TODOS') {
+    this.usuarioService.obtenerUsuariosPorTipo(this.tipoUsuarioFiltro).subscribe({
+      next: (usuarios) => {
+        this.usuarios = usuarios;
+      },
+      error: (error) => {
+        console.error('Error al filtrar por tipo:', error);
+        alert('Error al filtrar usuarios por tipo');
+      }
+    });
+  } else {
+    this.cargarUsuarios();
+  }
+}
+
+filtrarPorFecha() {
+  if (this.tipoFiltroFecha === 'rango' && this.fechaInicioFiltro && this.fechaFinFiltro) {
+    const fechaInicio = new Date(this.fechaInicioFiltro);
+    const fechaFin = new Date(this.fechaFinFiltro);
+    
+    this.usuarioService.obtenerUsuariosPorFechaCreacion(fechaInicio, fechaFin).subscribe({
+      next: (usuarios) => {
+        this.usuarios = usuarios;
+      },
+      error: (error) => {
+        console.error('Error al filtrar por rango de fechas:', error);
+        alert('Error al filtrar usuarios por rango de fechas');
+      }
+    });
+  } else if (this.tipoFiltroFecha === 'despues' && this.fechaEspecificaFiltro) {
+    const fecha = new Date(this.fechaEspecificaFiltro);
+    
+    this.usuarioService.obtenerUsuariosCreadosDespuesDe(fecha).subscribe({
+      next: (usuarios) => {
+        this.usuarios = usuarios;
+      },
+      error: (error) => {
+        console.error('Error al filtrar por fecha posterior:', error);
+        alert('Error al filtrar usuarios por fecha posterior');
+      }
+    });
+  } else if (this.tipoFiltroFecha === 'antes' && this.fechaEspecificaFiltro) {
+    const fecha = new Date(this.fechaEspecificaFiltro);
+    
+    this.usuarioService.obtenerUsuariosCreadosAntesDe(fecha).subscribe({
+      next: (usuarios) => {
+        this.usuarios = usuarios;
+      },
+      error: (error) => {
+        console.error('Error al filtrar por fecha anterior:', error);
+        alert('Error al filtrar usuarios por fecha anterior');
+      }
+    });
+  } else {
+    alert('Por favor, complete los campos de fecha correctamente');
+  }
+}
+
+// Limpiar todos los filtros
+limpiarFiltros() {
+  this.terminoBusquedaNombre = '';
+  this.terminoBusquedaCedula = '';
+  this.tipoUsuarioFiltro = 'TODOS';
+  this.fechaInicioFiltro = '';
+  this.fechaFinFiltro = '';
+  this.fechaEspecificaFiltro = '';
+  this.tipoFiltroFecha = '';
+  this.cargarUsuarios();
+}
 
   // Resto de métodos existentes...
   cargarProductos() {
