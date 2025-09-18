@@ -44,6 +44,11 @@
             <span *ngIf="isLoading">Iniciando sesión...</span>
           </button>
         </form>
+
+        <!-- Enlace para recuperar contraseña -->
+        <div class="forgot-password">
+          <a href="#" (click)="goToRecoverPassword($event)">¿Olvidaste tu contraseña?</a>
+        </div>
       </div>
       
       <!-- Sección del logo con fondo negro -->

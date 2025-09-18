@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { UsuarioService } from '../../services/usuario.service';
 import { UsuarioDto } from '../../models/usuario.dto';
@@ -37,7 +37,7 @@ export interface CrearUsuarioDTO {
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
-export class AdminComponent implements OnInit {
+export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('formUsuario') formUsuario!: NgForm;
   
   nombre: string = '';
@@ -62,6 +62,10 @@ export class AdminComponent implements OnInit {
   fechaFinFiltro: string = '';
   fechaEspecificaFiltro: string = '';
   tipoFiltroFecha: string = '';
+
+  // Variable para controlar la visibilidad del indicador de scroll
+  tablaTieneScroll: boolean = false;
+  private resizeObserver: ResizeObserver | null = null;
 
   tiposUsuario = [
     { value: 'TODOS', label: 'Todos los tipos' },
@@ -113,7 +117,64 @@ export class AdminComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
+
+    this.cargarUsuarios();
+  }
+
+  ngAfterViewInit() {
+    // Inicializar el observador de cambios de tamaño después de que la vista se renderice
+    this.inicializarObservadorResize();
+    // Verificar scroll después de un breve delay para asegurar que el DOM esté listo
+    setTimeout(() => this.verificarScrollTabla(), 100);
+  }
+
+  ngOnDestroy() {
+    // Limpiar el observador cuando el componente se destruya
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+  }
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    // Verificar el scroll cuando la ventana cambie de tamaño
+    this.verificarScrollTabla();
+  }
+
+  // Método para inicializar el observador de cambios de tamaño
+  private inicializarObservadorResize() {
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => {
+        this.verificarScrollTabla();
+      });
+
+      // Observar cambios en los contenedores de tabla
+      const tablaContainers = document.querySelectorAll('.tabla-container');
+      tablaContainers.forEach(container => {
+        this.resizeObserver?.observe(container);
+      });
+    }
+  }
+
+  // Método para verificar si la tabla necesita scroll horizontal
+  private verificarScrollTabla() {
+    const tablaScrollElements = document.querySelectorAll('.tabla-scroll');
     
+    tablaScrollElements.forEach(element => {
+      const scrollElement = element as HTMLElement;
+      // Verificar si el contenido es más ancho que el contenedor
+      this.tablaTieneScroll = scrollElement.scrollWidth > scrollElement.clientWidth;
+      
+      // Añadir o quitar clase según sea necesario
+      const container = scrollElement.closest('.tabla-container');
+      if (container) {
+        if (this.tablaTieneScroll) {
+          container.classList.add('has-scroll');
+        } else {
+          container.classList.remove('has-scroll');
+        }
+      }
+    });
   }
 
   mostrarSeccion(seccion: string) {
@@ -133,6 +194,9 @@ export class AdminComponent implements OnInit {
         this.cargarReportePorVendedor();
         break;
     }
+    
+    // Verificar el scroll después de cambiar de sección
+    setTimeout(() => this.verificarScrollTabla(), 300);
   }
 
   // CARGAR USUARIOS ACTUALES
@@ -141,6 +205,9 @@ export class AdminComponent implements OnInit {
       next: (usuarios: UsuarioDto[]) => {
         this.usuarios = usuarios;
         console.log('Usuarios cargados exitosamente:', usuarios);
+        
+        // Verificar scroll después de cargar los datos
+        setTimeout(() => this.verificarScrollTabla(), 100);
       },
       error: (error) => {
         console.error('Error completo al cargar usuarios:', error);
@@ -161,6 +228,7 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  // Resto de métodos existentes (guardarUsuario, editarUsuario, etc.)...
   // GUARDAR USUARIO
   guardarUsuario() {
     // Validar que el formulario es válido antes de proceder
@@ -340,6 +408,7 @@ export class AdminComponent implements OnInit {
       this.usuarioService.buscarUsuariosPorNombre(this.terminoBusquedaNombre).subscribe({
         next: (usuarios) => {
           this.usuarios = usuarios;
+          setTimeout(() => this.verificarScrollTabla(), 100);
         },
         error: (error) => {
           console.error('Error al buscar por nombre:', error);
@@ -356,6 +425,7 @@ export class AdminComponent implements OnInit {
       this.usuarioService.buscarUsuariosPorCedula(this.terminoBusquedaCedula).subscribe({
         next: (usuarios) => {
           this.usuarios = usuarios;
+          setTimeout(() => this.verificarScrollTabla(), 100);
         },
         error: (error) => {
           console.error('Error al buscar por cédula:', error);
@@ -372,6 +442,7 @@ export class AdminComponent implements OnInit {
       this.usuarioService.obtenerUsuariosPorTipo(this.tipoUsuarioFiltro).subscribe({
         next: (usuarios) => {
           this.usuarios = usuarios;
+          setTimeout(() => this.verificarScrollTabla(), 100);
         },
         error: (error) => {
           console.error('Error al filtrar por tipo:', error);
@@ -391,6 +462,7 @@ export class AdminComponent implements OnInit {
       this.usuarioService.obtenerUsuariosPorFechaCreacion(fechaInicio, fechaFin).subscribe({
         next: (usuarios) => {
           this.usuarios = usuarios;
+          setTimeout(() => this.verificarScrollTabla(), 100);
         },
         error: (error) => {
           console.error('Error al filtrar por rango de fechas:', error);
@@ -403,6 +475,7 @@ export class AdminComponent implements OnInit {
       this.usuarioService.obtenerUsuariosCreadosDespuesDe(fecha).subscribe({
         next: (usuarios) => {
           this.usuarios = usuarios;
+          setTimeout(() => this.verificarScrollTabla(), 100);
         },
         error: (error) => {
           console.error('Error al filtrar por fecha posterior:', error);
@@ -415,6 +488,7 @@ export class AdminComponent implements OnInit {
       this.usuarioService.obtenerUsuariosCreadosAntesDe(fecha).subscribe({
         next: (usuarios) => {
           this.usuarios = usuarios;
+          setTimeout(() => this.verificarScrollTabla(), 100);
         },
         error: (error) => {
           console.error('Error al filtrar por fecha anterior:', error);

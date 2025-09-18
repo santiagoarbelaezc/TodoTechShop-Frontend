@@ -1347,3 +1347,64 @@ body {
 @media screen and (min-width: 769px) {
     /* Los estilos originales para tablets y desktop se mantienen */
 }
+
+/* Estilos para el enlace de recuperación de contraseña */
+.forgot-password {
+    margin-top: 20px;
+    text-align: center;
+    transition: all 1s ease-in-out 0.8s;
+}
+
+.login-container.swap-completed .forgot-password {
+    transform: translateY(-1px);
+}
+
+.forgot-password a {
+    color: #666;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.forgot-password a:hover {
+    color: #000;
+}
+
+/* Efecto subrayado elegante al pasar el ratón */
+.forgot-password a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1px;
+    bottom: -2px;
+    left: 0;
+    background-color: #000;
+    transition: width 0.3s ease;
+}
+
+.forgot-password a:hover::after {
+    width: 100%;
+}
+
+/* Ajustes responsivos */
+@media screen and (max-width: 768px) {
+    .forgot-password {
+        margin-top: 15px;
+    }
+    
+    .forgot-password a {
+        font-size: 13px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .forgot-password {
+        margin-top: 12px;
+    }
+    
+    .forgot-password a {
+        font-size: 12px;
+    }
+}

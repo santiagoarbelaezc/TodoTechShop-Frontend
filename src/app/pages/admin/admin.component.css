@@ -1091,3 +1091,154 @@ h2::before {
         justify-content: center;
     }
 }
+
+
+/* MEJORAS PARA EL SCROLL VERTICAL DE TABLAS */
+.tabla-container {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.tabla-scroll {
+    overflow-y: auto; /* Solo scroll vertical */
+    overflow-x: hidden; /* Elimina scroll horizontal */
+    margin: 18px 0;
+    border-radius: 10px;
+    position: relative;
+    max-height: 50vh; /* Altura máxima para scroll vertical */
+    width: 100%; /* Ocupa todo el ancho disponible */
+}
+
+/* Personalización de la barra de scroll VERTICAL para navegadores WebKit */
+.tabla-scroll::-webkit-scrollbar {
+    width: 10px; /* Solo ancho para scroll vertical */
+    height: 0; /* Elimina altura para scroll horizontal */
+}
+
+.tabla-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.tabla-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #1421cf 0%, #db1f1f 100%);
+    border-radius: 10px;
+}
+
+.tabla-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #101bb8 0%, #b81515 100%);
+}
+
+/* Para Firefox - Scroll VERTICAL solamente */
+.tabla-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #1421cf #f1f1f1;
+}
+
+/* Estilos para indicar que hay más contenido (scroll vertical) */
+.tabla-container::after {
+    content: '';
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    width: 20px;
+    height: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231421cf'%3E%3Cpath d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.7;
+    animation: pulse-scroll-vertical 2s infinite;
+    pointer-events: none;
+    display: none;
+}
+
+@keyframes pulse-scroll-vertical {
+    0%, 100% { opacity: 0.5; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(3px); }
+}
+
+/* Mejora visual para tablas con scroll VERTICAL */
+.tabla-usuarios {
+    width: 100%; /* Ocupa todo el ancho disponible */
+    border-collapse: collapse;
+}
+
+/* Asegurar que las celdas mantengan un tamaño adecuado */
+.tabla-usuarios th,
+.tabla-usuarios td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.tabla-usuarios th {
+    background-color: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Columnas específicas con tamaños ajustados */
+.tabla-usuarios th:nth-child(1), /* ID */
+.tabla-usuarios td:nth-child(1) {
+    width: 80px;
+}
+
+.tabla-usuarios th:nth-child(2), /* Cédula */
+.tabla-usuarios td:nth-child(2) {
+    width: 110px;
+}
+
+.tabla-usuarios th:nth-child(3), /* Nombre */
+.tabla-usuarios td:nth-child(3) {
+    width: 150px;
+}
+
+.tabla-usuarios th:nth-child(9), /* Acciones */
+.tabla-usuarios td:nth-child(9) {
+    width: 180px;
+}
+
+
+.sin-registros {
+    text-align: center;
+    padding: 20px;
+    color: #757575;
+    font-style: italic;
+}
+
+.tabla-container.has-scroll::after {
+    display: block;
+}
+
+/* Responsividad mejorada para tablas */
+@media screen and (max-width: 1024px) {
+    .tabla-scroll {
+        margin: 15px 0;
+        width: 100%;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .tabla-scroll {
+        border-radius: 8px;
+        margin: 12px 0;
+    }
+    
+    .tabla-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .tabla-usuarios th,
+    .tabla-usuarios td {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+    
+    .acciones-usuario {
+        flex-direction: column;
+        gap: 4px;
+    }
+}

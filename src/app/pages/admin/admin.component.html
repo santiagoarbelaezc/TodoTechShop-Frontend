@@ -15,13 +15,13 @@
   <nav>
     <ul class="menu">
       <li><span class="logo">TodoTechAdmin</span></li>
-      <li><a href="#" (click)="mostrarSeccion('usuarios'); $event.preventDefault()">Usuarios</a></li>
+      <li><a href="#" (click)="mostrarSeccion('usuarios'); $event.preventDefault()">Creación Usuarios</a></li>
+      <li><a href="#" (click)="mostrarSeccion('usuariosRegistrados'); $event.preventDefault()">Usuarios Registrados</a></li>
       <li><a href="#" (click)="mostrarSeccion('productos'); $event.preventDefault()">Productos</a></li>
       <li><a href="#" (click)="mostrarSeccion('ordenes'); $event.preventDefault()">Órdenes de Venta</a></li>
       <li><a href="#" (click)="mostrarSeccion('reportes'); $event.preventDefault()">Reportes</a></li>
-      <li><a href="#" (click)="mostrarSeccion('inventario'); $event.preventDefault()">Inventario</a></li>
       <li><a href="#" (click)="mostrarSeccion('configuracion'); $event.preventDefault()">Configuración</a></li>
-      <li><a href="#" class="logout" (click)="$event.preventDefault()">Salir</a></li>
+      <li><a href="#" class="logout" (click)="salir(); $event.preventDefault()">Salir</a></li>
     </ul>
   </nav>
 </header>
@@ -55,7 +55,7 @@
   <p class="bienvenida-text">
     Desde aquí podrás gestionar <span class="highlight">usuarios</span>, <span class="highlight">productos</span>,
     <span class="highlight">reportes</span> e <span class="highlight">inventario</span>. Todo en un solo lugar,
-    con una experiencia intuitiva и eficiente.
+    con una experiencia intuitiva y eficiente.
   </p>
 </div>
  
@@ -181,7 +181,13 @@
   </div>
 
 
-  <div class="filtros-container">
+</div>
+
+    <!-- SECCIÓN DE USUARIOS REGISTRADOS -->
+    <div *ngIf="seccionActiva === 'usuariosRegistrados'">
+      <h2>Usuarios Registrados</h2>
+
+        <div class="filtros-container">
   <h4>Filtros de Búsqueda</h4>
   
   <div class="filtros-row">
@@ -246,61 +252,59 @@
     </div>
   </div>
 </div>
-
-  
-  <div class="tabla-container">
-  <h3>Usuarios Registrados</h3>
-  <div class="tabla-scroll">
-    <table class="tabla-usuarios">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Cédula</th>
-          <th>Nombre</th>
-          <th>Usuario</th>
-          <th>Correo</th>
-          <th>Tipo</th>
-          <th>Estado</th>
-          <th>Fecha Creación</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let u of usuarios">
-          <td>{{ u.id }}</td>
-          <td>{{ u.cedula }}</td>
-          <td>{{ u.nombre }}</td>
-          <td>{{ u.nombreUsuario }}</td>
-          <td>{{ u.correo }}</td>
-          <td><span class="badge-tipo">{{ u.tipoUsuario }}</span></td>
-          <td>
-            <span [class.estado-activo]="u.estado" [class.estado-inactivo]="!u.estado">
-              {{ u.estado ? 'Activo' : 'Inactivo' }}
-            </span>
-          </td>
-          <td>{{ u.fechaCreacion | date:'short' }}</td>
-          <td>
-            <div class="acciones-usuario">
-              <button (click)="editarUsuario(u)" title="Editar usuario">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button (click)="cambiarEstadoUsuario(u)" [class]="u.estado ? 'btn-desactivar' : 'btn-activar'" 
-                      [title]="u.estado ? 'Desactivar usuario' : 'Activar usuario'">
-                <i [class]="u.estado ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
-              </button>
-              <!-- Botón para eliminar usuario -->
-              <button (click)="eliminarUsuario(u)" class="btn-eliminar" title="Eliminar usuario permanentemente">
-                <i class="fas fa-trash-alt"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <p *ngIf="usuarios.length === 0" class="sin-registros">No hay usuarios registrados</p>
-</div>
-</div>
+      
+      <div class="tabla-container">
+        <h3>Lista de Usuarios</h3>
+        <div class="tabla-scroll">
+          <table class="tabla-usuarios">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cédula</th>
+                <th>Nombre</th>
+                <th>Usuario</th>
+                <th>Correo</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Fecha Creación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let u of usuarios">
+                <td>{{ u.id }}</td>
+                <td>{{ u.cedula }}</td>
+                <td>{{ u.nombre }}</td>
+                <td>{{ u.nombreUsuario }}</td>
+                <td>{{ u.correo }}</td>
+                <td><span class="badge-tipo">{{ u.tipoUsuario }}</span></td>
+                <td>
+                  <span [class.estado-activo]="u.estado" [class.estado-inactivo]="!u.estado">
+                    {{ u.estado ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td>{{ u.fechaCreacion | date:'short' }}</td>
+                <td>
+                  <div class="acciones-usuario">
+                    <button (click)="editarUsuario(u)" title="Editar usuario">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button (click)="cambiarEstadoUsuario(u)" [class]="u.estado ? 'btn-desactivar' : 'btn-activar'" 
+                            [title]="u.estado ? 'Desactivar usuario' : 'Activar usuario'">
+                      <i [class]="u.estado ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
+                    </button>
+                    <button (click)="eliminarUsuario(u)" class="btn-eliminar" title="Eliminar usuario permanentemente">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p *ngIf="usuarios.length === 0" class="sin-registros">No hay usuarios registrados</p>
+      </div>
+    </div>
 
     <div *ngIf="seccionActiva === 'productos'">
   <h2>Crear Producto</h2>
@@ -429,48 +433,12 @@
             <td>{{ reporte.vendedorDTO.correo }}</td>
             <td>{{ reporte.vendedorDTO.telefono }}</td>
             <td>{{ reporte.totalVentas | number:'1.2-2' }}</td>
-
           </tr>
-                   
         </tbody>
       </table>
     
       <p *ngIf="reportesPorVendedor.length === 0">No hay datos de reporte por vendedor disponibles.</p>
     </div>
-   
-
-    <div *ngIf="seccionActiva === 'inventario'">
-  <h2>Inventario</h2>
-  <input type="text" placeholder="Buscar producto..." />
-
-  <table class="tabla-inventario">
-    <thead>
-      <tr>
-        <th>Producto</th>
-        <th>Código</th>
-        <th>Stock</th>
-        <th>Categoría</th>
-        <th>Cantidad Ventas</th>
-        <th>Valor Ventas</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let item of productosReporte">
-  <td>{{ item.producto.nombre || 'Sin nombre' }}</td>
-<td>{{ item.producto.codigo || 'Sin código' }}</td>
-<td>{{ item.producto.stock}}</td>
-<td>{{ item.producto.categoria.nombre || 'Sin categoría' }}</td>
-<td>{{ item.cantidadVentas}}</td>
-<td>{{ item.valorVentas}}</td>
-
-  <td>
-    <button>Ver</button>
-      </td>
-    </tr>
-    </tbody>
-  </table>
-</div>
-
 
     <div *ngIf="seccionActiva === 'configuracion'" class="configuracion-container">
       <h2>Configuración del Sistema</h2>

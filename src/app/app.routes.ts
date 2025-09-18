@@ -16,6 +16,7 @@ import { AccesoDenegadoComponent } from './pages/acceso-denegado/acceso-denegado
 import { authGuard } from './guards/auth.guard';
 import { publicGuard } from './guards/public.guard';
 import { roleGuard } from './guards/role.guard';
+import { RecuperarContrasenaComponent } from './pages/recuperar-contrasena/recuperar-contrasena.component';
 
 export const routes: Routes = [
   { 
@@ -26,6 +27,21 @@ export const routes: Routes = [
   { 
     path: 'login', 
     component: LoginComponent,
+    canActivate: [publicGuard]  // Usar la función publicGuard
+  },
+  { 
+    path: 'acceso-denegado', 
+    component: AccesoDenegadoComponent
+  },
+
+  { 
+    path: '', 
+    redirectTo: 'recuperar-contrasena', 
+    pathMatch: 'full' 
+  },
+  { 
+    path: 'recuperar-contrasena', 
+    component: RecuperarContrasenaComponent,
     canActivate: [publicGuard]  // Usar la función publicGuard
   },
   { 

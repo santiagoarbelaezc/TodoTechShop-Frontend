@@ -109,4 +109,9 @@ onLogin(): void {
       }
     });
   }
+
+  goToRecoverPassword(event: Event) {
+    event.preventDefault();
+    this.router.navigate(['/recuperar-contrasena']);
+  }
 }

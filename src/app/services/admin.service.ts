@@ -3,16 +3,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdminService {
   private http = inject(HttpClient);
-  private authService = inject(AuthService);
   
-  private apiUrl: string = 'http://localhost:8080';
+  private apiUrl: string = 'https://todotechbackend-iqb0.onrender.com';
 
   // Método genérico para peticiones GET
   get<T>(endpoint: string): Observable<T> {

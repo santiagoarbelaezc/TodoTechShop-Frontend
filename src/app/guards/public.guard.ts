@@ -10,28 +10,35 @@ export const publicGuard: CanActivateFn = () => {
   // Si el usuario ya está autenticado, redirigir a la página principal
   if (authService.isLoggedIn()) {
     const user = authService.getCurrentUser();
+    
+    // Evitar redirección si ya estamos en la ruta destino
+    const currentRoute = router.url;
+    
     if (user) {
-      // Redirigir según el rol del usuario
+      let targetRoute = '/inicio';
+      
+      // Determinar la ruta destino según el rol
       switch (user.role) {
         case 'ADMIN':
-          router.navigate(['/admin']);
+          targetRoute = '/admin';
           break;
         case 'VENDEDOR':
-          router.navigate(['/ordenVenta']);
+          targetRoute = '/ordenVenta';
           break;
         case 'CAJERO':
-          router.navigate(['/caja']);
+          targetRoute = '/caja';
           break;
         case 'DESPACHADOR':
-          router.navigate(['/despacho']);
-          break;
-        default:
-          router.navigate(['/inicio']);
+          targetRoute = '/despacho';
           break;
       }
-    } else {
-      router.navigate(['/inicio']);
+      
+      // Solo redirigir si no estamos ya en la ruta destino
+      if (currentRoute !== targetRoute) {
+        router.navigate([targetRoute]);
+      }
     }
+    
     return false;
   }
   
