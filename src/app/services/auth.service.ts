@@ -17,7 +17,7 @@ export class AuthService {
   private router = inject(Router);
   private usuarioService = inject(UsuarioService);
   
-  private apiUrl: string = 'https://todotechbackend-iqb0.onrender.com/usuarios';
+  private apiUrl: string = 'http://localhost:8080/usuarios';
   private USUARIO_KEY = 'currentUser';
   private TOKEN_KEY = 'authToken';
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
@@ -93,25 +93,25 @@ export class AuthService {
   }
 
   // En tu AuthService
-redirigirPorRol(tipoUsuario: string): void {
-  switch (tipoUsuario) {
-    case 'ADMIN':
-      this.router.navigate(['/admin']);
-      break;
-    case 'VENDEDOR':
-      this.router.navigate(['/ordenVenta']);
-      break;
-    case 'CAJERO':
-      this.router.navigate(['/caja']);
-      break;
-    case 'DESPACHADOR':
-      this.router.navigate(['/despacho']);
-      break;
-    default:
-      this.router.navigate(['/inicio']);
-      break;
+  redirigirPorRol(tipoUsuario: string): void {
+    switch (tipoUsuario) {
+      case 'ADMIN':
+        this.router.navigate(['/admin']);
+        break;
+      case 'VENDEDOR':
+        this.router.navigate(['/ordenVenta']);
+        break;
+      case 'CAJERO':
+        this.router.navigate(['/caja']);
+        break;
+      case 'DESPACHADOR':
+        this.router.navigate(['/despacho']);
+        break;
+      default:
+        this.router.navigate(['/inicio']);
+        break;
+    }
   }
-}
 
   // Métodos esenciales
   logout(): void {

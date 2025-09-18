@@ -12,7 +12,7 @@ export class AdminService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   
-  private apiUrl: string = 'https://todotechbackend-iqb0.onrender.com';
+  private apiUrl: string = 'http://localhost:8080';
 
   // Método genérico para peticiones GET
   get<T>(endpoint: string): Observable<T> {

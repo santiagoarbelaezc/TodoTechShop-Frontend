@@ -1,23 +1,22 @@
 // src/app/services/usuario.service.ts
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { UsuarioDto } from '../models/usuario.dto';
 import { MensajeDto } from '../models/mensaje.dto';
+import { LoginResponse } from '../models/login-response.dto';
 import { AdminService } from './admin.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UsuarioService {
-  private apiUrl: string = 'https://todotechbackend-iqb0.onrender.com/usuarios';
-  private usuarioSubject = new BehaviorSubject<UsuarioDto | null>(null);
-
-  constructor(
-    private adminService: AdminService,
-    private http: HttpClient // Mantenemos HttpClient para el login
-  ) {}
+  private adminService = inject(AdminService);
+  private http = inject(HttpClient);
+  
+  private apiUrl: string = 'http://localhost:8080/usuarios';
+  private usuarioSubject = new BehaviorSubject<LoginResponse | null>(null);
 
   // MÉTODO PRINCIPAL PARA OBTENER USUARIOS
   obtenerUsuarios(): Observable<UsuarioDto[]> {
@@ -53,13 +52,13 @@ export class UsuarioService {
     );
   }
 
-  // En usuario.service.ts - método actualizarUsuarioAdmin
-actualizarUsuarioAdmin(id: number, usuario: UsuarioDto): Observable<MensajeDto<string>> {
-  console.log('Enviando usuario para actualizar:', usuario);
-  console.log('Estado enviado:', usuario.estado, 'Tipo:', typeof usuario.estado);
-  
-  return this.adminService.put<MensajeDto<string>>(`/usuarios/${id}`, usuario);
-}
+  // Método actualizarUsuarioAdmin
+  actualizarUsuarioAdmin(id: number, usuario: UsuarioDto): Observable<MensajeDto<string>> {
+    console.log('Enviando usuario para actualizar:', usuario);
+    console.log('Estado enviado:', usuario.estado, 'Tipo:', typeof usuario.estado);
+    
+    return this.adminService.put<MensajeDto<string>>(`/usuarios/${id}`, usuario);
+  }
 
   cambiarEstadoUsuario(id: number, estado: boolean): Observable<MensajeDto<string>> {
     return this.adminService.patch<MensajeDto<string>>(`/usuarios/${id}/estado?estado=${estado}`);
@@ -99,15 +98,95 @@ actualizarUsuarioAdmin(id: number, usuario: UsuarioDto): Observable<MensajeDto<s
     );
   }
 
-  // Login method - MANTENIDO COMO ANTES (sin autenticación básica)
-  login(nombreUsuario: string, contrasena: string): Observable<MensajeDto<any>> {
-    return this.http.post<MensajeDto<any>>(`${this.apiUrl}/login`, null, {
-      params: { nombreUsuario, contrasena }
-    });
+  // Buscar usuarios por nombre (búsqueda parcial)
+  buscarUsuariosPorNombre(nombre: string): Observable<UsuarioDto[]> {
+    return this.adminService.get<MensajeDto<UsuarioDto[]>>(`/usuarios/buscar/nombre?nombre=${encodeURIComponent(nombre)}`).pipe(
+      map(response => response.data),
+      catchError(error => {
+        console.error('Error en buscarUsuariosPorNombre:', error);
+        throw error;
+      })
+    );
+  }
+
+  // Buscar usuarios por cédula (búsqueda parcial)
+  buscarUsuariosPorCedula(cedula: string): Observable<UsuarioDto[]> {
+    return this.adminService.get<MensajeDto<UsuarioDto[]>>(`/usuarios/buscar/cedula?cedula=${encodeURIComponent(cedula)}`).pipe(
+      map(response => response.data),
+      catchError(error => {
+        console.error('Error en buscarUsuariosPorCedula:', error);
+        throw error;
+      })
+    );
+  }
+
+  // Obtener usuarios por tipo
+  obtenerUsuariosPorTipo(tipo: string): Observable<UsuarioDto[]> {
+    return this.adminService.get<MensajeDto<UsuarioDto[]>>(`/usuarios/tipo/${tipo}`).pipe(
+      map(response => response.data),
+      catchError(error => {
+        console.error('Error en obtenerUsuariosPorTipo:', error);
+        throw error;
+      })
+    );
+  }
+
+  // Obtener usuarios por rango de fechas
+  obtenerUsuariosPorFechaCreacion(fechaInicio: Date, fechaFin: Date): Observable<UsuarioDto[]> {
+    const fechaInicioStr = fechaInicio.toISOString();
+    const fechaFinStr = fechaFin.toISOString();
+    
+    return this.adminService.get<MensajeDto<UsuarioDto[]>>(
+      `/usuarios/fecha-creacion?fechaInicio=${fechaInicioStr}&fechaFin=${fechaFinStr}`
+    ).pipe(
+      map(response => response.data),
+      catchError(error => {
+        console.error('Error en obtenerUsuariosPorFechaCreacion:', error);
+        throw error;
+      })
+    );
+  }
+
+  // Obtener usuarios creados después de una fecha
+  obtenerUsuariosCreadosDespuesDe(fecha: Date): Observable<UsuarioDto[]> {
+    const fechaStr = fecha.toISOString();
+    
+    return this.adminService.get<MensajeDto<UsuarioDto[]>>(
+      `/usuarios/fecha-creacion/despues?fecha=${fechaStr}`
+    ).pipe(
+      map(response => response.data),
+      catchError(error => {
+        console.error('Error en obtenerUsuariosCreadosDespuesDe:', error);
+        throw error;
+      })
+    );
+  }
+
+  // Obtener usuarios creados antes de una fecha
+  obtenerUsuariosCreadosAntesDe(fecha: Date): Observable<UsuarioDto[]> {
+    const fechaStr = fecha.toISOString();
+    
+    return this.adminService.get<MensajeDto<UsuarioDto[]>>(
+      `/usuarios/fecha-creacion/antes?fecha=${fechaStr}`
+    ).pipe(
+      map(response => response.data),
+      catchError(error => {
+        console.error('Error en obtenerUsuariosCreadosAntesDe:', error);
+        throw error;
+      })
+    );
+  }
+
+  // Solicitar recordatorio de contraseña
+  solicitarRecordatorioContrasena(correo: string): Observable<MensajeDto<string>> {
+    return this.adminService.post<MensajeDto<string>>(
+      `/usuarios/recordar-contrasena?correo=${encodeURIComponent(correo)}`,
+      {}
+    );
   }
 
   // Los siguientes métodos son para manejo local del estado del usuario
-  setUsuario(usuario: UsuarioDto): void {
+  setUsuario(usuario: LoginResponse): void {
     this.usuarioSubject.next(usuario);
     if (usuario) {
       localStorage.setItem('usuarioActual', JSON.stringify(usuario));
@@ -116,7 +195,7 @@ actualizarUsuarioAdmin(id: number, usuario: UsuarioDto): Observable<MensajeDto<s
     }
   }
 
-  getUsuario(): UsuarioDto | null {
+  getUsuario(): LoginResponse | null {
     const currentUser = this.usuarioSubject.value;
     if (currentUser) {
       return currentUser;
@@ -125,7 +204,7 @@ actualizarUsuarioAdmin(id: number, usuario: UsuarioDto): Observable<MensajeDto<s
     const usuarioStorage = localStorage.getItem('usuarioActual');
     if (usuarioStorage) {
       try {
-        const usuario = JSON.parse(usuarioStorage) as UsuarioDto;
+        const usuario = JSON.parse(usuarioStorage) as LoginResponse;
         this.usuarioSubject.next(usuario);
         return usuario;
       } catch (error) {
@@ -138,7 +217,7 @@ actualizarUsuarioAdmin(id: number, usuario: UsuarioDto): Observable<MensajeDto<s
     return null;
   }
 
-  getUsuarioObservable(): Observable<UsuarioDto | null> {
+  getUsuarioObservable(): Observable<LoginResponse | null> {
     return this.usuarioSubject.asObservable();
   }
 
@@ -151,98 +230,10 @@ actualizarUsuarioAdmin(id: number, usuario: UsuarioDto): Observable<MensajeDto<s
     return this.getUsuario() !== null;
   }
 
-  actualizarUsuario(usuario: UsuarioDto): void {
+  actualizarUsuario(usuario: LoginResponse): void {
     const currentUser = this.getUsuario();
-    if (currentUser && currentUser.id === usuario.id) {
+    if (currentUser && currentUser.userId === usuario.userId) {
       this.setUsuario(usuario);
     }
   }
-
-
-  // Buscar usuarios por nombre (búsqueda parcial)
-buscarUsuariosPorNombre(nombre: string): Observable<UsuarioDto[]> {
-  return this.adminService.get<MensajeDto<UsuarioDto[]>>(`/usuarios/buscar/nombre?nombre=${encodeURIComponent(nombre)}`).pipe(
-    map(response => response.data),
-    catchError(error => {
-      console.error('Error en buscarUsuariosPorNombre:', error);
-      throw error;
-    })
-  );
-}
-
-// Buscar usuarios por cédula (búsqueda parcial)
-buscarUsuariosPorCedula(cedula: string): Observable<UsuarioDto[]> {
-  return this.adminService.get<MensajeDto<UsuarioDto[]>>(`/usuarios/buscar/cedula?cedula=${encodeURIComponent(cedula)}`).pipe(
-    map(response => response.data),
-    catchError(error => {
-      console.error('Error en buscarUsuariosPorCedula:', error);
-      throw error;
-    })
-  );
-}
-
-// Obtener usuarios por tipo
-obtenerUsuariosPorTipo(tipo: string): Observable<UsuarioDto[]> {
-  return this.adminService.get<MensajeDto<UsuarioDto[]>>(`/usuarios/tipo/${tipo}`).pipe(
-    map(response => response.data),
-    catchError(error => {
-      console.error('Error en obtenerUsuariosPorTipo:', error);
-      throw error;
-    })
-  );
-}
-
-// Obtener usuarios por rango de fechas
-obtenerUsuariosPorFechaCreacion(fechaInicio: Date, fechaFin: Date): Observable<UsuarioDto[]> {
-  const fechaInicioStr = fechaInicio.toISOString();
-  const fechaFinStr = fechaFin.toISOString();
-  
-  return this.adminService.get<MensajeDto<UsuarioDto[]>>(
-    `/usuarios/fecha-creacion?fechaInicio=${fechaInicioStr}&fechaFin=${fechaFinStr}`
-  ).pipe(
-    map(response => response.data),
-    catchError(error => {
-      console.error('Error en obtenerUsuariosPorFechaCreacion:', error);
-      throw error;
-    })
-  );
-}
-
-// Obtener usuarios creados después de una fecha
-obtenerUsuariosCreadosDespuesDe(fecha: Date): Observable<UsuarioDto[]> {
-  const fechaStr = fecha.toISOString();
-  
-  return this.adminService.get<MensajeDto<UsuarioDto[]>>(
-    `/usuarios/fecha-creacion/despues?fecha=${fechaStr}`
-  ).pipe(
-    map(response => response.data),
-    catchError(error => {
-      console.error('Error en obtenerUsuariosCreadosDespuesDe:', error);
-      throw error;
-    })
-  );
-}
-
-// Obtener usuarios creados antes de una fecha
-obtenerUsuariosCreadosAntesDe(fecha: Date): Observable<UsuarioDto[]> {
-  const fechaStr = fecha.toISOString();
-  
-  return this.adminService.get<MensajeDto<UsuarioDto[]>>(
-    `/usuarios/fecha-creacion/antes?fecha=${fechaStr}`
-  ).pipe(
-    map(response => response.data),
-    catchError(error => {
-      console.error('Error en obtenerUsuariosCreadosAntesDe:', error);
-      throw error;
-    })
-  );
-}
-
-// Solicitar recordatorio de contraseña
-solicitarRecordatorioContrasena(correo: string): Observable<MensajeDto<string>> {
-  return this.adminService.post<MensajeDto<string>>(
-    `/usuarios/recordar-contrasena?correo=${encodeURIComponent(correo)}`,
-    {}
-  );
-}
 }
