@@ -10,11 +10,12 @@ import { AccesoriosComponent } from './pages/accesorios/accesorios.component';
 import { OrdenVentaComponent } from './pages/orden-venta/orden-venta.component';
 import { CajaComponent } from './pages/caja/caja.component';
 import { DespachoComponent } from './pages/despacho/despacho.component';
-import { AuthGuard } from './guards/auth.guard';
-import { PublicGuard } from './guards/public.guard';
 import { AccesoDenegadoComponent } from './pages/acceso-denegado/acceso-denegado.component';
-import { RoleGuard } from './guards/role.guard';
 
+// Importar las funciones de guardia (no clases)
+import { authGuard } from './guards/auth.guard';
+import { publicGuard } from './guards/public.guard';
+import { roleGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   { 
@@ -25,7 +26,7 @@ export const routes: Routes = [
   { 
     path: 'login', 
     component: LoginComponent,
-    canActivate: [PublicGuard] 
+    canActivate: [publicGuard]  // Usar la función publicGuard
   },
   { 
     path: 'acceso-denegado', 
@@ -36,55 +37,55 @@ export const routes: Routes = [
   { 
     path: 'inicio', 
     component: InicioComponent, 
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],  // Usar la función authGuard
     data: { roles: ['ADMIN', 'VENDEDOR', 'CAJERO', 'DESPACHADOR'] }
   },
   { 
     path: 'admin', 
     component: AdminComponent, 
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [authGuard, roleGuard],  // Usar las funciones
     data: { role: 'ADMIN' }
   },
   { 
     path: 'phone', 
     component: PhoneComponent, 
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],  // Usar la función authGuard
     data: { roles: ['ADMIN', 'VENDEDOR'] }
   },
   { 
     path: 'gaming', 
     component: GamingComponent, 
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],  // Usar la función authGuard
     data: { roles: ['ADMIN', 'VENDEDOR'] }
   },
   { 
     path: 'laptops', 
     component: LaptopsComponent, 
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],  // Usar la función authGuard
     data: { roles: ['ADMIN', 'VENDEDOR'] }
   },
   { 
     path: 'accesorios', 
     component: AccesoriosComponent, 
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],  // Usar la función authGuard
     data: { roles: ['ADMIN', 'VENDEDOR'] }
   },
   { 
     path: 'caja', 
     component: CajaComponent, 
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [authGuard, roleGuard],  // Usar las funciones
     data: { role: 'CAJERO' }
   },
   { 
     path: 'despacho', 
     component: DespachoComponent, 
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [authGuard, roleGuard],  // Usar las funciones
     data: { role: 'DESPACHADOR' }
   },
   { 
     path: 'ordenVenta', 
     component: OrdenVentaComponent, 
-    canActivate: [AuthGuard, RoleGuard],
+    canActivate: [authGuard, roleGuard],  // Usar las funciones
     data: { role: 'VENDEDOR' }
   },
   

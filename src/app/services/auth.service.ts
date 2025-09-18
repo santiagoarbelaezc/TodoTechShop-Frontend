@@ -1,29 +1,29 @@
-// src/app/services/auth.service.ts (mejoras adicionales)
-import { Injectable } from '@angular/core';
+// src/app/services/auth.service.ts
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { MensajeDto } from '../models/mensaje.dto';
-import { UsuarioDto } from '../models/usuario.dto';
+import { LoginResponse } from '../models/login-response.dto';
 import { UsuarioService } from './usuario.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private usuarioService = inject(UsuarioService);
+  
   private apiUrl: string = 'https://todotechbackend-iqb0.onrender.com/usuarios';
   private USUARIO_KEY = 'currentUser';
   private TOKEN_KEY = 'authToken';
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
-  private currentUserSubject = new BehaviorSubject<UsuarioDto | null>(null);
+  private currentUserSubject = new BehaviorSubject<LoginResponse | null>(null);
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-    private usuarioService: UsuarioService
-  ) {
+  constructor() {
     this.initializeAuthState();
   }
 
@@ -51,7 +51,7 @@ export class AuthService {
       .set('nombreUsuario', nombreUsuario)
       .set('contrasena', contrasena);
 
-    return this.http.post<MensajeDto<any>>(
+    return this.http.post<MensajeDto<LoginResponse>>(
       `${this.apiUrl}/login`, 
       null,
       { params }
@@ -61,23 +61,23 @@ export class AuthService {
           throw new Error(response.mensaje);
         }
         
-        // Guardar token si está disponible
-        if (response.data.token) {
+        // Guardar token y datos de usuario
+        if (response.data && response.data.token) {
           localStorage.setItem(this.TOKEN_KEY, response.data.token);
+          localStorage.setItem(this.USUARIO_KEY, JSON.stringify(response.data));
+          
+          // Actualizar los subjects
+          this.currentUserSubject.next(response.data);
+          this.isAuthenticatedSubject.next(true);
+          
+          // Usar el servicio de usuario para manejar el estado
+          this.usuarioService.setUsuario(response.data);
+          
+          this.redirigirPorRol(response.data.role);
+          return true;
+        } else {
+          throw new Error('No se recibió token en la respuesta');
         }
-        
-        // Usar el servicio de usuario para manejar el estado
-        this.usuarioService.setUsuario(response.data);
-        
-        // Guardar usuario
-        localStorage.setItem(this.USUARIO_KEY, JSON.stringify(response.data));
-        
-        // Actualizar los subjects
-        this.currentUserSubject.next(response.data);
-        this.isAuthenticatedSubject.next(true);
-        
-        this.redirigirPorRol(response.data.tipoUsuario);
-        return true;
       }),
       catchError(error => {
         console.error('Error en login:', error);
@@ -92,26 +92,26 @@ export class AuthService {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  // Método redirigirPorRol
-  redirigirPorRol(tipoUsuario: string): void {
-    switch (tipoUsuario) {
-      case 'ADMIN':
-        this.router.navigate(['/admin']);
-        break;
-      case 'VENDEDOR':
-        this.router.navigate(['/ordenVenta']);
-        break;
-      case 'CAJERO':
-        this.router.navigate(['/caja']);
-        break;
-      case 'DESPACHADOR':
-        this.router.navigate(['/despacho']);
-        break;
-      default:
-        this.router.navigate(['/']);
-        break;
-    }
+  // En tu AuthService
+redirigirPorRol(tipoUsuario: string): void {
+  switch (tipoUsuario) {
+    case 'ADMIN':
+      this.router.navigate(['/admin']);
+      break;
+    case 'VENDEDOR':
+      this.router.navigate(['/ordenVenta']);
+      break;
+    case 'CAJERO':
+      this.router.navigate(['/caja']);
+      break;
+    case 'DESPACHADOR':
+      this.router.navigate(['/despacho']);
+      break;
+    default:
+      this.router.navigate(['/inicio']);
+      break;
   }
+}
 
   // Métodos esenciales
   logout(): void {
@@ -123,7 +123,7 @@ export class AuthService {
     return this.isAuthenticatedSubject.value;
   }
 
-  getCurrentUser(): UsuarioDto | null {
+  getCurrentUser(): LoginResponse | null {
     return this.currentUserSubject.value;
   }
 
@@ -149,6 +149,7 @@ export class AuthService {
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
     localStorage.removeItem(this.USUARIO_KEY);
+    localStorage.removeItem(this.TOKEN_KEY);
     this.usuarioService.limpiarUsuario();
     
     // Limpiar también el estado del admin si existe
@@ -158,7 +159,7 @@ export class AuthService {
   // Métodos de utilidad para verificación de roles
   hasRole(role: string): boolean {
     const user = this.getCurrentUser();
-    return user?.tipoUsuario === role;
+    return user?.role === role;
   }
 
   isAdmin(): boolean {
@@ -167,5 +168,13 @@ export class AuthService {
 
   isVendedor(): boolean {
     return this.hasRole('VENDEDOR');
+  }
+
+  isCajero(): boolean {
+    return this.hasRole('CAJERO');
+  }
+
+  isDespachador(): boolean {
+    return this.hasRole('DESPACHADOR');
   }
 }

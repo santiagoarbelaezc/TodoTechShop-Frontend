@@ -1,7 +1,10 @@
 // src/app/models/login-response.dto.ts
 export interface LoginResponse {
-  mensaje: string;
-  tipoUsuario: string;
+  token: string;
+  tokenType: string;
+  userId: number;
+  username: string;
   nombre: string;
-  nombreUsuario: string;
+  role: string;
+  mensaje: string;
 }

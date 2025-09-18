@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperar Contraseña - TodoTech Shop</title>
+  <link rel="stylesheet" href="recuperar-contrasena.component.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    
+    <main class="recuperacion-container">
+      <div class="recuperacion-card">
+        <!-- Sección del formulario -->
+        <div class="recuperacion-form-section">
+          <div class="recuperacion-header">
+            <h1 class="recuperacion-title">Recuperar Contraseña</h1>
+            <p class="recuperacion-subtitle">Ingresa tu correo electrónico para recibir instrucciones de recuperación</p>
+          </div>
+
+          <div class="recuperacion-body">
+            <!-- Mensajes de estado -->
+            <div *ngIf="mensaje" [class]="'mensaje ' + tipoMensaje">
+              <i [class]="tipoMensaje === 'exito' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'"></i>
+              {{ mensaje }}
+            </div>
+
+            <!-- Formulario de recuperación -->
+            <div *ngIf="!solicitudEnviada" class="form-recuperacion">
+              <div class="input-group">
+                <input 
+                  type="email" 
+                  id="correo" 
+                  name="correo" 
+                  required 
+                  [(ngModel)]="correo"
+                  placeholder=" "
+                  [disabled]="isLoading">
+                <label for="correo">Correo Electrónico</label>
+                <i class="fas fa-envelope input-icon"></i>
+              </div>
+
+              <button 
+                type="button" 
+                (click)="solicitarRecuperacion()" 
+                [disabled]="isLoading"
+                class="btn-recuperar">
+                <span *ngIf="!isLoading">
+                  <i class="fas fa-paper-plane"></i> Enviar Solicitud
+                </span>
+                <span *ngIf="isLoading">
+                  <i class="fas fa-spinner fa-spin"></i> Procesando...
+                </span>
+              </button>
+            </div>
+
+            <!-- Mensaje de éxito después del envío -->
+            <div *ngIf="solicitudEnviada" class="exito-recuperacion">
+              <div class="exito-icono">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <h3>¡Solicitud Enviada!</h3>
+              <p>Si el correo existe en nuestro sistema, recibirás instrucciones para recuperar tu contraseña.</p>
+              <p class="nota">Por favor revisa tu bandeja de entrada y carpeta de spam.</p>
+              
+              <button 
+                type="button" 
+                (click)="volverALogin()" 
+                class="btn-volver-login">
+                <i class="fas fa-arrow-left"></i> Volver al Login
+              </button>
+            </div>
+          </div>
+
+          <div class="recuperacion-footer">
+            <p>¿Recordaste tu contraseña? <a (click)="volverALogin()" class="link-login">Inicia sesión aquí</a></p>
+          </div>
+        </div>
+        
+        <!-- Sección del logo con fondo negro (igual que el login) -->
+        <div class="recuperacion-logo-section">
+          <div class="recuperacion-logo-wrapper">
+            <img src="assets/TigreCircle.png" alt="Logo TodoTech Shop" class="recuperacion-logo">
+            <!-- Contenedor de ondas -->
+            <div class="recuperacion-wave-container">
+              <div class="recuperacion-wave-circle"></div>
+              <div class="recuperacion-wave-circle"></div>
+              <div class="recuperacion-wave-circle"></div>
+            </div>
+
+            <!-- Puntos orbitales -->
+            <div class="recuperacion-orbit-dots">
+              <div class="recuperacion-dot"></div>
+              <div class="recuperacion-dot"></div>
+              <div class="recuperacion-dot"></div>
+              <div class="recuperacion-dot"></div>
+            </div>
+          </div>
+          <div class="recuperacion-welcome-text">
+            <h2>TodoTech Shop</h2>
+            <p>La mejor tecnología a tu alcance</p>
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <footer>
+      © 2025 TodoTech Shop - Todos los derechos reservados.
+    </footer>
+</body>
+</html>
