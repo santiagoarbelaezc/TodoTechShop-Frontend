@@ -17,10 +17,8 @@ import { Router } from '@angular/router';
 import { ProductoReporteRequest } from '../../models/productoReporteRequest.dto';
 import { MensajeDto } from '../../models/mensaje.dto';
 import { AuthService } from '../../services/auth.service';
-import { LoginResponse } from '../../models/login-response.dto'; // Importar LoginResponse
+import { LoginResponse } from '../../models/login-response.dto';
 
-// CORRECCIÓN: Cambiar la importación de CrearUsuarioDTO
-// Si no existe un archivo específico, definirlo aquí mismo
 export interface CrearUsuarioDTO {
   nombre: string;
   cedula: string;
@@ -68,7 +66,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private contrasenaOriginal: string = '';
 
-  // Variable para controlar la visibilidad del indicador de scroll
   tablaTieneScroll: boolean = false;
   private resizeObserver: ResizeObserver | null = null;
 
@@ -80,8 +77,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     { value: 'DESPACHADOR', label: 'Despachador' }
   ];
 
-  
-
   usuario: CrearUsuarioDTO = {
     nombre: '',
     cedula: '',
@@ -89,7 +84,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     telefono: '',
     nombreUsuario: '',
     contrasena: '',
-    cambiarContrasena: false, // ← VALOR POR DEFECTO
+    cambiarContrasena: false,
     tipoUsuario: 'VENDEDOR',
     estado: true
   };
@@ -117,35 +112,24 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router
   ) {}
 
-  // En AdminComponent - REEMPLAZAR el ngOnInit completo
-ngOnInit() {
-  // SOLO verificar y redirigir si no es admin, pero NO limpiar el token
-  const user = this.authService.getCurrentUser();
-  const token = this.authService.getToken();
-  
-  console.log('🔐 User:', user);
-  console.log('🔐 Token:', token);
-  
-  if (!user || user.role !== 'ADMIN') {
-    console.warn('⚠️  Acceso denegado: No tiene permisos de administrador');
-    // SOLO redirigir, NO hacer logout para no limpiar el token
-    this.router.navigate(['/login']);
-    return;
+  ngOnInit() {
+    const user = this.authService.getCurrentUser();
+    const token = this.authService.getToken();
+    
+    if (!user || user.role !== 'ADMIN') {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    this.cargarUsuarios();
   }
 
-  console.log('✅ Acceso permitido como administrador');
-  this.cargarUsuarios();
-}
-
   ngAfterViewInit() {
-    // Inicializar el observador de cambios de tamaño después de que la vista se renderice
     this.inicializarObservadorResize();
-    // Verificar scroll después de un breve delay para asegurar que el DOM esté listo
     setTimeout(() => this.verificarScrollTabla(), 100);
   }
 
   ngOnDestroy() {
-    // Limpiar el observador cuando el componente se destruya
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
     }
@@ -153,18 +137,15 @@ ngOnInit() {
 
   @HostListener('window:resize')
   onWindowResize() {
-    // Verificar el scroll cuando la ventana cambie de tamaño
     this.verificarScrollTabla();
   }
 
-  // Método para inicializar el observador de cambios de tamaño
   private inicializarObservadorResize() {
     if (typeof ResizeObserver !== 'undefined') {
       this.resizeObserver = new ResizeObserver(() => {
         this.verificarScrollTabla();
       });
 
-      // Observar cambios en los contenedores de tabla
       const tablaContainers = document.querySelectorAll('.tabla-container');
       tablaContainers.forEach(container => {
         this.resizeObserver?.observe(container);
@@ -172,16 +153,13 @@ ngOnInit() {
     }
   }
 
-  // Método para verificar si la tabla necesita scroll horizontal
   private verificarScrollTabla() {
     const tablaScrollElements = document.querySelectorAll('.tabla-scroll');
     
     tablaScrollElements.forEach(element => {
       const scrollElement = element as HTMLElement;
-      // Verificar si el contenido es más ancho que el contenedor
       this.tablaTieneScroll = scrollElement.scrollWidth > scrollElement.clientWidth;
       
-      // Añadir or quitar clase según sea necesario
       const container = scrollElement.closest('.tabla-container');
       if (container) {
         if (this.tablaTieneScroll) {
@@ -211,23 +189,16 @@ ngOnInit() {
         break;
     }
     
-    // Verificar el scroll después de cambiar de sección
     setTimeout(() => this.verificarScrollTabla(), 300);
   }
 
-  // CARGAR USUARIOS ACTUALES
   cargarUsuarios() {
     this.usuarioService.obtenerUsuarios().subscribe({
       next: (usuarios: UsuarioDto[]) => {
         this.usuarios = usuarios;
-        console.log('Usuarios cargados exitosamente:', usuarios);
-        
-        // Verificar scroll después de cargar los datos
         setTimeout(() => this.verificarScrollTabla(), 100);
       },
       error: (error) => {
-        console.error('Error completo al cargar usuarios:', error);
-        
         if (error.status === 0) {
           alert('Error de conexión: No se pudo conectar al servidor. Verifique que el backend esté ejecutándose.');
         } else if (error.status === 404) {
@@ -237,137 +208,115 @@ ngOnInit() {
         } else {
           alert('Error al cargar usuarios: ' + error.message);
         }
-      },
-      complete: () => {
-        console.log('Carga de usuarios completada');
       }
     });
   }
 
-  // GUARDAR USUARIO - Modificado para manejar la contraseña correctamente
-guardarUsuario() {
-  // Si no se está forzando cambio de contraseña y estamos editando, usar la contraseña original
-  if (this.usuarioEditando && !this.usuario.cambiarContrasena) {
-    this.usuario.contrasena = this.contrasenaOriginal;
-  }
-  
-  // Validar que el formulario es válido antes de proceder
-  if (this.formUsuario.invalid) {
-    // Marcar todos los campos como touched para mostrar mensajes de error
-    Object.keys(this.formUsuario.controls).forEach(key => {
-      this.formUsuario.controls[key].markAsTouched();
-    });
-    alert('Por favor, complete todos los campos obligatorios correctamente.');
-    return;
-  }
-
-  console.log('Estado del formulario:', this.usuario.estado, typeof this.usuario.estado);
-  
-  if (this.usuarioEditando && this.usuarioEditandoId) {
-    // Actualizar usuario existente
-    const usuarioActualizado: UsuarioDto = {
-      id: this.usuarioEditandoId,
-      nombre: this.usuario.nombre,
-      cedula: this.usuario.cedula,
-      correo: this.usuario.correo,
-      telefono: this.usuario.telefono,
-      nombreUsuario: this.usuario.nombreUsuario,
-      contrasena: this.usuario.contrasena,
-      cambiarContrasena: this.usuario.cambiarContrasena,
-      tipoUsuario: this.usuario.tipoUsuario,
-      fechaCreacion: new Date(),
-      estado: this.usuario.estado
-    };
-
-    console.log('Usuario a actualizar:', usuarioActualizado);
-
-    this.usuarioService.actualizarUsuarioAdmin(this.usuarioEditandoId, usuarioActualizado).subscribe({
-      next: (response: MensajeDto<string>) => {
-        if (!response.error) {
-          alert(response.mensaje);
-          this.limpiarFormulario();
-          this.cargarUsuarios();
-        } else {
-          alert('Error: ' + response.mensaje);
-        }
-      },
-      error: (error) => {
-        console.error('Error al actualizar usuario:', error);
-        alert('Error al actualizar usuario: ' + error.message);
-      }
-    });
-  } else {
-    // Crear nuevo usuario - aquí siempre necesitamos contraseña
-    if (!this.usuario.cambiarContrasena && !this.usuario.contrasena) {
-      alert('Para crear un nuevo usuario debe proporcionar una contraseña.');
-      return;
+  guardarUsuario() {
+    if (this.usuarioEditando && !this.usuario.cambiarContrasena) {
+      this.usuario.contrasena = this.contrasenaOriginal;
     }
     
-    const nuevoUsuario: UsuarioDto = {
-      id: 0,
-      nombre: this.usuario.nombre,
-      cedula: this.usuario.cedula,
-      correo: this.usuario.correo,
-      telefono: this.usuario.telefono,
-      nombreUsuario: this.usuario.nombreUsuario,
-      contrasena: this.usuario.contrasena,
-      cambiarContrasena: this.usuario.cambiarContrasena,
-      tipoUsuario: this.usuario.tipoUsuario,
-      fechaCreacion: new Date(),
-      estado: this.usuario.estado
-    };
-
-    this.usuarioService.crearUsuario(nuevoUsuario).subscribe({
-      next: (response: MensajeDto<string>) => {
-        if (!response.error) {
-          alert(response.mensaje);
-          this.limpiarFormulario();
-          this.cargarUsuarios();
-        } else {
-          alert('Error: ' + response.mensaje);
-        }
-      },
-      error: (error) => {
-        console.error('Error al crear usuario:', error);
-        alert('Error al crear usuario: ' + error.message);
-      }
-    });
-  }
-}
-  // EDITAR USUARIO - Modificado para guardar la contraseña original
-editarUsuario(usuario: UsuarioDto) {
-  console.log('Usuario a editar:', usuario);
-  console.log('Estado original:', usuario.estado, typeof usuario.estado);
-  
-  this.usuarioEditando = true;
-  this.usuarioEditandoId = usuario.id;
-  
-  // Guardar la contraseña original
-  this.contrasenaOriginal = usuario.contrasena;
-  
-  this.usuario = {
-    nombre: usuario.nombre,
-    cedula: usuario.cedula,
-    correo: usuario.correo,
-    telefono: usuario.telefono,
-    nombreUsuario: usuario.nombreUsuario,
-    contrasena: usuario.contrasena, // Mantener la contraseña actual
-    cambiarContrasena: usuario.cambiarContrasena || false, // Usar el valor existente o false por defecto
-    tipoUsuario: usuario.tipoUsuario as 'ADMIN' | 'VENDEDOR' | 'CAJERO' | 'DESPACHADOR',
-    estado: usuario.estado
-  };
-  
-  // Forzar la validación del formulario después de establecer los valores
-  setTimeout(() => {
-    if (this.formUsuario) {
+    if (this.formUsuario.invalid) {
       Object.keys(this.formUsuario.controls).forEach(key => {
         this.formUsuario.controls[key].markAsTouched();
       });
+      alert('Por favor, complete todos los campos obligatorios correctamente.');
+      return;
     }
-  });
-}
+    
+    if (this.usuarioEditando && this.usuarioEditandoId) {
+      const usuarioActualizado: UsuarioDto = {
+        id: this.usuarioEditandoId,
+        nombre: this.usuario.nombre,
+        cedula: this.usuario.cedula,
+        correo: this.usuario.correo,
+        telefono: this.usuario.telefono,
+        nombreUsuario: this.usuario.nombreUsuario,
+        contrasena: this.usuario.contrasena,
+        cambiarContrasena: this.usuario.cambiarContrasena,
+        tipoUsuario: this.usuario.tipoUsuario,
+        fechaCreacion: new Date(),
+        estado: this.usuario.estado
+      };
 
-  // CAMBIAR ESTADO USUARIO
+      this.usuarioService.actualizarUsuarioAdmin(this.usuarioEditandoId, usuarioActualizado).subscribe({
+        next: (response: MensajeDto<string>) => {
+          if (!response.error) {
+            alert(response.mensaje);
+            this.limpiarFormulario();
+            this.cargarUsuarios();
+          } else {
+            alert('Error: ' + response.mensaje);
+          }
+        },
+        error: (error) => {
+          alert('Error al actualizar usuario: ' + error.message);
+        }
+      });
+    } else {
+      if (!this.usuario.cambiarContrasena && !this.usuario.contrasena) {
+        alert('Para crear un nuevo usuario debe proporcionar una contraseña.');
+        return;
+      }
+      
+      const nuevoUsuario: UsuarioDto = {
+        id: 0,
+        nombre: this.usuario.nombre,
+        cedula: this.usuario.cedula,
+        correo: this.usuario.correo,
+        telefono: this.usuario.telefono,
+        nombreUsuario: this.usuario.nombreUsuario,
+        contrasena: this.usuario.contrasena,
+        cambiarContrasena: this.usuario.cambiarContrasena,
+        tipoUsuario: this.usuario.tipoUsuario,
+        fechaCreacion: new Date(),
+        estado: this.usuario.estado
+      };
+
+      this.usuarioService.crearUsuario(nuevoUsuario).subscribe({
+        next: (response: MensajeDto<string>) => {
+          if (!response.error) {
+            alert(response.mensaje);
+            this.limpiarFormulario();
+            this.cargarUsuarios();
+          } else {
+            alert('Error: ' + response.mensaje);
+          }
+        },
+        error: (error) => {
+          alert('Error al crear usuario: ' + error.message);
+        }
+      });
+    }
+  }
+
+  editarUsuario(usuario: UsuarioDto) {
+    this.usuarioEditando = true;
+    this.usuarioEditandoId = usuario.id;
+    this.contrasenaOriginal = usuario.contrasena;
+    
+    this.usuario = {
+      nombre: usuario.nombre,
+      cedula: usuario.cedula,
+      correo: usuario.correo,
+      telefono: usuario.telefono,
+      nombreUsuario: usuario.nombreUsuario,
+      contrasena: usuario.contrasena,
+      cambiarContrasena: usuario.cambiarContrasena || false,
+      tipoUsuario: usuario.tipoUsuario as 'ADMIN' | 'VENDEDOR' | 'CAJERO' | 'DESPACHADOR',
+      estado: usuario.estado
+    };
+    
+    setTimeout(() => {
+      if (this.formUsuario) {
+        Object.keys(this.formUsuario.controls).forEach(key => {
+          this.formUsuario.controls[key].markAsTouched();
+        });
+      }
+    });
+  }
+
   cambiarEstadoUsuario(usuario: UsuarioDto) {
     const nuevoEstado = !usuario.estado;
     const confirmacion = confirm(`¿Estás seguro de que deseas ${nuevoEstado ? 'activar' : 'desactivar'} al usuario ${usuario.nombre}?`);
@@ -383,14 +332,12 @@ editarUsuario(usuario: UsuarioDto) {
           }
         },
         error: (error) => {
-          console.error('Error al cambiar estado del usuario:', error);
           alert('Error al cambiar estado del usuario: ' + error.message);
         }
       });
     }
   }
 
-  // Método para eliminar usuario
   eliminarUsuario(usuario: UsuarioDto) {
     const confirmacion = confirm(`¿Estás seguro de que deseas eliminar permanentemente al usuario ${usuario.nombre}? Esta acción no se puede deshacer.`);
     
@@ -399,42 +346,39 @@ editarUsuario(usuario: UsuarioDto) {
         next: (response: MensajeDto<string>) => {
           if (!response.error) {
             alert(response.mensaje);
-            this.cargarUsuarios(); // Recargar la lista de usuarios
+            this.cargarUsuarios();
           } else {
             alert('Error: ' + response.mensaje);
           }
         },
         error: (error) => {
-          console.error('Error al eliminar usuario:', error);
           alert('Error al eliminar usuario: ' + error.message);
         }
       });
     }
   }
 
- // LIMPIAR FORMULARIO - Modificado para resetear la contraseña original
-limpiarFormulario() {
-  this.usuario = {
-    nombre: '',
-    cedula: '',
-    correo: '',
-    telefono: '',
-    nombreUsuario: '',
-    contrasena: '',
-    cambiarContrasena: false,
-    tipoUsuario: 'VENDEDOR',
-    estado: true
-  };
-  this.usuarioEditando = false;
-  this.usuarioEditandoId = null;
-  this.contrasenaOriginal = ''; // Limpiar la contraseña original
-  
-  if (this.formUsuario) {
-    this.formUsuario.resetForm();
+  limpiarFormulario() {
+    this.usuario = {
+      nombre: '',
+      cedula: '',
+      correo: '',
+      telefono: '',
+      nombreUsuario: '',
+      contrasena: '',
+      cambiarContrasena: false,
+      tipoUsuario: 'VENDEDOR',
+      estado: true
+    };
+    this.usuarioEditando = false;
+    this.usuarioEditandoId = null;
+    this.contrasenaOriginal = '';
+    
+    if (this.formUsuario) {
+      this.formUsuario.resetForm();
+    }
   }
-}
 
-  // Métodos de búsqueda
   buscarPorNombre() {
     if (this.terminoBusquedaNombre.trim()) {
       this.usuarioService.buscarUsuariosPorNombre(this.terminoBusquedaNombre).subscribe({
@@ -443,7 +387,6 @@ limpiarFormulario() {
           setTimeout(() => this.verificarScrollTabla(), 100);
         },
         error: (error) => {
-          console.error('Error al buscar por nombre:', error);
           alert('Error al buscar usuarios por nombre');
         }
       });
@@ -460,7 +403,6 @@ limpiarFormulario() {
           setTimeout(() => this.verificarScrollTabla(), 100);
         },
         error: (error) => {
-          console.error('Error al buscar por cédula:', error);
           alert('Error al buscar usuarios por cédula');
         }
       });
@@ -477,7 +419,6 @@ limpiarFormulario() {
           setTimeout(() => this.verificarScrollTabla(), 100);
         },
         error: (error) => {
-          console.error('Error al filtrar por tipo:', error);
           alert('Error al filtrar usuarios por tipo');
         }
       });
@@ -497,7 +438,6 @@ limpiarFormulario() {
           setTimeout(() => this.verificarScrollTabla(), 100);
         },
         error: (error) => {
-          console.error('Error al filtrar por rango de fechas:', error);
           alert('Error al filtrar usuarios por rango de fechas');
         }
       });
@@ -510,7 +450,6 @@ limpiarFormulario() {
           setTimeout(() => this.verificarScrollTabla(), 100);
         },
         error: (error) => {
-          console.error('Error al filtrar por fecha posterior:', error);
           alert('Error al filtrar usuarios por fecha posterior');
         }
       });
@@ -523,7 +462,6 @@ limpiarFormulario() {
           setTimeout(() => this.verificarScrollTabla(), 100);
         },
         error: (error) => {
-          console.error('Error al filtrar por fecha anterior:', error);
           alert('Error al filtrar usuarios por fecha anterior');
         }
       });
@@ -532,7 +470,6 @@ limpiarFormulario() {
     }
   }
 
-  // Limpiar todos los filtros
   limpiarFiltros() {
     this.terminoBusquedaNombre = '';
     this.terminoBusquedaCedula = '';
@@ -544,7 +481,6 @@ limpiarFormulario() {
     this.cargarUsuarios();
   }
 
-  // Resto de métodos existentes...
   cargarProductos() {
     // Tu implementación aquí
   }
@@ -593,30 +529,24 @@ limpiarFormulario() {
     // Tu implementación aquí
   }
 
-
-// Método para manejar el cambio en el interruptor de forzar contraseña
-onCambiarContrasenaChange() {
-  if (!this.usuario.cambiarContrasena && this.usuarioEditando) {
-    // Si se desactiva el forzar contraseña y estamos editando, restaurar la contraseña original
-    this.usuario.contrasena = this.contrasenaOriginal;
-  } else if (!this.usuario.cambiarContrasena) {
-    // Si se desactiva el forzar contraseña y estamos creando un nuevo usuario, limpiar el campo
-    this.usuario.contrasena = '';
-  }
-  
-  // También necesitamos limpiar la validación del campo
-  if (this.formUsuario && this.formUsuario.controls['contrasena']) {
-    this.formUsuario.controls['contrasena'].markAsUntouched();
-    this.formUsuario.controls['contrasena'].markAsPristine();
-  }
-  
-  // Forzar la actualización de la validación del formulario
-  setTimeout(() => {
-    if (this.formUsuario) {
-      this.formUsuario.form.updateValueAndValidity();
+  onCambiarContrasenaChange() {
+    if (!this.usuario.cambiarContrasena && this.usuarioEditando) {
+      this.usuario.contrasena = this.contrasenaOriginal;
+    } else if (!this.usuario.cambiarContrasena) {
+      this.usuario.contrasena = '';
     }
-  });
-}
+    
+    if (this.formUsuario && this.formUsuario.controls['contrasena']) {
+      this.formUsuario.controls['contrasena'].markAsUntouched();
+      this.formUsuario.controls['contrasena'].markAsPristine();
+    }
+    
+    setTimeout(() => {
+      if (this.formUsuario) {
+        this.formUsuario.form.updateValueAndValidity();
+      }
+    });
+  }
 
   salir() {
     this.authService.logout();

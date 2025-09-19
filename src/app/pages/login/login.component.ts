@@ -86,8 +86,7 @@ export class LoginComponent implements AfterViewInit {
     });
   }
 
-// Modificar el onLogin para manejar mejor los errores:
-onLogin(): void {
+  onLogin(): void {
     if (!this.nombreUsuario || !this.contrasena) {
       alert('Por favor ingresa usuario y contraseña');
       return;
@@ -104,7 +103,6 @@ onLogin(): void {
       },
       error: (error) => {
         this.isLoading = false;
-        console.error('Error en login:', error);
         alert(error.message || 'Error al intentar iniciar sesión');
       }
     });
