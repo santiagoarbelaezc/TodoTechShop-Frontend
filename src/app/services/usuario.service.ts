@@ -18,26 +18,18 @@ export class UsuarioService {
   private apiUrl: string = 'https://todotechbackend-iqb0.onrender.com';
   private usuarioSubject = new BehaviorSubject<LoginResponse | null>(null);
 
-  obtenerUsuarios(): Observable<UsuarioDto[]> {
+  // En UsuarioService - verificar que todas las llamadas usen AdminService
+obtenerUsuarios(): Observable<UsuarioDto[]> {
   return this.adminService.get<MensajeDto<UsuarioDto[]>>('/usuarios').pipe(
     map(response => {
       if (response && typeof response.error === 'boolean' && Array.isArray(response.data)) {
         return response.data;
-      } else if (Array.isArray(response)) {
-        return response;
       } else {
         throw new Error('Estructura de respuesta inválida del servidor');
       }
     }),
     catchError((error: HttpErrorResponse) => {
-      console.error('Error completo en obtenerUsuarios:', error);
-      
-      if (error.status === 403) {
-        // Token inválido o expirado
-        console.error('Acceso denegado. El token puede haber expirado.');
-        // No hacer logout automáticamente aquí, el interceptor se encarga
-      }
-      
+      console.error('Error en obtenerUsuarios:', error);
       throw error;
     })
   );

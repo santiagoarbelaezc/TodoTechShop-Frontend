@@ -1,6 +1,6 @@
 // src/app/services/auth.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
@@ -46,7 +46,7 @@ private initializeAuthState(): void {
   }
 }
 
-// En AuthService - MODIFICAR el método login
+// En AuthService - mejorar el método login
 login(nombreUsuario: string, contrasena: string): Observable<boolean> {
   const params = new HttpParams()
     .set('nombreUsuario', nombreUsuario)
@@ -63,9 +63,11 @@ login(nombreUsuario: string, contrasena: string): Observable<boolean> {
       }
       
       if (response.data && response.data.token) {
+        // Guardar token y usuario
         localStorage.setItem(this.TOKEN_KEY, response.data.token);
         localStorage.setItem(this.USUARIO_KEY, JSON.stringify(response.data));
         
+        // Actualizar subjects
         this.currentUserSubject.next(response.data);
         this.isAuthenticatedSubject.next(true);
         this.usuarioService.setUsuario(response.data);
@@ -78,13 +80,11 @@ login(nombreUsuario: string, contrasena: string): Observable<boolean> {
     }),
     catchError(error => {
       console.error('Error en login:', error);
-      // ✅ QUITAR esta línea que limpia el estado en errores
-      // this.clearAuthState(); // ← ELIMINAR ESTA LÍNEA
+      this.clearAuthState();
       return of(false);
     })
   );
 }
-
   // Obtener token de autenticación
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
@@ -182,4 +182,13 @@ clearIfOnLoginPage(): void {
   isDespachador(): boolean {
     return this.hasRole('DESPACHADOR');
   }
+
+  // En AuthService - método de prueba
+testToken(): Observable<any> {
+  return this.http.get(`${this.apiUrl}/usuarios`, {
+    headers: new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`
+    })
+  });
+}
 }
