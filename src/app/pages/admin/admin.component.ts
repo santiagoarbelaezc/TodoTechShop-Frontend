@@ -117,17 +117,25 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router
   ) {}
 
-  ngOnInit() {
-    // Verificar que el usuario sea admin - CORREGIDO: usar user.role en lugar de user.tipoUsuario
-    const user = this.authService.getCurrentUser();
-    if (!user || user.role !== 'ADMIN') {
-      this.authService.logout();
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    this.cargarUsuarios();
+  // En AdminComponent - REEMPLAZAR el ngOnInit completo
+ngOnInit() {
+  // SOLO verificar y redirigir si no es admin, pero NO limpiar el token
+  const user = this.authService.getCurrentUser();
+  const token = this.authService.getToken();
+  
+  console.log('🔐 User:', user);
+  console.log('🔐 Token:', token);
+  
+  if (!user || user.role !== 'ADMIN') {
+    console.warn('⚠️  Acceso denegado: No tiene permisos de administrador');
+    // SOLO redirigir, NO hacer logout para no limpiar el token
+    this.router.navigate(['/login']);
+    return;
   }
+
+  console.log('✅ Acceso permitido como administrador');
+  this.cargarUsuarios();
+}
 
   ngAfterViewInit() {
     // Inicializar el observador de cambios de tamaño después de que la vista se renderice

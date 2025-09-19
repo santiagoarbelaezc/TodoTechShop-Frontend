@@ -17,7 +17,7 @@ export class AuthService {
   private router = inject(Router);
   private usuarioService = inject(UsuarioService);
   
-  private apiUrl: string = 'http://localhost:8080/usuarios';
+  private apiUrl: string = 'https://todotechbackend-iqb0.onrender.com/usuarios';
   private USUARIO_KEY = 'currentUser';
   private TOKEN_KEY = 'authToken';
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
@@ -27,65 +27,63 @@ export class AuthService {
     this.initializeAuthState();
   }
 
-  // Inicializar estado de autenticación desde localStorage
-  private initializeAuthState(): void {
-    const savedUser = localStorage.getItem(this.USUARIO_KEY);
-    const savedToken = localStorage.getItem(this.TOKEN_KEY);
-    
-    if (savedUser && savedToken) {
-      try {
-        const usuario = JSON.parse(savedUser);
-        this.currentUserSubject.next(usuario);
-        this.isAuthenticatedSubject.next(true);
-        console.log('Estado de autenticación restaurado desde localStorage');
-      } catch (error) {
-        console.error('Error parsing user from localStorage:', error);
-        this.clearAuthState();
-      }
+  // En AuthService - MODIFICAR el método initializeAuthState
+private initializeAuthState(): void {
+  const savedUser = localStorage.getItem(this.USUARIO_KEY);
+  const savedToken = localStorage.getItem(this.TOKEN_KEY);
+  
+  if (savedUser && savedToken) {
+    try {
+      const usuario = JSON.parse(savedUser);
+      this.currentUserSubject.next(usuario);
+      this.isAuthenticatedSubject.next(true);
+      console.log('✅ Estado de autenticación restaurado desde localStorage');
+    } catch (error) {
+      console.error('Error parsing user from localStorage:', error);
+      // ✅ QUITAR esta línea que limpia el estado
+      // this.clearAuthState(); // ← ELIMINAR ESTA LÍNEA
     }
   }
+}
 
-  // Método login mejorado
-  login(nombreUsuario: string, contrasena: string): Observable<boolean> {
-    const params = new HttpParams()
-      .set('nombreUsuario', nombreUsuario)
-      .set('contrasena', contrasena);
+// En AuthService - MODIFICAR el método login
+login(nombreUsuario: string, contrasena: string): Observable<boolean> {
+  const params = new HttpParams()
+    .set('nombreUsuario', nombreUsuario)
+    .set('contrasena', contrasena);
 
-    return this.http.post<MensajeDto<LoginResponse>>(
-      `${this.apiUrl}/login`, 
-      null,
-      { params }
-    ).pipe(
-      map(response => {
-        if (response.error) {
-          throw new Error(response.mensaje);
-        }
+  return this.http.post<MensajeDto<LoginResponse>>(
+    `${this.apiUrl}/login`, 
+    null,
+    { params }
+  ).pipe(
+    map(response => {
+      if (response.error) {
+        throw new Error(response.mensaje);
+      }
+      
+      if (response.data && response.data.token) {
+        localStorage.setItem(this.TOKEN_KEY, response.data.token);
+        localStorage.setItem(this.USUARIO_KEY, JSON.stringify(response.data));
         
-        // Guardar token y datos de usuario
-        if (response.data && response.data.token) {
-          localStorage.setItem(this.TOKEN_KEY, response.data.token);
-          localStorage.setItem(this.USUARIO_KEY, JSON.stringify(response.data));
-          
-          // Actualizar los subjects
-          this.currentUserSubject.next(response.data);
-          this.isAuthenticatedSubject.next(true);
-          
-          // Usar el servicio de usuario para manejar el estado
-          this.usuarioService.setUsuario(response.data);
-          
-          this.redirigirPorRol(response.data.role);
-          return true;
-        } else {
-          throw new Error('No se recibió token en la respuesta');
-        }
-      }),
-      catchError(error => {
-        console.error('Error en login:', error);
-        this.clearAuthState();
-        return of(false);
-      })
-    );
-  }
+        this.currentUserSubject.next(response.data);
+        this.isAuthenticatedSubject.next(true);
+        this.usuarioService.setUsuario(response.data);
+        
+        this.redirigirPorRol(response.data.role);
+        return true;
+      } else {
+        throw new Error('No se recibió token en la respuesta');
+      }
+    }),
+    catchError(error => {
+      console.error('Error en login:', error);
+      // ✅ QUITAR esta línea que limpia el estado en errores
+      // this.clearAuthState(); // ← ELIMINAR ESTA LÍNEA
+      return of(false);
+    })
+  );
+}
 
   // Obtener token de autenticación
   getToken(): string | null {
@@ -132,16 +130,23 @@ export class AuthService {
   }
 
   // Método mejorado para limpieza en login
-  clearIfOnLoginPage(): void {
-    const currentRoute = this.router.url;
-    
-    // Limpiar si estamos en login, home, o cualquier ruta no protegida
-    if (currentRoute === '/login' || currentRoute === '/' || 
-        currentRoute.includes('public')) {
-      console.log('En página pública, limpiando sesión...');
-      this.clearAuthState();
-    }
+  // En AuthService - MODIFICAR o ELIMINAR este método
+clearIfOnLoginPage(): void {
+  // ✅ COMENTAR o ELIMINAR esta lógica que limpia automáticamente
+  /*
+  const currentRoute = this.router.url;
+  
+  // Limpiar si estamos en login, home, o cualquier ruta no protegida
+  if (currentRoute === '/login' || currentRoute === '/' || 
+      currentRoute.includes('public')) {
+    console.log('En página pública, limpiando sesión...');
+    this.clearAuthState();
   }
+  */
+  
+  // En su lugar, solo hacer log
+  console.log('ℹ️  clearIfOnLoginPage llamado pero no ejecutado');
+}
 
   // Hacer público el método clearAuthState
   clearAuthState(): void {

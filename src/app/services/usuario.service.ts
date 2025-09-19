@@ -1,6 +1,6 @@
 // src/app/services/usuario.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { UsuarioDto } from '../models/usuario.dto';
@@ -15,27 +15,33 @@ export class UsuarioService {
   private adminService = inject(AdminService);
   private http = inject(HttpClient);
   
-  private apiUrl: string = 'http://localhost:8080/usuarios';
+  private apiUrl: string = 'https://todotechbackend-iqb0.onrender.com';
   private usuarioSubject = new BehaviorSubject<LoginResponse | null>(null);
 
-  // MÉTODO PRINCIPAL PARA OBTENER USUARIOS
   obtenerUsuarios(): Observable<UsuarioDto[]> {
-    return this.adminService.get<MensajeDto<UsuarioDto[]>>('/usuarios').pipe(
-      map(response => {
-        if (response && typeof response.error === 'boolean' && Array.isArray(response.data)) {
-          return response.data;
-        } else if (Array.isArray(response)) {
-          return response;
-        } else {
-          throw new Error('Estructura de respuesta inválida del servidor');
-        }
-      }),
-      catchError(error => {
-        console.error('Error en obtenerUsuarios:', error);
-        throw error;
-      })
-    );
-  }
+  return this.adminService.get<MensajeDto<UsuarioDto[]>>('/usuarios').pipe(
+    map(response => {
+      if (response && typeof response.error === 'boolean' && Array.isArray(response.data)) {
+        return response.data;
+      } else if (Array.isArray(response)) {
+        return response;
+      } else {
+        throw new Error('Estructura de respuesta inválida del servidor');
+      }
+    }),
+    catchError((error: HttpErrorResponse) => {
+      console.error('Error completo en obtenerUsuarios:', error);
+      
+      if (error.status === 403) {
+        // Token inválido o expirado
+        console.error('Acceso denegado. El token puede haber expirado.');
+        // No hacer logout automáticamente aquí, el interceptor se encarga
+      }
+      
+      throw error;
+    })
+  );
+}
 
   // MÉTODOS EXISTENTES - Actualizados para usar AdminService
   crearUsuario(usuarioDTO: UsuarioDto): Observable<MensajeDto<string>> {
