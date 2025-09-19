@@ -1,16 +1,38 @@
-{ 
- "hosting": { 
-   "public": "dist/todo-tech-front/browser", 
-   "ignore": [ 
-     "firebase.json", 
-     "**/.*", 
-     "**/node_modules/**" 
-   ], 
-   "rewrites": [ 
-     { 
-       "source": "**", 
-       "destination": "/index.html" 
-     } 
-   ] 
- } 
+{
+  "hosting": {
+    "public": "dist/todo-tech-front/browser",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css|html|json)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "**/assets/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
+          }
+        ]
+      }
+    ],
+    "cleanUrls": true,
+    "trailingSlash": false
+  }
 }
