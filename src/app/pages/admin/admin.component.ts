@@ -19,6 +19,8 @@ import { MensajeDto } from '../../models/mensaje.dto';
 import { AuthService } from '../../services/auth.service';
 import { LoginResponse } from '../../models/login-response.dto'; // Importar LoginResponse
 
+// CORRECCIÓN: Cambiar la importación de CrearUsuarioDTO
+// Si no existe un archivo específico, definirlo aquí mismo
 export interface CrearUsuarioDTO {
   nombre: string;
   cedula: string;
@@ -26,6 +28,7 @@ export interface CrearUsuarioDTO {
   telefono: string;
   nombreUsuario: string;
   contrasena: string;
+  cambiarContrasena: boolean;
   tipoUsuario: 'ADMIN' | 'VENDEDOR' | 'CAJERO' | 'DESPACHADOR';
   estado: boolean;
 }
@@ -63,6 +66,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   fechaEspecificaFiltro: string = '';
   tipoFiltroFecha: string = '';
 
+  private contrasenaOriginal: string = '';
+
   // Variable para controlar la visibilidad del indicador de scroll
   tablaTieneScroll: boolean = false;
   private resizeObserver: ResizeObserver | null = null;
@@ -75,6 +80,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     { value: 'DESPACHADOR', label: 'Despachador' }
   ];
 
+  
+
   usuario: CrearUsuarioDTO = {
     nombre: '',
     cedula: '',
@@ -82,6 +89,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     telefono: '',
     nombreUsuario: '',
     contrasena: '',
+    cambiarContrasena: false, // ← VALOR POR DEFECTO
     tipoUsuario: 'VENDEDOR',
     estado: true
   };
@@ -165,7 +173,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       // Verificar si el contenido es más ancho que el contenedor
       this.tablaTieneScroll = scrollElement.scrollWidth > scrollElement.clientWidth;
       
-      // Añadir o quitar clase según sea necesario
+      // Añadir or quitar clase según sea necesario
       const container = scrollElement.closest('.tabla-container');
       if (container) {
         if (this.tablaTieneScroll) {
@@ -228,114 +236,128 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // Resto de métodos existentes (guardarUsuario, editarUsuario, etc.)...
-  // GUARDAR USUARIO
-  guardarUsuario() {
-    // Validar que el formulario es válido antes de proceder
-    if (this.formUsuario.invalid) {
-      // Marcar todos los campos como touched para mostrar mensajes de error
-      Object.keys(this.formUsuario.controls).forEach(key => {
-        this.formUsuario.controls[key].markAsTouched();
-      });
-      alert('Por favor, complete todos los campos obligatorios correctamente.');
-      return;
-    }
-
-    console.log('Estado del formulario:', this.usuario.estado, typeof this.usuario.estado);
-    
-    if (this.usuarioEditando && this.usuarioEditandoId) {
-      // Actualizar usuario existente
-      const usuarioActualizado: UsuarioDto = {
-        id: this.usuarioEditandoId,
-        nombre: this.usuario.nombre,
-        cedula: this.usuario.cedula,
-        correo: this.usuario.correo,
-        telefono: this.usuario.telefono,
-        nombreUsuario: this.usuario.nombreUsuario,
-        contrasena: this.usuario.contrasena,
-        tipoUsuario: this.usuario.tipoUsuario,
-        fechaCreacion: new Date(),
-        estado: this.usuario.estado
-      };
-
-      console.log('Usuario a actualizar:', usuarioActualizado);
-
-      this.usuarioService.actualizarUsuarioAdmin(this.usuarioEditandoId, usuarioActualizado).subscribe({
-        next: (response: MensajeDto<string>) => {
-          if (!response.error) {
-            alert(response.mensaje);
-            this.limpiarFormulario();
-            this.cargarUsuarios();
-          } else {
-            alert('Error: ' + response.mensaje);
-          }
-        },
-        error: (error) => {
-          console.error('Error al actualizar usuario:', error);
-          alert('Error al actualizar usuario: ' + error.message);
-        }
-      });
-    } else {
-      // Crear nuevo usuario
-      const nuevoUsuario: UsuarioDto = {
-        id: 0,
-        nombre: this.usuario.nombre,
-        cedula: this.usuario.cedula,
-        correo: this.usuario.correo,
-        telefono: this.usuario.telefono,
-        nombreUsuario: this.usuario.nombreUsuario,
-        contrasena: this.usuario.contrasena,
-        tipoUsuario: this.usuario.tipoUsuario,
-        fechaCreacion: new Date(),
-        estado: this.usuario.estado
-      };
-
-      this.usuarioService.crearUsuario(nuevoUsuario).subscribe({
-        next: (response: MensajeDto<string>) => {
-          if (!response.error) {
-            alert(response.mensaje);
-            this.limpiarFormulario();
-            this.cargarUsuarios();
-          } else {
-            alert('Error: ' + response.mensaje);
-          }
-        },
-        error: (error) => {
-          console.error('Error al crear usuario:', error);
-          alert('Error al crear usuario: ' + error.message);
-        }
-      });
-    }
+  // GUARDAR USUARIO - Modificado para manejar la contraseña correctamente
+guardarUsuario() {
+  // Si no se está forzando cambio de contraseña y estamos editando, usar la contraseña original
+  if (this.usuarioEditando && !this.usuario.cambiarContrasena) {
+    this.usuario.contrasena = this.contrasenaOriginal;
+  }
+  
+  // Validar que el formulario es válido antes de proceder
+  if (this.formUsuario.invalid) {
+    // Marcar todos los campos como touched para mostrar mensajes de error
+    Object.keys(this.formUsuario.controls).forEach(key => {
+      this.formUsuario.controls[key].markAsTouched();
+    });
+    alert('Por favor, complete todos los campos obligatorios correctamente.');
+    return;
   }
 
-  // EDITAR USUARIO
-  editarUsuario(usuario: UsuarioDto) {
-    console.log('Usuario a editar:', usuario);
-    console.log('Estado original:', usuario.estado, typeof usuario.estado);
-    
-    this.usuarioEditando = true;
-    this.usuarioEditandoId = usuario.id;
-    
-    this.usuario = {
-      nombre: usuario.nombre,
-      cedula: usuario.cedula,
-      correo: usuario.correo,
-      telefono: usuario.telefono,
-      nombreUsuario: usuario.nombreUsuario,
-      contrasena: usuario.contrasena,
-      tipoUsuario: usuario.tipoUsuario as 'ADMIN' | 'VENDEDOR' | 'CAJERO' | 'DESPACHADOR',
-      estado: usuario.estado
+  console.log('Estado del formulario:', this.usuario.estado, typeof this.usuario.estado);
+  
+  if (this.usuarioEditando && this.usuarioEditandoId) {
+    // Actualizar usuario existente
+    const usuarioActualizado: UsuarioDto = {
+      id: this.usuarioEditandoId,
+      nombre: this.usuario.nombre,
+      cedula: this.usuario.cedula,
+      correo: this.usuario.correo,
+      telefono: this.usuario.telefono,
+      nombreUsuario: this.usuario.nombreUsuario,
+      contrasena: this.usuario.contrasena,
+      cambiarContrasena: this.usuario.cambiarContrasena,
+      tipoUsuario: this.usuario.tipoUsuario,
+      fechaCreacion: new Date(),
+      estado: this.usuario.estado
     };
+
+    console.log('Usuario a actualizar:', usuarioActualizado);
+
+    this.usuarioService.actualizarUsuarioAdmin(this.usuarioEditandoId, usuarioActualizado).subscribe({
+      next: (response: MensajeDto<string>) => {
+        if (!response.error) {
+          alert(response.mensaje);
+          this.limpiarFormulario();
+          this.cargarUsuarios();
+        } else {
+          alert('Error: ' + response.mensaje);
+        }
+      },
+      error: (error) => {
+        console.error('Error al actualizar usuario:', error);
+        alert('Error al actualizar usuario: ' + error.message);
+      }
+    });
+  } else {
+    // Crear nuevo usuario - aquí siempre necesitamos contraseña
+    if (!this.usuario.cambiarContrasena && !this.usuario.contrasena) {
+      alert('Para crear un nuevo usuario debe proporcionar una contraseña.');
+      return;
+    }
     
-    // Forzar la validación del formulario después de establecer los valores
-    setTimeout(() => {
-      if (this.formUsuario) {
-        Object.keys(this.formUsuario.controls).forEach(key => {
-          this.formUsuario.controls[key].markAsTouched();
-        });
+    const nuevoUsuario: UsuarioDto = {
+      id: 0,
+      nombre: this.usuario.nombre,
+      cedula: this.usuario.cedula,
+      correo: this.usuario.correo,
+      telefono: this.usuario.telefono,
+      nombreUsuario: this.usuario.nombreUsuario,
+      contrasena: this.usuario.contrasena,
+      cambiarContrasena: this.usuario.cambiarContrasena,
+      tipoUsuario: this.usuario.tipoUsuario,
+      fechaCreacion: new Date(),
+      estado: this.usuario.estado
+    };
+
+    this.usuarioService.crearUsuario(nuevoUsuario).subscribe({
+      next: (response: MensajeDto<string>) => {
+        if (!response.error) {
+          alert(response.mensaje);
+          this.limpiarFormulario();
+          this.cargarUsuarios();
+        } else {
+          alert('Error: ' + response.mensaje);
+        }
+      },
+      error: (error) => {
+        console.error('Error al crear usuario:', error);
+        alert('Error al crear usuario: ' + error.message);
       }
     });
   }
+}
+  // EDITAR USUARIO - Modificado para guardar la contraseña original
+editarUsuario(usuario: UsuarioDto) {
+  console.log('Usuario a editar:', usuario);
+  console.log('Estado original:', usuario.estado, typeof usuario.estado);
+  
+  this.usuarioEditando = true;
+  this.usuarioEditandoId = usuario.id;
+  
+  // Guardar la contraseña original
+  this.contrasenaOriginal = usuario.contrasena;
+  
+  this.usuario = {
+    nombre: usuario.nombre,
+    cedula: usuario.cedula,
+    correo: usuario.correo,
+    telefono: usuario.telefono,
+    nombreUsuario: usuario.nombreUsuario,
+    contrasena: usuario.contrasena, // Mantener la contraseña actual
+    cambiarContrasena: usuario.cambiarContrasena || false, // Usar el valor existente o false por defecto
+    tipoUsuario: usuario.tipoUsuario as 'ADMIN' | 'VENDEDOR' | 'CAJERO' | 'DESPACHADOR',
+    estado: usuario.estado
+  };
+  
+  // Forzar la validación del formulario después de establecer los valores
+  setTimeout(() => {
+    if (this.formUsuario) {
+      Object.keys(this.formUsuario.controls).forEach(key => {
+        this.formUsuario.controls[key].markAsTouched();
+      });
+    }
+  });
+}
 
   // CAMBIAR ESTADO USUARIO
   cambiarEstadoUsuario(usuario: UsuarioDto) {
@@ -382,25 +404,27 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // LIMPIAR FORMULARIO
-  limpiarFormulario() {
-    this.usuario = {
-      nombre: '',
-      cedula: '',
-      correo: '',
-      telefono: '',
-      nombreUsuario: '',
-      contrasena: '',
-      tipoUsuario: 'VENDEDOR',
-      estado: true
-    };
-    this.usuarioEditando = false;
-    this.usuarioEditandoId = null;
-    
-    if (this.formUsuario) {
-      this.formUsuario.resetForm();
-    }
+ // LIMPIAR FORMULARIO - Modificado para resetear la contraseña original
+limpiarFormulario() {
+  this.usuario = {
+    nombre: '',
+    cedula: '',
+    correo: '',
+    telefono: '',
+    nombreUsuario: '',
+    contrasena: '',
+    cambiarContrasena: false,
+    tipoUsuario: 'VENDEDOR',
+    estado: true
+  };
+  this.usuarioEditando = false;
+  this.usuarioEditandoId = null;
+  this.contrasenaOriginal = ''; // Limpiar la contraseña original
+  
+  if (this.formUsuario) {
+    this.formUsuario.resetForm();
   }
+}
 
   // Métodos de búsqueda
   buscarPorNombre() {
@@ -560,6 +584,31 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   actualizarProducto() {
     // Tu implementación aquí
   }
+
+
+// Método para manejar el cambio en el interruptor de forzar contraseña
+onCambiarContrasenaChange() {
+  if (!this.usuario.cambiarContrasena && this.usuarioEditando) {
+    // Si se desactiva el forzar contraseña y estamos editando, restaurar la contraseña original
+    this.usuario.contrasena = this.contrasenaOriginal;
+  } else if (!this.usuario.cambiarContrasena) {
+    // Si se desactiva el forzar contraseña y estamos creando un nuevo usuario, limpiar el campo
+    this.usuario.contrasena = '';
+  }
+  
+  // También necesitamos limpiar la validación del campo
+  if (this.formUsuario && this.formUsuario.controls['contrasena']) {
+    this.formUsuario.controls['contrasena'].markAsUntouched();
+    this.formUsuario.controls['contrasena'].markAsPristine();
+  }
+  
+  // Forzar la actualización de la validación del formulario
+  setTimeout(() => {
+    if (this.formUsuario) {
+      this.formUsuario.form.updateValueAndValidity();
+    }
+  });
+}
 
   salir() {
     this.authService.logout();

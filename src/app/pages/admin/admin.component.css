@@ -1201,7 +1201,6 @@ h2::before {
     width: 180px;
 }
 
-
 .sin-registros {
     text-align: center;
     padding: 20px;
@@ -1241,4 +1240,141 @@ h2::before {
         flex-direction: column;
         gap: 4px;
     }
+}
+
+
+.tabla-scroll2 {
+    overflow-y: auto; /* Solo scroll vertical */
+    overflow-x: hidden; /* Elimina scroll horizontal */
+    margin: 18px 0;
+    border-radius: 10px;
+    position: relative;
+    max-height: 30vh; /* Altura máxima para scroll vertical */
+    width: 100%; /* Ocupa todo el ancho disponible */
+}
+
+/* Personalización de la barra de scroll VERTICAL para navegadores WebKit */
+.tabla-scroll2::-webkit-scrollbar {
+    width: 10px; /* Solo ancho para scroll vertical */
+    height: 0; /* Elimina altura para scroll horizontal */
+}
+
+.tabla-scroll2::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.tabla-scroll2::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #1421cf 0%, #db1f1f 100%);
+    border-radius: 10px;
+}
+
+.tabla-scroll2::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #101bb8 0%, #b81515 100%);
+}
+
+/* Para Firefox - Scroll VERTICAL solamente */
+.tabla-scroll2 {
+    scrollbar-width: thin;
+    scrollbar-color: #1421cf #f1f1f1;
+}
+
+
+/* Estilo para el interruptor iOS - CORREGIDO */
+.ios-switch {
+  position: relative;
+  display: inline-block;
+  width: 51px;
+  height: 31px;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+.ios-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.ios-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.ios-switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 27px;
+  width: 27px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .ios-switch-slider {
+  background-color: #4CD964;
+}
+
+input:checked + .ios-switch-slider:before {
+  transform: translateX(20px);
+}
+
+.ios-switch-label {
+  display: inline-block;
+  margin-right: 10px;
+  font-weight: 500;
+  color: #333;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+/* Contenedor específico para el interruptor de forzar contraseña */
+.form-group-force-password {
+  display: flex;
+  align-items: center;
+  margin-top: -10px;
+  margin-bottom: 5px !important;
+  padding: 12px 15px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+}
+
+/* Estilos para el estado de enfoque en el interruptor */
+.ios-switch input:focus + .ios-switch-slider {
+  box-shadow: 0 0 0 3px rgba(76, 217, 100, 0.3);
+}
+
+/* Estilo para campo deshabilitado */
+input:disabled {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Estilo para el label cuando el campo está deshabilitado */
+.disabled-label {
+  color: #6c757d;
+}
+
+
+.info-message {
+  color: #17a2b8;
+  font-size: 12px;
+  margin-top: 5px;
+  padding: 5px;
+  background-color: #e8f4f8;
+  border-radius: 4px;
+  border-left: 3px solid #17a2b8;
 }

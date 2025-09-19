@@ -1,4 +1,3 @@
-
 export interface UsuarioDto {
   id: number;
   nombre: string;
@@ -7,6 +6,7 @@ export interface UsuarioDto {
   telefono: string;
   nombreUsuario: string;
   contrasena: string;
+  cambiarContrasena: boolean; // ← AÑADIR ESTE CAMPO
   tipoUsuario: string;
   fechaCreacion: Date;
   estado: boolean;

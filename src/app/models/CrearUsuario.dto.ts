@@ -5,6 +5,7 @@ export interface CrearUsuarioDTO {
   telefono: string;
   nombreUsuario: string;
   contrasena: string;
+  cambiarContrasena: boolean; // ← AÑADIR ESTE CAMPO
   tipoUsuario: 'ADMIN' | 'VENDEDOR' | 'CAJERO' | 'DESPACHADOR';
   estado: boolean;
 }
