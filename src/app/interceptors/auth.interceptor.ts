@@ -22,24 +22,26 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
   
-  if (token) {
-    const authReq = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    
-    return next(authReq).pipe(
-      catchError((error: HttpErrorResponse) => {
-        if (error.status === 401 || error.status === 403) {
-          authService.clearAuthState();
-          router.navigate(['/login']);
-        }
-        return throwError(() => error);
-      })
-    );
+  // Si no hay token o está revocado, redirigir al login
+  if (!token) {
+    authService.revokeToken(); // Asegurar revocación
+    router.navigate(['/login']);
+    return throwError(() => new Error('Token no disponible o revocado'));
   }
   
-  router.navigate(['/login']);
-  return throwError(() => new Error('No authentication token available'));
+  const authReq = req.clone({
+    setHeaders: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  
+  return next(authReq).pipe(
+    catchError((error: HttpErrorResponse) => {
+      if (error.status === 401 || error.status === 403) {
+        authService.revokeToken(); // Revocar token en errores de auth
+        router.navigate(['/login']);
+      }
+      return throwError(() => error);
+    })
+  );
 };

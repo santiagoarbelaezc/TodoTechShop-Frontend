@@ -1,9 +1,10 @@
 // src/app/components/login/login.component.ts
-import { Component, ElementRef, AfterViewInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router, NavigationStart } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -12,28 +13,46 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements AfterViewInit {
+export class LoginComponent implements AfterViewInit, OnDestroy {
   nombreUsuario: string = '';
   contrasena: string = '';
   isLoading: boolean = false;
   private hasSwapped: boolean = false;
   private returnUrl: string = '';
+  private routerSubscription: Subscription;
 
   constructor(
     private authService: AuthService,
     private router: Router,
     private elementRef: ElementRef,
     private route: ActivatedRoute
-  ) {}
+  ) {
+    // Suscribirse a eventos de navegación para detectar cuando se vuelve al login
+    this.routerSubscription = this.router.events.subscribe(event => {
+      if (event instanceof NavigationStart) {
+        if (event.url.includes('/login')) {
+          // Revocar token cuando se navega al login
+          this.authService.revokeToken();
+        }
+      }
+    });
+  }
 
   ngOnInit() {
-    // Limpieza garantizada al entrar al login
-    this.authService.clearAuthState();
+    // Limpieza garantizada al entrar al login - USAR revokeToken() en lugar de clearAuthState()
+    this.authService.revokeToken();
     
     // Obtener returnUrl de los query params si existe
     this.route.queryParams.subscribe(params => {
       this.returnUrl = params['returnUrl'] || '';
     });
+  }
+
+  ngOnDestroy() {
+    // Limpiar la suscripción para evitar memory leaks
+    if (this.routerSubscription) {
+      this.routerSubscription.unsubscribe();
+    }
   }
 
   ngAfterViewInit(): void {
@@ -99,6 +118,11 @@ export class LoginComponent implements AfterViewInit {
         this.isLoading = false;
         if (!success) {
           alert('Usuario o contraseña incorrectos');
+        } else {
+          // Login exitoso - manejar returnUrl si existe
+          if (this.returnUrl) {
+            this.router.navigateByUrl(this.returnUrl);
+          }
         }
       },
       error: (error) => {
@@ -111,5 +135,12 @@ export class LoginComponent implements AfterViewInit {
   goToRecoverPassword(event: Event) {
     event.preventDefault();
     this.router.navigate(['/recuperar-contrasena']);
+  }
+
+  // Método adicional para manejar el evento keypress (Enter)
+  onKeyPress(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      this.onLogin();
+    }
   }
 }

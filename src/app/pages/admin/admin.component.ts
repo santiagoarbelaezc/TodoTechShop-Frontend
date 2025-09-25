@@ -211,85 +211,79 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
   }
-
-  guardarUsuario() {
-    if (this.usuarioEditando && !this.usuario.cambiarContrasena) {
-      this.usuario.contrasena = this.contrasenaOriginal;
-    }
-    
-    if (this.formUsuario.invalid) {
-      Object.keys(this.formUsuario.controls).forEach(key => {
-        this.formUsuario.controls[key].markAsTouched();
-      });
-      alert('Por favor, complete todos los campos obligatorios correctamente.');
-      return;
-    }
-    
-    if (this.usuarioEditando && this.usuarioEditandoId) {
-      const usuarioActualizado: UsuarioDto = {
-        id: this.usuarioEditandoId,
-        nombre: this.usuario.nombre,
-        cedula: this.usuario.cedula,
-        correo: this.usuario.correo,
-        telefono: this.usuario.telefono,
-        nombreUsuario: this.usuario.nombreUsuario,
-        contrasena: this.usuario.contrasena,
-        cambiarContrasena: this.usuario.cambiarContrasena,
-        tipoUsuario: this.usuario.tipoUsuario,
-        fechaCreacion: new Date(),
-        estado: this.usuario.estado
-      };
-
-      this.usuarioService.actualizarUsuarioAdmin(this.usuarioEditandoId, usuarioActualizado).subscribe({
-        next: (response: MensajeDto<string>) => {
-          if (!response.error) {
-            alert(response.mensaje);
-            this.limpiarFormulario();
-            this.cargarUsuarios();
-          } else {
-            alert('Error: ' + response.mensaje);
-          }
-        },
-        error: (error) => {
-          alert('Error al actualizar usuario: ' + error.message);
-        }
-      });
-    } else {
-      if (!this.usuario.cambiarContrasena && !this.usuario.contrasena) {
-        alert('Para crear un nuevo usuario debe proporcionar una contraseña.');
-        return;
-      }
-      
-      const nuevoUsuario: UsuarioDto = {
-        id: 0,
-        nombre: this.usuario.nombre,
-        cedula: this.usuario.cedula,
-        correo: this.usuario.correo,
-        telefono: this.usuario.telefono,
-        nombreUsuario: this.usuario.nombreUsuario,
-        contrasena: this.usuario.contrasena,
-        cambiarContrasena: this.usuario.cambiarContrasena,
-        tipoUsuario: this.usuario.tipoUsuario,
-        fechaCreacion: new Date(),
-        estado: this.usuario.estado
-      };
-
-      this.usuarioService.crearUsuario(nuevoUsuario).subscribe({
-        next: (response: MensajeDto<string>) => {
-          if (!response.error) {
-            alert(response.mensaje);
-            this.limpiarFormulario();
-            this.cargarUsuarios();
-          } else {
-            alert('Error: ' + response.mensaje);
-          }
-        },
-        error: (error) => {
-          alert('Error al crear usuario: ' + error.message);
-        }
-      });
-    }
+guardarUsuario() {
+  if (this.formUsuario.invalid) {
+    Object.keys(this.formUsuario.controls).forEach(key => {
+      this.formUsuario.controls[key].markAsTouched();
+    });
+    alert('Por favor, complete todos los campos obligatorios correctamente.');
+    return;
   }
+  
+  const contrasenaAEnviar = this.usuario.contrasena || '';
+  
+  if (this.usuarioEditando && this.usuarioEditandoId) {
+    // Para edición: usar la lógica normal
+    const usuarioActualizado: UsuarioDto = {
+      id: this.usuarioEditandoId,
+      nombre: this.usuario.nombre,
+      cedula: this.usuario.cedula,
+      correo: this.usuario.correo,
+      telefono: this.usuario.telefono,
+      nombreUsuario: this.usuario.nombreUsuario,
+      contrasena: contrasenaAEnviar,
+      cambiarContrasena: this.usuario.cambiarContrasena,
+      tipoUsuario: this.usuario.tipoUsuario,
+      fechaCreacion: new Date(),
+      estado: this.usuario.estado
+    };
+
+    this.usuarioService.actualizarUsuarioAdmin(this.usuarioEditandoId, usuarioActualizado).subscribe({
+      next: (response: MensajeDto<string>) => {
+        if (!response.error) {
+          alert(response.mensaje);
+          this.limpiarFormulario();
+          this.cargarUsuarios();
+        } else {
+          alert('Error: ' + response.mensaje);
+        }
+      },
+      error: (error) => {
+        alert('Error al actualizar usuario: ' + error.message);
+      }
+    });
+  } else {
+    // Para CREACIÓN: Forzar cambiarContrasena a true para que el backend acepte la contraseña
+    const nuevoUsuario: UsuarioDto = {
+      id: 0,
+      nombre: this.usuario.nombre,
+      cedula: this.usuario.cedula,
+      correo: this.usuario.correo,
+      telefono: this.usuario.telefono,
+      nombreUsuario: this.usuario.nombreUsuario,
+      contrasena: contrasenaAEnviar,
+      cambiarContrasena: true, // ¡IMPORTANTE! Forzar a true para creación
+      tipoUsuario: this.usuario.tipoUsuario,
+      fechaCreacion: new Date(),
+      estado: this.usuario.estado
+    };
+
+    this.usuarioService.crearUsuario(nuevoUsuario).subscribe({
+      next: (response: MensajeDto<string>) => {
+        if (!response.error) {
+          alert(response.mensaje);
+          this.limpiarFormulario();
+          this.cargarUsuarios();
+        } else {
+          alert('Error: ' + response.mensaje);
+        }
+      },
+      error: (error) => {
+        alert('Error al crear usuario: ' + error.message);
+      }
+    });
+  }
+}
 
   editarUsuario(usuario: UsuarioDto) {
     this.usuarioEditando = true;

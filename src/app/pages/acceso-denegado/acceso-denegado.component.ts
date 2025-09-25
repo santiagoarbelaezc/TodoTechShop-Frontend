@@ -23,7 +23,7 @@ export class AccesoDenegadoComponent implements OnInit {
   }
 
   volverAlInicio(): void {
-    this.router.navigate(['/inicio']);
+    this.router.navigate(['/login']);
   }
 
   private animateElements(): void {

@@ -2,7 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { MensajeDto } from '../models/mensaje.dto';
@@ -22,6 +22,7 @@ export class AuthService {
   private TOKEN_KEY = 'authToken';
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   private currentUserSubject = new BehaviorSubject<LoginResponse | null>(null);
+  private tokenRevoked = false; // Nueva propiedad para controlar revocación
 
   constructor() {
     this.initializeAuthState();
@@ -31,18 +32,23 @@ export class AuthService {
     const savedUser = localStorage.getItem(this.USUARIO_KEY);
     const savedToken = localStorage.getItem(this.TOKEN_KEY);
     
-    if (savedUser && savedToken) {
+    if (savedUser && savedToken && !this.tokenRevoked) {
       try {
         const usuario = JSON.parse(savedUser);
         this.currentUserSubject.next(usuario);
         this.isAuthenticatedSubject.next(true);
       } catch (error) {
-        // Error parsing user from localStorage
+        this.clearAuthState();
       }
+    } else {
+      this.clearAuthState(); // Limpiar si el token fue revocado
     }
   }
 
   login(nombreUsuario: string, contrasena: string): Observable<boolean> {
+    // Resetear estado de revocación al intentar login
+    this.tokenRevoked = false;
+    
     const params = new HttpParams()
       .set('nombreUsuario', nombreUsuario)
       .set('contrasena', contrasena);
@@ -79,7 +85,17 @@ export class AuthService {
   }
 
   getToken(): string | null {
+    // Si el token fue revocado, no devolverlo
+    if (this.tokenRevoked) {
+      return null;
+    }
     return localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  // Método para revocar explícitamente el token
+  revokeToken(): void {
+    this.tokenRevoked = true;
+    this.clearAuthState();
   }
 
   redirigirPorRol(tipoUsuario: string): void {
@@ -103,24 +119,32 @@ export class AuthService {
   }
 
   logout(): void {
-    this.clearAuthState();
+    this.revokeToken(); // Usar revokeToken en lugar de clearAuthState
     this.router.navigate(['/login']);
   }
 
   isLoggedIn(): boolean {
-    return this.isAuthenticatedSubject.value;
+    return this.isAuthenticatedSubject.value && !this.tokenRevoked;
   }
 
   getCurrentUser(): LoginResponse | null {
+    if (this.tokenRevoked) {
+      return null;
+    }
     return this.currentUserSubject.value;
   }
 
   getAuthState(): Observable<boolean> {
-    return this.isAuthenticatedSubject.asObservable();
+    return this.isAuthenticatedSubject.asObservable().pipe(
+      map(isAuthenticated => isAuthenticated && !this.tokenRevoked)
+    );
   }
 
+  // Método mejorado para limpiar cuando se navega al login
   clearIfOnLoginPage(): void {
-    // Método comentado sin logs
+    if (this.router.url.includes('/login')) {
+      this.revokeToken();
+    }
   }
 
   clearAuthState(): void {
@@ -129,11 +153,13 @@ export class AuthService {
     localStorage.removeItem(this.USUARIO_KEY);
     localStorage.removeItem(this.TOKEN_KEY);
     this.usuarioService.limpiarUsuario();
-    
     localStorage.removeItem('admin_state');
   }
 
   hasRole(role: string): boolean {
+    if (this.tokenRevoked) {
+      return false;
+    }
     const user = this.getCurrentUser();
     return user?.role === role;
   }
@@ -155,6 +181,10 @@ export class AuthService {
   }
 
   testToken(): Observable<any> {
+    if (this.tokenRevoked) {
+      return throwError(() => new Error('Token revocado'));
+    }
+    
     return this.http.get(`${this.apiUrl}/usuarios`, {
       headers: new HttpHeaders({
         'Authorization': `Bearer ${this.getToken()}`
