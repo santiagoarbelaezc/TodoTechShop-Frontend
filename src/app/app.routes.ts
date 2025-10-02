@@ -11,14 +11,21 @@ import { OrdenVentaComponent } from './pages/orden-venta/orden-venta.component';
 import { CajaComponent } from './pages/caja/caja.component';
 import { DespachoComponent } from './pages/despacho/despacho.component';
 import { AccesoDenegadoComponent } from './pages/acceso-denegado/acceso-denegado.component';
+import { RecuperarContrasenaComponent } from './pages/recuperar-contrasena/recuperar-contrasena.component';
 
-// Importar las funciones de guardia (no clases)
+// Importar las funciones de guardia
 import { authGuard } from './guards/auth.guard';
 import { publicGuard } from './guards/public.guard';
 import { roleGuard } from './guards/role.guard';
-import { RecuperarContrasenaComponent } from './pages/recuperar-contrasena/recuperar-contrasena.component';
+import { ManualUsuarioComponent } from './pages/manual-usuario/manual-usuario.component';
+import { ProductoComponent } from './pages/admin/producto/producto.component';
+import { CreacionComponent } from './pages/admin/creacion/creacion.component';
+import { TablaUsuariosComponent } from './pages/admin/tabla-usuarios/tabla-usuarios.component';
+import { DescripcionproductoComponent } from './pages/inicio/descripcionproducto/descripcionproducto.component';
+import { BuscarInicioComponent } from './pages/inicio/buscar-inicio/buscar-inicio.component';
 
 export const routes: Routes = [
+  // 🔓 RUTAS PÚBLICAS
   { 
     path: '', 
     redirectTo: 'login', 
@@ -27,22 +34,17 @@ export const routes: Routes = [
   { 
     path: 'login', 
     component: LoginComponent,
-    canActivate: [publicGuard]  // Usar la función publicGuard
-  },
-  { 
-    path: 'acceso-denegado', 
-    component: AccesoDenegadoComponent
-  },
-
-  { 
-    path: '', 
-    redirectTo: 'recuperar-contrasena', 
-    pathMatch: 'full' 
+    canActivate: [publicGuard]
   },
   { 
     path: 'recuperar-contrasena', 
     component: RecuperarContrasenaComponent,
-    canActivate: [publicGuard]  // Usar la función publicGuard
+    canActivate: [publicGuard]
+  },
+  { 
+    path: 'manual-usuario', 
+    component: ManualUsuarioComponent,
+    canActivate: [publicGuard]
   },
   { 
     path: 'acceso-denegado', 
@@ -53,58 +55,90 @@ export const routes: Routes = [
   { 
     path: 'inicio', 
     component: InicioComponent, 
-    canActivate: [authGuard],  // Usar la función authGuard
-    data: { roles: ['ADMIN', 'VENDEDOR', 'CAJERO', 'DESPACHADOR'] }
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['VENDEDOR', 'ADMIN'] } // ✅ VENDEDOR y ADMIN pueden acceder
+  },
+  { 
+    path: 'descripcion-producto', 
+    component: DescripcionproductoComponent, 
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['VENDEDOR', 'ADMIN'] } // ✅ VENDEDOR y ADMIN pueden acceder
+  },
+  { 
+    path: 'buscar-producto', 
+    component: BuscarInicioComponent, 
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['VENDEDOR', 'ADMIN'] } // ✅ VENDEDOR y ADMIN pueden acceder
   },
   { 
     path: 'admin', 
     component: AdminComponent, 
-    canActivate: [authGuard, roleGuard],  // Usar las funciones
-    data: { role: 'ADMIN' }
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN'] }
+  },
+  { 
+    path: 'admin-productos', 
+    component: ProductoComponent, 
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN'] }
+  },
+  { 
+    path: 'admin-creacion', 
+    component: CreacionComponent, 
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN'] }
+  },
+
+  { 
+    path: 'admin-tabla', 
+    component: TablaUsuariosComponent, 
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN'] }
   },
   { 
     path: 'phone', 
     component: PhoneComponent, 
-    canActivate: [authGuard],  // Usar la función authGuard
+    canActivate: [authGuard, roleGuard],
     data: { roles: ['ADMIN', 'VENDEDOR'] }
   },
   { 
     path: 'gaming', 
     component: GamingComponent, 
-    canActivate: [authGuard],  // Usar la función authGuard
+    canActivate: [authGuard, roleGuard],
     data: { roles: ['ADMIN', 'VENDEDOR'] }
   },
   { 
     path: 'laptops', 
     component: LaptopsComponent, 
-    canActivate: [authGuard],  // Usar la función authGuard
+    canActivate: [authGuard, roleGuard],
     data: { roles: ['ADMIN', 'VENDEDOR'] }
   },
   { 
     path: 'accesorios', 
     component: AccesoriosComponent, 
-    canActivate: [authGuard],  // Usar la función authGuard
+    canActivate: [authGuard, roleGuard],
     data: { roles: ['ADMIN', 'VENDEDOR'] }
   },
   { 
     path: 'caja', 
     component: CajaComponent, 
-    canActivate: [authGuard, roleGuard],  // Usar las funciones
-    data: { role: 'CAJERO' }
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['CAJERO'] }
   },
   { 
     path: 'despacho', 
     component: DespachoComponent, 
-    canActivate: [authGuard, roleGuard],  // Usar las funciones
-    data: { role: 'DESPACHADOR' }
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['DESPACHADOR'] }
   },
   { 
     path: 'ordenVenta', 
     component: OrdenVentaComponent, 
-    canActivate: [authGuard, roleGuard],  // Usar las funciones
-    data: { role: 'VENDEDOR' }
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['VENDEDOR'] }
   },
   
+  // 🎯 RUTA COMODÍN (siempre al final)
   { 
     path: '**', 
     redirectTo: 'login', 

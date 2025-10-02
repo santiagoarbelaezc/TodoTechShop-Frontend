@@ -9,24 +9,8 @@
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <img src="assets/logoTech.png" alt="TodoTech Shop">
-        </div>
-        <nav>
-            <ul class="menu">
-                <button class="boton-menu" (click)="irAInicio()">Inicio</button>
-                <button class="boton-menu" (click)="irALaptops()">Laptops & PCs</button>
-                <button class="boton-menu" (click)="irAPhone()">Smartphones</button>
-                <button class="boton-menu" (click)="irAGaming()">Gaming</button>
-                <button class="boton-menu" (click)="irAAccesorios()">Accesorios</button>
-            </ul>
-        </nav>
-        <div class="icons">
-            <i class="fas fa-search"></i>
-            <i class="fas fa-shopping-cart"></i>
-        </div>
-    </header>
+    <!-- Reemplaza todo el header con el nuevo navbar -->
+    <app-navbar-inicio></app-navbar-inicio>
     
     <section class="banner">
         <div class="banner-content">
@@ -38,23 +22,23 @@
         </div>
     </section>
    
-    <!-- Carrito (solo aparece al bajar el scroll) -->
-    <div class="cart-wrapper" *ngIf="mostrarCarrito">
+    <!-- Carrito (solo aparece al bajar el scroll) - CON EFECTOS DE ENTRADA -->
+    <div class="cart-wrapper slide-right-entrance" *ngIf="mostrarCarrito">
         <!-- Botón para abrir/cerrar el carrito -->
-        <button class="cart-button" (click)="toggleCarrito()">
+        <button class="cart-button bounce-entrance" (click)="toggleCarrito()">
             🛒 <span>Carrito</span>
         </button>
 
         <!-- Contenedor del carrito -->
         <div class="cart-panel" [ngClass]="{ 'open': carritoVisible }">
             <div class="cart-header">
-                <h3>🛍 Mi Carrito</h3>
-                <button class="close-btn" (click)="toggleCarrito()">✖</button>
+                <h3 class="text-reveal">🛍 Mi Carrito</h3>
+                <button class="close-btn fade-in-entrance" (click)="toggleCarrito()">✖</button>
             </div>
 
             <div class="cart-body">
                 <!-- Encabezados de la tabla -->
-                <div class="cart-row cart-header-row">
+                <div class="cart-row cart-header-row fade-in-entrance">
                     <span class="cart-col">Producto</span>
                     <span class="cart-col">Cantidad</span>
                     <span class="cart-col">Subtotal</span>
@@ -62,28 +46,28 @@
                 </div>
 
                 <!-- Detalles del carrito -->
-                <div *ngFor="let item of carrito; let i = index" class="cart-row">
+                <div *ngFor="let item of carrito; let i = index" class="cart-row slide-up-entrance" [ngClass]="'entrance-delay-' + (i + 1)">
                     <span class="cart-col">{{ item.nombreProducto }}</span>
                     <span class="cart-col">
                         <div class="quantity-controls">
-                            <button class="quantity-btn" (click)="ajustarCantidad(i, -1)">−</button>
-                            <span>{{ item.detalle.cantidad }}</span>
-                            <button class="quantity-btn" (click)="ajustarCantidad(i, 1)">+</button>
+                            <button class="quantity-btn bounce-entrance" (click)="ajustarCantidad(i, -1)">−</button>
+                            <span class="fade-in-entrance">{{ item.detalle.cantidad }}</span>
+                            <button class="quantity-btn bounce-entrance" (click)="ajustarCantidad(i, 1)">+</button>
                         </div>
                     </span>
-                    <span class="cart-col">${{ item.detalle.subtotal | number:'1.2-2' }}</span>
+                    <span class="cart-col zoom-entrance">{{ formatearPrecio(item.detalle.subtotal) }}</span>
                     <span class="cart-col">
-                        <button class="remove-btn" (click)="eliminarProducto(i)">🗑️</button>
+                        <button class="remove-btn bounce-entrance" (click)="eliminarProducto(i)">🗑️</button>
                     </span>
                 </div>
 
                 <div class="cart-footer-actions">
-                    <button class="btn-cart btn-checkout" (click)="pagarCarrito()">
+                    <button class="btn-cart btn-checkout component-entrance" (click)="pagarCarrito()">
                         <i class="fas fa-shopping-cart"></i> Pagar Carrito
                     </button>
 
                     <div class="action-buttons">
-                        <div *ngIf="mostrarInputDescuento" class="discount-input-container">
+                        <div *ngIf="mostrarInputDescuento" class="discount-input-container fade-in-entrance">
                             <input 
                                 type="text" 
                                 [(ngModel)]="codigoDescuento"
@@ -93,32 +77,32 @@
                                 [disabled]="aplicandoDescuento"
                             >
                             <button 
-                                class="btn-cart btn-apply" 
+                                class="btn-cart btn-apply bounce-entrance" 
                                 (click)="validarDescuento()"
                                 [disabled]="aplicandoDescuento || !codigoDescuento.trim()"
                             >
                                 {{ aplicandoDescuento ? 'Aplicando...' : 'Aplicar' }}
                             </button>
                             <button 
-                                class="btn-cart btn-cancel-input" 
+                                class="btn-cart btn-cancel-input bounce-entrance" 
                                 (click)="mostrarInputDescuento = false"
                                 [disabled]="aplicandoDescuento"
                             >×</button>
                         </div>
                         
                         <button 
-                            class="btn-cart btn-discount" 
+                            class="btn-cart btn-discount fade-in-entrance" 
                             (click)="aplicarDescuento()"
                             *ngIf="!mostrarInputDescuento"
                         >
                             🎟 Aplicar Descuento
                         </button>
                         
-                        <button class="btn-cart btn-cancel" (click)="cancelarOrden()">🗑 Cancelar</button>
+                        <button class="btn-cart btn-cancel fade-in-entrance" (click)="cancelarOrden()">🗑 Cancelar</button>
                     </div>
 
                     <!-- Mensaje de error -->
-                    <div *ngIf="errorDescuento" class="error-message">
+                    <div *ngIf="errorDescuento" class="error-message fade-in-entrance">
                         {{ errorDescuento }}
                     </div>
                 </div>
@@ -126,43 +110,77 @@
         </div>
     </div>
   
-    <section class="products-section" *ngIf="productosAsus.length > 0">
-        <div class="carousel-container">
-            <button id="prevBtnAsus" class="carousel-nav prev">‹</button>
-            <div class="carousel carouselAsus">
-                <div class="carousel-item" *ngFor="let producto of productosAsus">
-                    <img [src]="'assets/' + producto.imagen" alt="{{ producto.nombre }}">
-                    <h3>{{ producto.nombre }}</h3>
-                    <p>{{ producto.descripcion }}</p>
-                    <span class="price">${{ producto.precio | number:'1.0-0' }}</span>
-                    <div class="carrito-container">
-                        <button class="btn-carrito" (click)="agregarAlCarrito(producto)">Agregar al carrito 🛒</button>
-                        <span class="stock-info">Stock: {{ producto.stock }}</span>
-                    </div>
-                </div>
-            </div>
-            <button id="nextBtnAsus" class="carousel-nav next">›</button>
-        </div>
-    </section>
 
-    <section class="products-section" *ngIf="productosIphone.length > 0">
-        <div class="carousel-container">
-            <button id="prevBtnIphone" class="carousel-nav prev">‹</button>
-            <div class="carousel carouselIphone">
+    <!-- Carrusel Iphone -->
+<section class="products-section iphone-section" *ngIf="productosIphone.length > 0">
+    <div class="section-header">
+        <h2 class="section-title">📱 Smartphones iPhone</h2>
+        <p class="section-subtitle">Descubre la innovación y elegancia de Apple</p>
+    </div>
+    
+    <div class="carousel-container">
+        <button class="carousel-nav prev" (click)="scrollCarousel('prev', 'iphone')">‹</button>
+        
+        <div class="carousel-wrapper">
+            <div class="carousel" id="carousel-iphone">
                 <div class="carousel-item" *ngFor="let producto of productosIphone">
-                    <img [src]="'assets/' + producto.imagen" alt="{{ producto.nombre }}">
-                    <h3>{{ producto.nombre }}</h3>
-                    <p>{{ producto.descripcion }}</p>
-                    <span class="price">${{ producto.precio | number:'1.0-0' }}</span>
-                    <div class="carrito-container">
-                        <button class="btn-carrito" (click)="agregarAlCarrito(producto)">Agregar al carrito 🛒</button>
-                        <span class="stock-info">Stock: {{ producto.stock }}</span>
+                    <!-- Agregar (click) en el product-card y $event.stopPropagation() en el botón -->
+                    <div class="product-card" (click)="verDetalleProducto(producto)">
+                        <div class="product-image-container">
+                            <img [src]="'assets/' + producto.imagenUrl" alt="{{ producto.nombre }}" class="product-image">
+                        </div>
+                        
+                        <div class="product-content">
+                            <div class="product-header">
+                                <h3 class="product-title">{{ producto.nombre }}</h3>
+                                <span class="category-badge">{{ producto.categoria.nombre }}</span>
+                            </div>
+                            
+                            <div class="product-description">
+                                <p>{{ producto.descripcion }}</p>
+                            </div>
+                            
+                            <div class="product-price-container">
+                                <span class="price price-subtle">
+                                    {{ formatearPrecio(producto.precio) }}
+                                    <div class="price-inner-glow"></div>
+                                </span>
+                            </div>
+                            
+                            <div class="product-actions">
+                                <div class="carrito-container">
+                                    <!-- Agregar $event.stopPropagation() para evitar que el clic se propague al card -->
+                                    <button 
+                                        class="btn-carrito" 
+                                        (click)="agregarAlCarrito(producto); $event.stopPropagation()"
+                                        [disabled]="producto.stock === 0"
+                                        [ngClass]="{'btn-disabled': producto.stock === 0}"
+                                    >
+                                        <span class="btn-icon">🛒</span>
+                                        <span class="btn-text">
+                                            {{ producto.stock === 0 ? 'Sin Stock' : 'Agregar al carrito' }}
+                                        </span>
+                                    </button>
+                                    <span class="stock-info" [ngClass]="obtenerClaseStock(producto)">
+                                        {{ obtenerTextoStock(producto) }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <button id="nextBtnIphone" class="carousel-nav next">›</button>
         </div>
-    </section>
+        
+        <button class="carousel-nav next" (click)="scrollCarousel('next', 'iphone')">›</button>
+    </div>
+    
+    <div class="carousel-indicators">
+        <span class="indicator active"></span>
+        <span class="indicator"></span>
+        <span class="indicator"></span>
+    </div>
+</section>
 
     <div class="promos-container">
         <div class="promo-box" id="promo1">
@@ -186,41 +204,74 @@
         </div>
     </div>
   
-    <section class="products-section" *ngIf="productosSamsung.length > 0">
-        <div class="carousel-container">
-            <button id="prevBtnSamsung" class="carousel-nav prev">‹</button>
-            <div class="carousel carouselSamsung">
-                <div class="carousel-item" *ngFor="let producto of productosSamsung">
-                    <img [src]="'assets/' + producto.imagen" alt="{{ producto.nombre }}">
-                    <h3>{{ producto.nombre }}</h3>
-                    <p>{{ producto.descripcion }}</p>
-                    <span class="price">${{ producto.precio | number:'1.0-0' }}</span>
-                    <div class="carrito-container">
-                        <button class="btn-carrito" (click)="agregarAlCarrito(producto)">Agregar al carrito 🛒</button>
-                        <span class="stock-info">Stock: {{ producto.stock }}</span>
-                    </div>
-                </div>
-            </div>
-            <button id="nextBtnSamsung" class="carousel-nav next">›</button>
-        </div>
-    </section>
+    
   
-    <section class="products-section" *ngIf="productosHp.length > 0">
+    <!-- Carrusel HP -->
+    <section class="products-section hp-section" *ngIf="productosHp.length > 0">
+        <div class="section-header">
+            <h2 class="section-title">💻 Laptops HP</h2>
+            <p class="section-subtitle">Potencia y rendimiento para trabajo y entretenimiento</p>
+        </div>
+        
         <div class="carousel-container">
-            <button id="prevBtnHp" class="carousel-nav prev">‹</button>
-            <div class="carousel carouselHp">
-                <div class="carousel-item" *ngFor="let producto of productosHp">
-                    <img [src]="'assets/' + producto.imagen" alt="{{ producto.nombre }}">
-                    <h3>{{ producto.nombre }}</h3>
-                    <p>{{ producto.descripcion }}</p>
-                    <span class="price">${{ producto.precio | number:'1.0-0' }}</span>
-                    <div class="carrito-container">
-                        <button class="btn-carrito" (click)="agregarAlCarrito(producto)">Agregar al carrito 🛒</button>
-                        <span class="stock-info">Stock: {{ producto.stock }}</span>
+            <button class="carousel-nav prev" (click)="scrollCarousel('prev', 'hp')">‹</button>
+            
+            <div class="carousel-wrapper">
+                <div class="carousel" id="carousel-hp">
+                    <div class="carousel-item" *ngFor="let producto of productosHp">
+                        <div class="product-card" (click)="verDetalleProducto(producto)">
+                            <div class="product-image-container">
+                                <img [src]="'assets/' + producto.imagenUrl" alt="{{ producto.nombre }}" class="product-image">
+                            </div>
+                            
+                            <div class="product-content">
+                                <div class="product-header">
+                                    <h3 class="product-title">{{ producto.nombre }}</h3>
+                                    <span class="category-badge">{{ producto.categoria.nombre }}</span>
+                                </div>
+                                
+                                <div class="product-description">
+                                    <p>{{ producto.descripcion }}</p>
+                                </div>
+                                
+                                <div class="product-price-container">
+                                    <span class="price price-subtle">
+                                        {{ formatearPrecio(producto.precio) }}
+                                        <div class="price-inner-glow"></div>
+                                    </span>
+                                </div>
+                                
+                                <div class="product-actions">
+                                    <div class="carrito-container">
+                                        <button 
+                                            class="btn-carrito" 
+                                            (click)="agregarAlCarrito(producto); $event.stopPropagation()"
+                                            [disabled]="producto.stock === 0"
+                                            [ngClass]="{'btn-disabled': producto.stock === 0}"
+                                        >
+                                            <span class="btn-icon">🛒</span>
+                                            <span class="btn-text">
+                                                {{ producto.stock === 0 ? 'Sin Stock' : 'Agregar al carrito' }}
+                                            </span>
+                                        </button>
+                                        <span class="stock-info" [ngClass]="obtenerClaseStock(producto)">
+                                            {{ obtenerTextoStock(producto) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <button id="nextBtnHp" class="carousel-nav next">›</button>
+            
+            <button class="carousel-nav next" (click)="scrollCarousel('next', 'hp')">›</button>
+        </div>
+        
+        <div class="carousel-indicators">
+            <span class="indicator active"></span>
+            <span class="indicator"></span>
+            <span class="indicator"></span>
         </div>
     </section>
     

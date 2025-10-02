@@ -568,6 +568,76 @@
       opacity: 1;
   }
 
+
+  /* Botón de ayuda */
+  .help-button-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+  }
+
+  .help-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      position: relative;
+  }
+
+  .help-button:hover {
+      background: white;
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .help-icon {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+  }
+
+  .help-tooltip {
+      position: absolute;
+      top: 50px;
+      right: 0;
+      background: #333;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .help-button:hover .help-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+  }
+
+  .help-tooltip::after {
+      content: '';
+      position: absolute;
+      top: -5px;
+      right: 10px;
+      width: 10px;
+      height: 10px;
+      background: #333;
+      transform: rotate(45deg);
+  }
+
   /* Media Queries para Responsividad Mejorada */
 
   /* Pantallas medianas */
@@ -1407,4 +1477,257 @@ body {
     .forgot-password a {
         font-size: 12px;
     }
+}
+
+
+
+
+
+/* Mensaje de Error */
+.error-alert {
+    background: linear-gradient(135deg, #fee 0%, #fff5f5 100%);
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 25px;
+    animation: slideInDown 0.5s ease-out;
+}
+
+.error-alert p {
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+    text-align: center;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Validación de campos */
+.validation-hint {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 5px;
+    font-weight: 400;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.input-group input.invalid {
+    border-color: #dc2626 !important;
+    background: #fef2f2 !important;
+}
+
+.input-group input.invalid:focus {
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Loading States */
+button[type="submit"]:disabled {
+    background: linear-gradient(135deg, #ccc 0%, #999 100%) !important;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+button[type="submit"].loading {
+    position: relative;
+    color: transparent;
+}
+
+button[type="submit"].loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    border-radius: 18px;
+    animation: fadeInOverlay 0.3s ease-out;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #000;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+.loading-overlay p {
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+@keyframes fadeInOverlay {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Forgot Password Link */
+.forgot-password {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.forgot-password a {
+    color: #666;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.forgot-password a:hover {
+    color: #000;
+    text-decoration: underline;
+}
+
+/* Quick Login Buttons (Desarrollo) */
+.quick-login-buttons {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.quick-login-buttons h4 {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.quick-buttons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.quick-login-btn {
+    padding: 10px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.quick-login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.quick-login-btn.admin {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    border-color: #ffd700;
+}
+
+.quick-login-btn.vendedor {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    border-color: #10b981;
+    color: white;
+}
+
+.quick-login-btn.cajero {
+    background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+    border-color: #3b82f6;
+    color: white;
+}
+
+.quick-login-btn.despachador {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+    border-color: #8b5cf6;
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+        max-width: 400px;
+    }
+    
+    .login-form, .logo-section {
+        order: initial !important;
+        transform: none !important;
+        min-height: auto;
+    }
+    
+    .logo-section {
+        padding: 30px 20px;
+    }
+    
+    .login-form {
+        padding: 30px 25px;
+    }
+    
+    .quick-buttons-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Placeholder styling para inputs */
+.input-group input::placeholder {
+    color: transparent;
+}
+
+/* Estilos para inputs deshabilitados */
+.input-group input:disabled {
+    background: #f5f5f5 !important;
+    color: #999 !important;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.input-group input:disabled + label {
+    color: #999 !important;
 }

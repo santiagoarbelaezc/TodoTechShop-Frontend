@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Productos - TodoTech Shop</title>
+    <link rel="stylesheet" href="buscar-inicio.component.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <app-navbar-inicio></app-navbar-inicio>
+    
+    <!-- Banner de búsqueda -->
+    <section class="banner-search">
+        <div class="banner-content">
+            <h2>
+                <span class="reveal-text delay-1">🔍 Encuentra lo que necesitas</span>
+                <span class="reveal-text delay-2">Busca entre nuestra amplia gama de productos tecnológicos</span>
+            </h2>
+        </div>
+    </section>
+
+    <!-- Panel de búsqueda y filtros -->
+<section class="search-panel">
+    <div class="search-container">
+        <div class="search-box-wrapper">
+            <div class="search-box">
+                <div class="search-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <input 
+                    type="text" 
+                    [(ngModel)]="terminoBusqueda"
+                    placeholder="Buscar productos, marcas, categorías..."
+                    class="search-input"
+                    (keyup.enter)="buscarProductos()"
+                >
+                <button class="search-btn" (click)="buscarProductos()">
+                    <span class="btn-text">Buscar</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <div class="search-decoration">
+                <div class="decoration-circle circle-1"></div>
+                <div class="decoration-circle circle-2"></div>
+                <div class="decoration-circle circle-3"></div>
+            </div>
+        </div>
+
+        <!-- El resto de los filtros permanece igual -->
+        <div class="filters-container">
+            <!-- ... código de filtros existente ... -->
+        </div>
+    </div>
+</section>
+
+    <!-- Resultados de búsqueda por categorías -->
+    <section *ngFor="let grupo of obtenerProductosPorCategoria()" class="products-section">
+        <div class="section-header">
+            <h2 class="section-title">{{ grupo.categoria.nombre }}</h2>
+            <p class="section-subtitle">{{ grupo.productos.length }} producto(s) encontrado(s)</p>
+        </div>
+        
+        <div class="carousel-container">
+            <button class="carousel-nav prev" (click)="scrollCarousel('prev', grupo.categoria.id.toString())">‹</button>
+            
+            <div class="carousel-wrapper">
+                <div class="carousel" [id]="'carousel-' + grupo.categoria.id">
+                    <div class="carousel-item" *ngFor="let producto of grupo.productos">
+                        <div class="product-card" (click)="verDetalleProducto(producto)">
+                            <div class="product-image-container">
+                                <img [src]="'assets/' + producto.imagenUrl" alt="{{ producto.nombre }}" class="product-image">
+                            </div>
+                            
+                            <div class="product-content">
+                                <div class="product-header">
+                                    <h3 class="product-title">{{ producto.nombre }}</h3>
+                                    <span class="category-badge">{{ producto.categoria.nombre }}</span>
+                                </div>
+                                
+                                <div class="product-description">
+                                    <p>{{ producto.descripcion | slice:0:100 }}...</p>
+                                </div>
+                                
+                                <div class="product-price-container">
+                                    <span class="price price-subtle">
+                                        {{ formatearPrecio(producto.precio) }}
+                                        <div class="price-inner-glow"></div>
+                                    </span>
+                                </div>
+                                
+                                <div class="product-actions">
+                                    <div class="carrito-container">
+                                        <button 
+                                            class="btn-carrito" 
+                                            (click)="agregarAlCarrito(producto); $event.stopPropagation()"
+                                            [disabled]="producto.stock === 0"
+                                            [ngClass]="{'btn-disabled': producto.stock === 0}"
+                                        >
+                                            <span class="btn-icon">🛒</span>
+                                            <span class="btn-text">
+                                                {{ producto.stock === 0 ? 'Sin Stock' : 'Agregar al carrito' }}
+                                            </span>
+                                        </button>
+                                        <span class="stock-info" [ngClass]="obtenerClaseStock(producto)">
+                                            {{ obtenerTextoStock(producto) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="carousel-nav next" (click)="scrollCarousel('next', grupo.categoria.id.toString())">›</button>
+        </div>
+        
+        <div class="carousel-indicators">
+            <span *ngFor="let i of [0,1,2]" class="indicator" [class.active]="i === 0"></span>
+        </div>
+    </section>
+
+    <!-- Mensaje cuando no hay resultados -->
+    <section *ngIf="productosFiltrados.length === 0" class="no-results">
+        <div class="no-results-content">
+            <i class="fas fa-search fa-3x"></i>
+            <h3>No se encontraron productos</h3>
+            <p>Intenta con otros términos de búsqueda o ajusta los filtros</p>
+            <button class="btn-primary" (click)="limpiarFiltros()">
+                <i class="fas fa-refresh"></i> Mostrar todos los productos
+            </button>
+        </div>
+    </section>
+
+    <!-- Carrito (mismo código que en inicio) -->
+    <div class="cart-wrapper slide-right-entrance" *ngIf="mostrarCarrito">
+        <button class="cart-button bounce-entrance" (click)="toggleCarrito()">
+            🛒 <span>Carrito</span>
+        </button>
+
+        <div class="cart-panel" [ngClass]="{ 'open': carritoVisible }">
+            <div class="cart-header">
+                <h3 class="text-reveal">🛍 Mi Carrito</h3>
+                <button class="close-btn fade-in-entrance" (click)="toggleCarrito()">✖</button>
+            </div>
+
+            <div class="cart-body">
+                <div class="cart-row cart-header-row fade-in-entrance">
+                    <span class="cart-col">Producto</span>
+                    <span class="cart-col">Cantidad</span>
+                    <span class="cart-col">Subtotal</span>
+                    <span class="cart-col">Acciones</span>
+                </div>
+
+                <div *ngFor="let item of carrito; let i = index" class="cart-row slide-up-entrance" [ngClass]="'entrance-delay-' + (i + 1)">
+                    <span class="cart-col">{{ item.nombreProducto }}</span>
+                    <span class="cart-col">
+                        <div class="quantity-controls">
+                            <button class="quantity-btn bounce-entrance" (click)="ajustarCantidad(i, -1)">−</button>
+                            <span class="fade-in-entrance">{{ item.detalle.cantidad }}</span>
+                            <button class="quantity-btn bounce-entrance" (click)="ajustarCantidad(i, 1)">+</button>
+                        </div>
+                    </span>
+                    <span class="cart-col zoom-entrance">{{ formatearPrecio(item.detalle.subtotal) }}</span>
+                    <span class="cart-col">
+                        <button class="remove-btn bounce-entrance" (click)="eliminarProducto(i)">🗑️</button>
+                    </span>
+                </div>
+
+                <div class="cart-footer-actions">
+                    <button class="btn-cart btn-checkout component-entrance" (click)="pagarCarrito()">
+                        <i class="fas fa-shopping-cart"></i> Pagar Carrito
+                    </button>
+
+                    <div class="action-buttons">
+                        <div *ngIf="mostrarInputDescuento" class="discount-input-container fade-in-entrance">
+                            <input 
+                                type="text" 
+                                [(ngModel)]="codigoDescuento"
+                                placeholder="Código de descuento"
+                                class="discount-input"
+                                (keyup.enter)="validarDescuento()"
+                                [disabled]="aplicandoDescuento"
+                            >
+                            <button 
+                                class="btn-cart btn-apply bounce-entrance" 
+                                (click)="validarDescuento()"
+                                [disabled]="aplicandoDescuento || !codigoDescuento.trim()"
+                            >
+                                {{ aplicandoDescuento ? 'Aplicando...' : 'Aplicar' }}
+                            </button>
+                            <button 
+                                class="btn-cart btn-cancel-input bounce-entrance" 
+                                (click)="mostrarInputDescuento = false"
+                                [disabled]="aplicandoDescuento"
+                            >×</button>
+                        </div>
+                        
+                        <button 
+                            class="btn-cart btn-discount fade-in-entrance" 
+                            (click)="aplicarDescuento()"
+                            *ngIf="!mostrarInputDescuento"
+                        >
+                            🎟 Aplicar Descuento
+                        </button>
+                        
+                        <button class="btn-cart btn-cancel fade-in-entrance" (click)="cancelarOrden()">🗑 Cancelar</button>
+                    </div>
+
+                    <div *ngIf="errorDescuento" class="error-message fade-in-entrance">
+                        {{ errorDescuento }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section about">
+                <h2>TodoTech Shop</h2>
+                <p>Tu destino para lo último en tecnología. Encuentra laptops, smartphones, gaming y más.</p>
+            </div>
+            
+            <div class="footer-section links">
+                <h3>Enlaces rápidos</h3>
+                <ul>
+                    <li><a href="#">Inicio</a></li>
+                    <li><a href="#">Ofertas</a></li>
+                    <li><a href="#">Política de privacidad</a></li>
+                    <li><a href="#">Términos y condiciones</a></li>
+                </ul>
+            </div>
+    
+            <div class="footer-section contact">
+                <h3>Contacto</h3>
+                <p>Teléfono: +57 305 407 8225</p>
+            </div>
+    
+            <div class="footer-section social">
+                <h3>Síguenos</h3>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+    
+        <div class="footer-bottom">
+            <p>© 2025 TodoTech Shop. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>

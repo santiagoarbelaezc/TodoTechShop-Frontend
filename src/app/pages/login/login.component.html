@@ -7,6 +7,13 @@
   <link rel="stylesheet" href="login.component.css">
 </head>
 <body>
+    <!-- Botón de ayuda/manual de usuario -->
+    <div class="help-button-container">
+      <button class="help-button" (click)="openUserManual()">
+        <span class="help-icon">?</span>
+        <span class="help-tooltip">Manual de usuario</span>
+      </button>
+    </div>
     
     <main class="login-container" id="loginContainer">
       <!-- Sección del formulario -->
@@ -14,6 +21,11 @@
         <h1 class="login-title">Ingresar al sistema</h1>
         <p class="login-subtitle">Bienvenido de vuelta, por favor ingresa tus credenciales</p>
         
+        <!-- Mensaje de Error -->
+        <div *ngIf="showError" class="error-alert">
+          <p>{{ errorMessage }}</p>
+        </div>
+
         <form (ngSubmit)="onLogin()">
           <div class="input-group">
             <input 
@@ -22,9 +34,15 @@
               name="nombreUsuario" 
               required 
               [(ngModel)]="nombreUsuario"
+              (input)="onInputChange()"
+              (keypress)="onKeyPress($event)"
               placeholder=" "
+              [class.invalid]="nombreUsuario && !validateUsername()"
               [disabled]="isLoading">
             <label for="nombreUsuario">Usuario</label>
+            <div *ngIf="nombreUsuario && !validateUsername()" class="validation-hint">
+              Mínimo 3 caracteres
+            </div>
           </div>
   
           <div class="input-group">
@@ -34,20 +52,54 @@
               name="contrasena" 
               required 
               [(ngModel)]="contrasena"
+              (input)="onInputChange()"
+              (keypress)="onKeyPress($event)"
               placeholder=" "
+              [class.invalid]="contrasena && !validatePassword()"
               [disabled]="isLoading">
             <label for="contrasena">Contraseña</label>
+            <div *ngIf="contrasena && !validatePassword()" class="validation-hint">
+              Mínimo 4 caracteres
+            </div>
           </div>
   
-          <button type="submit" [disabled]="isLoading">
+          <button 
+            type="submit" 
+            [disabled]="!isFormValid()"
+            [class.loading]="isLoading">
             <span *ngIf="!isLoading">Ingresar</span>
             <span *ngIf="isLoading">Iniciando sesión...</span>
           </button>
         </form>
 
+        <!-- Loading Overlay -->
+        <div *ngIf="isLoading" class="loading-overlay">
+          <div class="loading-spinner"></div>
+          <p>Verificando credenciales...</p>
+        </div>
+
         <!-- Enlace para recuperar contraseña -->
         <div class="forgot-password">
           <a href="#" (click)="goToRecoverPassword($event)">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <!-- Botones de login rápido (solo para desarrollo - ocultos por defecto) -->
+        <div class="quick-login-buttons" *ngIf="false">
+          <h4>Acceso rápido (Desarrollo):</h4>
+          <div class="quick-buttons-grid">
+            <button class="quick-login-btn admin" (click)="quickLogin('admin')">
+              <span>👑 Admin</span>
+            </button>
+            <button class="quick-login-btn vendedor" (click)="quickLogin('vendedor')">
+              <span>💰 Vendedor</span>
+            </button>
+            <button class="quick-login-btn cajero" (click)="quickLogin('cajero')">
+              <span>💳 Cajero</span>
+            </button>
+            <button class="quick-login-btn despachador" (click)="quickLogin('despachador')">
+              <span>🚚 Despachador</span>
+            </button>
+          </div>
         </div>
       </div>
       

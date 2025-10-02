@@ -1,5 +1,5 @@
 // src/app/components/login/login.component.ts
-import { Component, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, ElementRef, AfterViewInit, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, NavigationStart } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,10 +13,13 @@ import { Subscription } from 'rxjs';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements AfterViewInit, OnDestroy {
+export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   nombreUsuario: string = '';
   contrasena: string = '';
   isLoading: boolean = false;
+  errorMessage: string = '';
+  showError: boolean = false;
+  
   private hasSwapped: boolean = false;
   private returnUrl: string = '';
   private routerSubscription: Subscription;
@@ -31,21 +34,33 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
     this.routerSubscription = this.router.events.subscribe(event => {
       if (event instanceof NavigationStart) {
         if (event.url.includes('/login')) {
-          // Revocar token cuando se navega al login
-          this.authService.revokeToken();
+          // Limpiar estado cuando se navega al login
+          this.clearError();
         }
       }
     });
   }
 
   ngOnInit() {
-    // Limpieza garantizada al entrar al login - USAR revokeToken() en lugar de clearAuthState()
-    this.authService.revokeToken();
+    // Limpieza garantizada al entrar al login
+    this.authService.logout();
     
     // Obtener returnUrl de los query params si existe
     this.route.queryParams.subscribe(params => {
       this.returnUrl = params['returnUrl'] || '';
+      
+      // Mostrar mensaje si fue redirigido por expiración de sesión
+      if (params['sessionExpired']) {
+        this.showErrorAlert('Su sesión ha expirado. Por favor ingrese nuevamente.');
+      }
+      
+      if (params['unauthorized']) {
+        this.showErrorAlert('No tiene permisos para acceder a esa página.');
+      }
     });
+
+    // Limpiar cualquier error previo
+    this.clearError();
   }
 
   ngOnDestroy() {
@@ -106,41 +121,167 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
   }
 
   onLogin(): void {
-    if (!this.nombreUsuario || !this.contrasena) {
-      alert('Por favor ingresa usuario y contraseña');
+    // Validaciones básicas
+    if (!this.nombreUsuario.trim() || !this.contrasena.trim()) {
+      this.showErrorAlert('Por favor ingresa usuario y contraseña');
       return;
     }
-    
-    this.isLoading = true;
 
-    this.authService.login(this.nombreUsuario, this.contrasena).subscribe({
+    if (this.nombreUsuario.trim().length < 3) {
+      this.showErrorAlert('El usuario debe tener al menos 3 caracteres');
+      return;
+    }
+
+    if (this.contrasena.length < 4) {
+      this.showErrorAlert('La contraseña debe tener al menos 4 caracteres');
+      return;
+    }
+
+    this.isLoading = true;
+    this.clearError();
+
+    // Limpiar espacios en blanco
+    const usuarioLimpio = this.nombreUsuario.trim();
+    const contrasenaLimpia = this.contrasena.trim();
+
+    this.authService.login(usuarioLimpio, contrasenaLimpia).subscribe({
       next: (success) => {
         this.isLoading = false;
         if (!success) {
-          alert('Usuario o contraseña incorrectos');
+          this.showErrorAlert('Usuario o contraseña incorrectos');
         } else {
           // Login exitoso - manejar returnUrl si existe
-          if (this.returnUrl) {
-            this.router.navigateByUrl(this.returnUrl);
-          }
+          this.handleLoginSuccess();
         }
       },
       error: (error) => {
         this.isLoading = false;
-        alert(error.message || 'Error al intentar iniciar sesión');
+        this.handleLoginError(error);
       }
     });
   }
 
-  goToRecoverPassword(event: Event) {
+  private handleLoginSuccess(): void {
+    // Mostrar mensaje de éxito brevemente
+    this.showSuccessAlert('¡Bienvenido! Redirigiendo...');
+    
+    // Pequeño delay para mostrar el mensaje de éxito
+    setTimeout(() => {
+      if (this.returnUrl) {
+        this.router.navigateByUrl(this.returnUrl);
+      }
+      // La redirección por rol se maneja automáticamente en el AuthService
+    }, 1000);
+  }
+
+  private handleLoginError(error: any): void {
+    let errorMessage = 'Error al intentar iniciar sesión';
+    
+    if (error.error && error.error.mensaje) {
+      errorMessage = error.error.mensaje;
+    } else if (error.message) {
+      errorMessage = error.message;
+    } else if (error.status === 0) {
+      errorMessage = 'No se puede conectar con el servidor. Verifique su conexión.';
+    } else if (error.status === 401) {
+      errorMessage = 'Usuario o contraseña incorrectos';
+    } else if (error.status === 403) {
+      errorMessage = 'Usuario inactivo. Contacte al administrador.';
+    } else if (error.status >= 500) {
+      errorMessage = 'Error del servidor. Intente nuevamente más tarde.';
+    }
+
+    this.showErrorAlert(errorMessage);
+  }
+
+  private showErrorAlert(message: string): void {
+    this.errorMessage = message;
+    this.showError = true;
+    
+    // Auto-ocultar el error después de 5 segundos
+    setTimeout(() => {
+      this.clearError();
+    }, 5000);
+  }
+
+  private showSuccessAlert(message: string): void {
+    // Podrías implementar un mensaje de éxito aquí
+    console.log('Login exitoso:', message);
+  }
+
+  private clearError(): void {
+    this.errorMessage = '';
+    this.showError = false;
+  }
+
+  onKeyPress(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      this.onLogin();
+    }
+  }
+
+  onInputChange(): void {
+    // Limpiar error cuando el usuario empiece a escribir
+    if (this.showError) {
+      this.clearError();
+    }
+  }
+
+  goToRecoverPassword(event: Event): void {
     event.preventDefault();
     this.router.navigate(['/recuperar-contrasena']);
   }
 
-  // Método adicional para manejar el evento keypress (Enter)
-  onKeyPress(event: KeyboardEvent) {
-    if (event.key === 'Enter') {
-      this.onLogin();
+  // Método para forzar el cierre de sesión (útil para testing)
+  forceLogout(): void {
+    this.authService.logout();
+    this.showSuccessAlert('Sesión cerrada correctamente');
+  }
+
+  // Método para simular diferentes tipos de usuarios (solo desarrollo)
+  quickLogin(role: string): void {
+    const users = {
+      'admin': { user: 'admin1', pass: 'tech123456' },
+      'vendedor': { user: 'vendedor1', pass: 'password123' },
+      'cajero': { user: 'cajero1', pass: 'password123' },
+      'despachador': { user: 'despachador1', pass: 'password123' }
+    };
+
+    const selectedUser = users[role as keyof typeof users];
+    if (selectedUser) {
+      this.nombreUsuario = selectedUser.user;
+      this.contrasena = selectedUser.pass;
+      // Auto-login después de un breve delay
+      setTimeout(() => this.onLogin(), 100);
     }
+  }
+
+  // Método para mostrar/ocultar contraseña
+  togglePasswordVisibility(): void {
+    const passwordInput = this.elementRef.nativeElement.querySelector('#contrasena');
+    if (passwordInput) {
+      const type = passwordInput.getAttribute('type');
+      passwordInput.setAttribute('type', type === 'password' ? 'text' : 'password');
+    }
+  }
+
+  // Validación en tiempo real del usuario
+  validateUsername(): boolean {
+    return this.nombreUsuario.trim().length >= 3;
+  }
+
+  // Validación en tiempo real de la contraseña
+  validatePassword(): boolean {
+    return this.contrasena.length >= 4;
+  }
+
+  // Verificar si el formulario es válido
+  isFormValid(): boolean {
+    return this.validateUsername() && this.validatePassword() && !this.isLoading;
+  }
+
+
+   openUserManual(): void {
+    this.router.navigate(['/manual-usuario']);
   }
 }

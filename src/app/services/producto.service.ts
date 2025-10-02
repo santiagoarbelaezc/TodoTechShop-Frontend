@@ -1,133 +1,219 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, interval, switchMap } from 'rxjs';
-import { ProductoDTO } from '../models/producto.dto';
-import { CarruselService } from './carrusel.service';
-import { CrearProductoDTO } from '../models/crearProducto.dto';
-import { ProductoReporteRequest } from '../models/productoReporteRequest.dto';
+// src/app/services/producto.service.ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+import { ProductoDTO} from '../models/producto.dto';
+import { MensajeDto } from '../models/mensaje.dto';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductoService {
-  // private apiUrl = 'http://localhost:8080/api/productos'; // URL de la API
-  private apiUrl = 'http://localhost:8080/api/productos';
-  private productosSubject = new BehaviorSubject<ProductoDTO[]>([]);
-  public productos$ = this.productosSubject.asObservable(); // Exponemos el observable
+  private http = inject(HttpClient);
+  
+  private apiUrl: string = 'http://localhost:8080/productos';
+  private productoSubject = new BehaviorSubject<ProductoDTO | null>(null);
+  private productoSeleccionadoSubject = new BehaviorSubject<ProductoDTO | null>(null);
+  
+  // Observable público para suscribirse a los cambios del producto seleccionado
+  public productoSeleccionado$ = this.productoSeleccionadoSubject.asObservable();
 
-  private productos: ProductoDTO[] = []; // Almacena los productos obtenidos de la API
-
-  constructor(private http: HttpClient) {}
-
-  obtenerProductos(): Observable<ProductoDTO[]> {
-    return this.http.get<ProductoDTO[]>(this.apiUrl);
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('authToken');
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
   }
 
-  obtenerProductosPorMarca(marca: string): Observable<ProductoDTO[]> {
-    return this.http.get<ProductoDTO[]>(`${this.apiUrl}/marca/${marca}`);
-  }
+  // ===== MÉTODOS PARA LA SELECCIÓN TEMPORAL DE PRODUCTOS =====
 
-  obtenerProductoPorId(id: number): Observable<ProductoDTO> {
-    return this.http.get<ProductoDTO>(`${this.apiUrl}/productos/${id}`);
+  /**
+   * Almacena temporalmente un producto seleccionado
+   * @param producto El producto a almacenar
+   */
+ // En producto.service.ts - actualiza el método seleccionarProducto
+seleccionarProducto(producto: ProductoDTO): void {
+  // Asegurarnos de que el producto tenga la propiedad imagen
+  const productoConImagen: any = { ...producto };
+  if (!productoConImagen.imagen && productoConImagen.imagenUrl) {
+    productoConImagen.imagen = productoConImagen.imagenUrl;
   }
-
-  eliminarProducto(id: number): Observable<any> {
-  return this.http.delete(`${this.apiUrl}/eliminar/${id}`);
+  this.productoSeleccionadoSubject.next(productoConImagen);
 }
 
-  cargarProductosGenerales(): Observable<ProductoDTO[]> {
-    return this.obtenerProductos();
+  /**
+   * Obtiene el producto actualmente seleccionado
+   * @returns El producto seleccionado o null
+   */
+  obtenerProductoSeleccionado(): ProductoDTO | null {
+    return this.productoSeleccionadoSubject.value;
   }
 
-  crearProducto(producto: CrearProductoDTO): Observable<CrearProductoDTO> {
-    return this.http.post<CrearProductoDTO>(`${this.apiUrl}/crear`, producto);
+  /**
+   * Limpia la selección actual del producto
+   */
+  limpiarSeleccion(): void {
+    this.productoSeleccionadoSubject.next(null);
+    console.log('Selección de producto limpiada');
   }
 
-  cargarProductosPorMarcaConCarrusel(
-    marca: string,
-    carruselSelector: string,
-    prevBtn: string,
-    nextBtn: string,
-    carruselService: CarruselService
-  ): Observable<ProductoDTO[]> {
-    return new Observable(observer => {
-      this.obtenerProductosPorMarca(marca).subscribe({
-        next: productos => {
-          observer.next(productos);
-          setTimeout(() => carruselService.initCarruselGeneral(carruselSelector, prevBtn, nextBtn), 0);
-          observer.complete();
-        },
-        error: err => observer.error(err)
-      });
-    });
+  /**
+   * Obtiene el producto seleccionado como Observable
+   * Útil para componentes que se suscriben a cambios
+   */
+  getProductoSeleccionadoObservable(): Observable<ProductoDTO | null> {
+    return this.productoSeleccionadoSubject.asObservable();
   }
 
-  // Método original
-  actualizarProductos(productos: ProductoDTO[]): void {
-    this.productosSubject.next(productos);
+  // ===== MÉTODOS EXISTENTES DEL CRUD =====
+
+  // Crear producto
+  crearProducto(productoDTO: ProductoDTO): Observable<MensajeDto<string>> {
+    return this.http.post<MensajeDto<string>>(
+      this.apiUrl, 
+      productoDTO, 
+      { headers: this.getHeaders() }
+    );
   }
 
-  
-
-  iniciarActualizacionPeriodica(): void {
-    interval(5000)
-      .pipe(switchMap(() => this.obtenerProductos()))
-      .subscribe({
-        next: productos => this.productosSubject.next(productos),
-        error: err => console.error('Error en actualización periódica de productos:', err)
-      });
+  // Actualizar producto
+  actualizarProducto(id: number, productoDTO: ProductoDTO): Observable<MensajeDto<string>> {
+    return this.http.put<MensajeDto<string>>(
+      `${this.apiUrl}/${id}`, 
+      productoDTO, 
+      { headers: this.getHeaders() }
+    );
   }
 
-  setProductos(productos: ProductoDTO[]): void {
-    this.productos = productos;
-    this.productosSubject.next(this.productos); // emite para que el componente se actualice
-  }
-  
-  actualizarStockLocal(productoId: number, cantidad: number): void {
-    const index = this.productos.findIndex(p => p.id === productoId);
-    if (index !== -1 && this.productos[index].stock > 0) {
-      this.productos[index].stock -= cantidad;
-      this.productosSubject.next([...this.productos]); // emite nuevo array
-    }
-  }
-  
-  restaurarStockLocal(productoId: number, cantidad: number): void {
-    const index = this.productos.findIndex(p => p.id === productoId);
-    if (index !== -1) {
-      this.productos[index].stock += cantidad;
-      this.productosSubject.next([...this.productos]); // emite nuevo array
-    }
-  }
-  
-
-  obtenerProductosActualizados(): void {
-    this.obtenerProductos().subscribe({
-      next: productos => this.productosSubject.next(productos),
-      error: err => console.error('Error al obtener productos:', err)
-    });
+  // Eliminar producto
+  eliminarProducto(id: number): Observable<MensajeDto<string>> {
+    return this.http.delete<MensajeDto<string>>(
+      `${this.apiUrl}/${id}`, 
+      { headers: this.getHeaders() }
+    );
   }
 
-  // Método para obtener el stock de un producto por su ID
-  obtenerStockPorId(id: number): Observable<number> {
-    return this.http.get<ProductoDTO>(`${this.apiUrl}/productos/${id}`).pipe(
-      switchMap(producto => {
-        if (producto) {
-          return new Observable<number>(observer => {
-            observer.next(producto.stock);
-            observer.complete();
-          });
-        } else {
-          throw new Error('Producto no encontrado');
-        }
+  // Cambiar estado del producto
+  cambiarEstadoProducto(id: number): Observable<MensajeDto<string>> {
+    return this.http.patch<MensajeDto<string>>(
+      `${this.apiUrl}/${id}/estado`, 
+      {}, 
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // Obtener producto por ID
+  obtenerProductoPorId(id: number): Observable<ProductoDTO> {
+    return this.http.get<MensajeDto<ProductoDTO>>(
+      `${this.apiUrl}/${id}`, 
+      { headers: this.getHeaders() }
+    ).pipe(
+      map(response => response.data!),
+      catchError(error => {
+        throw error;
       })
     );
   }
 
+  // Obtener producto por código
+  obtenerProductoPorCodigo(codigo: string): Observable<ProductoDTO> {
+    return this.http.get<MensajeDto<ProductoDTO>>(
+      `${this.apiUrl}/codigo/${codigo}`, 
+      { headers: this.getHeaders() }
+    ).pipe(
+      map(response => response.data!),
+      catchError(error => {
+        throw error;
+      })
+    );
+  }
 
-  obtenerReporteVentas(): Observable<ProductoReporteRequest[]> {
-  return this.http.get<ProductoReporteRequest[]>(`${this.apiUrl}/reporte/ventas`);
+  // Obtener producto por nombre
+  obtenerProductoPorNombre(nombre: string): Observable<ProductoDTO> {
+    return this.http.get<MensajeDto<ProductoDTO>>(
+      `${this.apiUrl}/nombre/${nombre}`, 
+      { headers: this.getHeaders() }
+    ).pipe(
+      map(response => response.data!),
+      catchError(error => {
+        throw error;
+      })
+    );
+  }
+
+  // Obtener productos por estado
+  obtenerProductoPorEstado(estado: string): Observable<ProductoDTO[]> {
+    return this.http.get<MensajeDto<ProductoDTO[]>>(
+      `${this.apiUrl}/estado/${estado}`, 
+      { headers: this.getHeaders() }
+    ).pipe(
+      map(response => response.data!),
+      catchError(error => {
+        throw error;
+      })
+    );
+  }
+
+  // Obtener productos por categoría
+  obtenerProductoPorCategoria(categoriaId: number): Observable<ProductoDTO[]> {
+    return this.http.get<MensajeDto<ProductoDTO[]>>(
+      `${this.apiUrl}/categoria/${categoriaId}`, 
+      { headers: this.getHeaders() }
+    ).pipe(
+      map(response => response.data!),
+      catchError(error => {
+        throw error;
+      })
+    );
+  }
+
+  // Obtener productos activos
+  obtenerProductosActivos(): Observable<ProductoDTO[]> {
+    return this.http.get<MensajeDto<ProductoDTO[]>>(
+      `${this.apiUrl}/activos`, 
+      { headers: this.getHeaders() }
+    ).pipe(
+      map(response => response.data!),
+      catchError(error => {
+        throw error;
+      })
+    );
+  }
+
+  // Obtener productos disponibles
+  obtenerProductosDisponibles(): Observable<ProductoDTO[]> {
+    return this.http.get<MensajeDto<ProductoDTO[]>>(
+      `${this.apiUrl}/disponibles`, 
+      { headers: this.getHeaders() }
+    ).pipe(
+      map(response => response.data!),
+      catchError(error => {
+        throw error;
+      })
+    );
+  }
+
+  // Buscar productos por nombre
+  buscarProductosPorNombre(nombre: string): Observable<ProductoDTO[]> {
+    const params = new HttpParams().set('nombre', nombre);
+    return this.http.get<MensajeDto<ProductoDTO[]>>(
+      `${this.apiUrl}/buscar`, 
+      { 
+        headers: this.getHeaders(),
+        params: params
+      }
+    ).pipe(
+      map(response => response.data!),
+      catchError(error => {
+        throw error;
+      })
+    );
+  }
+
+  // Obtener todos los productos (usando productos activos como base)
+  obtenerTodosLosProductos(): Observable<ProductoDTO[]> {
+    return this.obtenerProductosActivos();
+  }
 }
-
-
-}
-  

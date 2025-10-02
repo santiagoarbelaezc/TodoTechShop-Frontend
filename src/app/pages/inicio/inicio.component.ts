@@ -1,25 +1,32 @@
-import { Component, AfterViewInit, HostListener } from '@angular/core';
+import { Component, AfterViewInit, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ProductoService } from '../../services/producto.service';
-import { ProductoDTO } from '../../models/producto.dto';
-import { CarritoService } from '../../services/carrito.service';
-import { CarruselService } from '../../services/carrusel.service';
-import { DetalleOrdenService } from '../../services/detalle-orden.service';
-import { OrdenVentaService } from '../../services/orden-venta.service';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
+import { NavbarInicioComponent } from './navbar-inicio/navbar-inicio.component';
+import { ProductoService } from '../../services/producto.service';
+import { ProductoPruebaService } from '../../services/producto-prueba.service';
+import { ProductoDTO, CategoriaDTO } from '../../models/producto.dto';
+
+interface DetalleCarrito {
+  cantidad: number;
+  subtotal: number;
+  producto?: ProductoDTO;
+}
 
 @Component({
   selector: 'app-inicio',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavbarInicioComponent],
   templateUrl: './inicio.component.html',
   styleUrls: ['./inicio.component.css']
 })
 export class InicioComponent implements AfterViewInit {
 
+  carrito: { detalle: DetalleCarrito, nombreProducto: string }[] = [];
 
-  carrito: { detalle: any, nombreProducto: string }[] = [];
+  private productoService = inject(ProductoService);
+  private productoPruebaService = inject(ProductoPruebaService);
 
   productos: ProductoDTO[] = [];
   productosAsus: ProductoDTO[] = [];
@@ -30,313 +37,331 @@ export class InicioComponent implements AfterViewInit {
   mostrarCarrito = false;
   carritoVisible = false;
 
-  // Añade esto en las propiedades de tu clase InicioComponent
-mostrarInputDescuento: boolean = false;
-codigoDescuento: string = '';
-aplicandoDescuento: boolean = false; // <-- Esta es la propiedad faltante
-errorDescuento: string = '';
+  mostrarInputDescuento: boolean = false;
+  codigoDescuento: string = '';
+  aplicandoDescuento: boolean = false;
+  errorDescuento: string = '';
 
-// Añade esto en las propiedades de tu clase
-descuentosValidos: { [codigo: string]: number } = {
-  '11': 20,
-  'DESC20': 20,
-  'NAVIDAD': 15,
-  'BLACKFRIDAY': 30,
-  'VIP15': 15
-};
-
-
+  descuentosValidos: { [codigo: string]: number } = {
+    '11': 20,
+    'DESC20': 20,
+    'NAVIDAD': 15,
+    'BLACKFRIDAY': 30,
+    'VIP15': 15
+  };
 
   constructor(
-    private productoService: ProductoService,
-    private router: Router,
-    private carritoService: CarritoService,
-    private carruselService: CarruselService,
-    private detalleOrdenService: DetalleOrdenService,
-    private ordenVentaService: OrdenVentaService
+    private authService: AuthService,
+    private router: Router
   ) {}
+
+  // Método para controlar el scroll del carrusel
+  scrollCarousel(direction: 'prev' | 'next', carouselId: string): void {
+    const carousel = document.getElementById(`carousel-${carouselId}`);
+    if (!carousel) return;
+
+    const scrollAmount = 325; // Ancho del item + gap
+    const currentScroll = carousel.scrollLeft;
+    
+    if (direction === 'next') {
+      carousel.scrollTo({
+        left: currentScroll + scrollAmount,
+        behavior: 'smooth'
+      });
+    } else {
+      carousel.scrollTo({
+        left: currentScroll - scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+    
+    // Actualizar indicadores (opcional)
+    this.updateCarouselIndicators(carouselId);
+  }
+
+  // Método opcional para actualizar indicadores del carrusel
+  private updateCarouselIndicators(carouselId: string): void {
+    // Esta función puede usarse para actualizar los puntos indicadores
+    // si decides implementar una funcionalidad más completa
+    console.log(`Actualizando indicadores para carrusel: ${carouselId}`);
+  }
+
+  // También puedes añadir este método para manejar el scroll automáticamente
+  setupCarouselScroll(): void {
+    // Configuración adicional para el comportamiento del carrusel
+    const carousels = document.querySelectorAll('.carousel');
+    
+    carousels.forEach(carousel => {
+      carousel.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        carousel.scrollLeft += (event as WheelEvent).deltaY;
+      });
+    });
+  }
 
   @HostListener('window:scroll', [])
   onScroll(): void {
-    const bannerAltura = document.getElementById('banner')?.clientHeight || 0;
+    const bannerAltura = 300;
     this.mostrarCarrito = window.scrollY > bannerAltura;
   }
 
   ngAfterViewInit(): void {
+    this.inicializarProductos();
     this.inicializarCarruseles();
+    this.inicializarCarritoEjemplo();
+  }
 
-    this.productoService.cargarProductosGenerales().subscribe({
-      next: productos => {
-        this.productos = productos;
-        console.log('Productos cargados:', this.productos);
-        this.productoService.setProductos(productos); // Guardar productos en el servicio
-        
-      }
-    });
-
-    // Suscribirse al método de actualizar productos para actualizar el componente automáticamente
-    this.productoService.productos$.subscribe({
-      next: productos => {
-        this.productos = productos;
-        console.log('Productos actualizados automáticamente:', this.productos);
-      }
-    });
+  private inicializarProductos(): void {
+    // Obtener productos desde el servicio de prueba
+    this.productos = this.productoPruebaService.obtenerTodosLosProductos();
     
+    // Obtener productos específicos desde el servicio
+    this.productosIphone = this.productoPruebaService.obtenerProductosIphone();
+    this.productosHp = this.productoPruebaService.obtenerProductosHp();
     
-  
-    const ordenEnMemoria = this.ordenVentaService.getOrden();
-    const ordenIdLocal = this.ordenVentaService.getOrdenIdDesdeLocalStorage();
-  
-    if (ordenEnMemoria) {
-      this.cargarDetallesCarrito(ordenEnMemoria.id);
-    } else if (ordenIdLocal) {
-      this.ordenVentaService.obtenerOrdenPorId(ordenIdLocal).subscribe({
-        next: ordenRecuperada => {
-          this.ordenVentaService.setOrden(ordenRecuperada);
-          this.cargarDetallesCarrito(ordenRecuperada.id);
-        },
-        error: err => console.error('Error al obtener la orden por ID:', err)
-      });
-    } else {
-      this.ordenVentaService.crearOrdenTemporal().subscribe({
-        next: nuevaOrden => {
-          this.ordenVentaService.setOrden(nuevaOrden);
-          this.ordenVentaService.setOrdenIdEnLocalStorage(nuevaOrden.id);
-          this.cargarDetallesCarrito(nuevaOrden.id);
-        },
-        error: err => console.error('Error al crear orden temporal:', err)
-      });
-    }
+    // Inicializar arrays vacíos para los que no se están usando
+    this.productosAsus = [];
+    this.productosSamsung = [];
 
-     // Suscribirse al carrito observable
-     this.carritoService.carrito$.subscribe(carrito => {
-      this.carrito = carrito;
-      console.log('Carrito actualizado:', this.carrito);
+    console.log('Productos cargados desde servicio:', {
+      total: this.productos.length,
+      iphone: this.productosIphone.length,
+      hp: this.productosHp.length
     });
-  }    
-  
+  }
+
   private inicializarCarruseles(): void {
-    this.productoService.cargarProductosPorMarcaConCarrusel('asus', '.carouselAsus', '#prevBtnAsus', '#nextBtnAsus', this.carruselService)
-      .subscribe({ next: productos => this.productosAsus = productos });
-  
-    this.productoService.cargarProductosPorMarcaConCarrusel('iphone', '.carouselIphone', '#prevBtnIphone', '#nextBtnIphone', this.carruselService)
-      .subscribe({ next: productos => this.productosIphone = productos });
-  
-    this.productoService.cargarProductosPorMarcaConCarrusel('galaxy', '.carouselSamsung', '#prevBtnSamsung', '#nextBtnSamsung', this.carruselService)
-      .subscribe({ next: productos => this.productosSamsung = productos });
-  
-    this.productoService.cargarProductosPorMarcaConCarrusel('hp', '.carouselHp', '#prevBtnHp', '#nextBtnHp', this.carruselService)
-      .subscribe({ next: productos => this.productosHp = productos });
-  
-    this.carruselService.initCarruselGeneral('.carousel', '#prevBtnInicio', '#nextBtnInicio');
+    // Simular inicialización de carruseles (sin servicios)
+    setTimeout(() => {
+      console.log('Carruseles inicializados con productos:', {
+        iphone: this.productosIphone.length,
+        hp: this.productosHp.length
+      });
+    }, 100);
   }
-  
-  cargarDetallesCarrito(ordenId: number): void {
-    this.detalleOrdenService.obtenerCarritoConProductos(ordenId).subscribe({
-      next: carritoCompleto => {
-        this.carrito = carritoCompleto;
-        console.log('Carrito cargado correctamente:', this.carrito);
-      },
-      error: err => console.error('Error al cargar el carrito:', err)
-    });
-  }
-  
-  agregarAlCarrito(producto: ProductoDTO): void {
-    const orden = this.ordenVentaService.getOrden();
-    const ordenId = orden?.id;
-  
-    if (!orden || !ordenId) {
-      console.error('No hay orden activa para agregar al carrito.');
-      return;
+
+  private inicializarCarritoEjemplo(): void {
+    // Carrito de ejemplo con algunos productos
+    const producto1 = this.productoPruebaService.obtenerProductoPorId(1); // iPhone 13
+    const producto6 = this.productoPruebaService.obtenerProductoPorId(6); // HP Pavilion
+
+    if (producto1 && producto6) {
+      this.carrito = [
+        {
+          detalle: {
+            cantidad: 2,
+            subtotal: producto1.precio * 2,
+            producto: producto1
+          },
+          nombreProducto: producto1.nombre
+        },
+        {
+          detalle: {
+            cantidad: 1,
+            subtotal: producto6.precio,
+            producto: producto6
+          },
+          nombreProducto: producto6.nombre
+        }
+      ];
     }
-  
+  }
+
+  // Método para ver detalle del producto
+  verDetalleProducto(producto: ProductoDTO): void {
+    // Almacenar temporalmente el producto en el servicio
+    this.productoService.seleccionarProducto(producto);
+    
+    // Navegar al componente de descripción
+    this.router.navigate(['/descripcion-producto']);
+  }
+
+  // Método corregido para agregar al carrito
+  agregarAlCarrito(producto: ProductoDTO, event?: Event): void {
+    // Prevenir que el clic se propague al card padre
+    if (event) {
+      event.stopPropagation();
+    }
+
     if (producto.stock <= 0) {
       console.warn('Producto sin stock disponible.');
       return;
     }
-  
-    this.carritoService.agregarAlCarrito(producto).subscribe({
-      next: (ok) => {
-        if (ok) {
-          this.cargarDetallesCarrito(ordenId);
-          this.productoService.actualizarStockLocal(producto.id, 1); // Restar 1 unidad del stock local
-        }
-      },
-      error: err => console.error('Error al agregar al carrito:', err)
-    });
-    
-  }
-    
 
+    // Simular agregar al carrito
+    const itemExistente = this.carrito.find(item => 
+      item.detalle.producto?.id === producto.id
+    );
 
-  actualizarCarrito(): void {
-    const orden = this.ordenVentaService.getOrden();
-    const ordenId = orden?.id;
-
-    if (ordenId) {
-      this.cargarDetallesCarrito(ordenId);
+    if (itemExistente) {
+      itemExistente.detalle.cantidad++;
+      itemExistente.detalle.subtotal = itemExistente.detalle.cantidad * producto.precio;
     } else {
-      console.error('No hay una orden activa para actualizar el carrito');
+      this.carrito.push({
+        detalle: {
+          cantidad: 1,
+          subtotal: producto.precio,
+          producto: producto
+        },
+        nombreProducto: producto.nombre
+      });
     }
+
+    // Actualizar stock local
+    producto.stock--;
+    
+    console.log('Producto agregado al carrito:', producto.nombre);
   }
 
   eliminarProducto(index: number): void {
     const item = this.carrito[index];
-    const ordenId = this.ordenVentaService.getOrden()?.id;
-  
-    const productoId = item?.detalle?.producto?.id;
-
-    if (!ordenId || !productoId) {
-      console.error('No se puede eliminar: faltan datos.');
-      return;
+    if (item.detalle.producto) {
+      // Restaurar stock
+      item.detalle.producto.stock += item.detalle.cantidad;
     }
-
-    const request = {
-      productoId: productoId,
-      ordenVentaId: ordenId
-    };
-
-    const cantidad = item.detalle.cantidad || 1;
-    this.detalleOrdenService.eliminarDetalle(request).subscribe({
-      next: () => {
-        this.cargarDetallesCarrito(ordenId);
-        this.productoService.restaurarStockLocal(productoId, cantidad);
-      },
-      error: err => console.error('Error al eliminar el producto del carrito:', err)
-    });
-
+    this.carrito.splice(index, 1);
+    console.log('Producto eliminado del carrito');
   }
-
 
   ajustarCantidad(index: number, cambio: number): void {
     const item = this.carrito[index];
-    const ordenId = this.ordenVentaService.getOrden()?.id;
-    const productoId = item?.detalle?.producto?.id;
-  
-    if (!ordenId || !productoId) {
-      console.error('Faltan datos para ajustar cantidad.');
-      return;
+    const producto = item.detalle.producto;
+    
+    if (!producto) return;
+
+    if (cambio > 0) {
+      // Aumentar cantidad
+      if (producto.stock > 0) {
+        item.detalle.cantidad++;
+        producto.stock--;
+      }
+    } else {
+      // Disminuir cantidad
+      if (item.detalle.cantidad > 1) {
+        item.detalle.cantidad--;
+        producto.stock++;
+      }
     }
-  
-    const request = {
-      productoId: productoId,
-      ordenVentaId: ordenId
-    };
-  
-    const llamada = cambio > 0
-      ? this.detalleOrdenService.aumentarCantidad(request)
-      : this.detalleOrdenService.disminuirCantidad(request);
-  
-      llamada.subscribe({
-        next: () => {
-          this.cargarDetallesCarrito(ordenId);
-          if (cambio > 0) {
-            this.productoService.actualizarStockLocal(productoId, 1);
-          } else {
-            this.productoService.restaurarStockLocal(productoId, 1);
-          }
-        },
-        error: err => console.error('Error al ajustar cantidad:', err)
-      });
-      
+
+    item.detalle.subtotal = item.detalle.cantidad * producto.precio;
   }
-  
 
   toggleCarrito(): void {
     this.carritoVisible = !this.carritoVisible;
   }
 
-  // Métodos actualizados para manejar descuentos
-aplicarDescuento() {
-  this.mostrarInputDescuento = true;
-  // Focus al input cuando aparece
-  setTimeout(() => {
-    const input = document.querySelector('.discount-input');
-    if (input) (input as HTMLElement).focus();
-  });
-}
-
-validarDescuento() {
-  console.log('[1] Iniciando validarDescuento() - Código ingresado:', this.codigoDescuento);
-
-  if (!this.codigoDescuento.trim()) {
-    this.errorDescuento = 'Por favor ingresa un código de descuento';
-    console.log('[2] Validación fallida: Código vacío');
-    return;
+  aplicarDescuento() {
+    this.mostrarInputDescuento = true;
+    setTimeout(() => {
+      const input = document.querySelector('.discount-input');
+      if (input) (input as HTMLElement).focus();
+    });
   }
 
-  this.aplicandoDescuento = true;
-  this.errorDescuento = '';
+  validarDescuento() {
+    console.log('Validando descuento:', this.codigoDescuento);
 
-  const orden = this.ordenVentaService.getOrden();
-  console.log('[3] Orden obtenida del servicio:', orden);
+    if (!this.codigoDescuento.trim()) {
+      this.errorDescuento = 'Por favor ingresa un código de descuento';
+      return;
+    }
 
-  if (!orden || !orden.id) {
-    this.errorDescuento = 'No hay una orden activa';
-    this.aplicandoDescuento = false;
-    console.log('[4] Validación fallida: No hay orden activa o falta ID');
-    return;
-  }
+    this.aplicandoDescuento = true;
+    this.errorDescuento = '';
 
-  // Convertir a mayúsculas para hacer la comparación insensible a mayúsculas/minúsculas
-  const codigo = this.codigoDescuento.toUpperCase().trim();
-  const porcentaje = this.descuentosValidos[codigo];
-  console.log('[5] Código procesado y porcentaje encontrado:', { codigo, porcentaje });
+    const codigo = this.codigoDescuento.toUpperCase().trim();
+    const porcentaje = this.descuentosValidos[codigo];
 
-  if (porcentaje === undefined) {
-    this.errorDescuento = 'Código no válido';
-    this.aplicandoDescuento = false;
-    console.log('[6] Validación fallida: Código no existe en descuentosValidos');
-    return;
-  }
+    if (porcentaje === undefined) {
+      this.errorDescuento = 'Código no válido';
+      this.aplicandoDescuento = false;
+      return;
+    }
 
-  console.log('[7] Preparando para aplicar descuento:', {
-    ordenId: orden.id,
-    porcentajeDescuento: porcentaje
-  });
-
-  this.detalleOrdenService.aplicarDescuento(orden.id, porcentaje).subscribe({
-    next: () => {
-      console.log('[8] Descuento aplicado con éxito');
-      this.cargarDetallesCarrito(orden.id);
+    // Simular aplicación de descuento
+    setTimeout(() => {
+      console.log(`Descuento del ${porcentaje}% aplicado`);
+      this.cargarDetallesCarrito();
       this.mostrarInputDescuento = false;
       this.codigoDescuento = '';
-    },
-    error: (err) => {
-      console.error('[9] Error al aplicar descuento:', err);
-      console.log('[10] Respuesta completa del error:', {
-        status: err.status,
-        error: err.error,
-        message: err.message
-      });
-      this.errorDescuento = err.error?.message || 'Error al aplicar descuento';
-    },
-    complete: () => {
-      console.log('[11] Operación completada (éxito o error)');
       this.aplicandoDescuento = false;
-    }
-  });
-}
-  
-  pagarCarrito() {
-  // Navega al componente y recarga los datos
-  this.router.navigate(['/caja']).then(() => {
-    window.location.reload(); // Solución simple pero efectiva
-  });
-}
-  
-  cancelarOrden(): void {
-    // TODO: Lógica para cancelar la orden y limpiar el carrito
-    console.log('Cancelar orden clickeado');
+    }, 1000);
   }
 
-  
+  private cargarDetallesCarrito(): void {
+    // Simular recarga del carrito (en este caso solo es simulación)
+    console.log('Carrito actualizado con descuento aplicado');
+  }
 
+  pagarCarrito() {
+    this.router.navigate(['/caja']).then(() => {
+      console.log('Navegando a caja para pagar');
+    });
+  }
+
+  cancelarOrden(): void {
+    // Restaurar stock de todos los productos en el carrito
+    this.carrito.forEach(item => {
+      if (item.detalle.producto) {
+        item.detalle.producto.stock += item.detalle.cantidad;
+      }
+    });
+    
+    this.carrito = [];
+    console.log('Orden cancelada y stock restaurado');
+  }
+
+  // Métodos de navegación
   irAInicio(): void { this.router.navigate(['/inicio']); }
   irAPhone(): void { this.router.navigate(['/phone']); }
   irAGaming(): void { this.router.navigate(['/gaming']); }
   irAAccesorios(): void { this.router.navigate(['/accesorios']); }
   irALaptops(): void { this.router.navigate(['/laptops']); }
 
-  
+  salir(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
+  // Método auxiliar para obtener imagen del producto
+  obtenerImagenProducto(producto: ProductoDTO): string {
+    // Si el producto tiene imagenUrl, usarla, sino usar una imagen por defecto
+    return producto.imagenUrl || 'assets/images/default-product.png';
+  }
+
+  // Método para formatear precio
+  formatearPrecio(precio: number): string {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0
+    }).format(precio);
+  }
+
+  // Método para verificar si un producto tiene stock bajo
+  tieneStockBajo(producto: ProductoDTO): boolean {
+    return producto.stock <= 3;
+  }
+
+  // Método para obtener el texto de stock
+  obtenerTextoStock(producto: ProductoDTO): string {
+    if (producto.stock === 0) {
+      return 'Sin stock';
+    } else if (this.tieneStockBajo(producto)) {
+      return `Últimas ${producto.stock} unidades`;
+    } else {
+      return `Stock: ${producto.stock}`;
+    }
+  }
+
+  // Método para obtener la clase CSS del stock
+  obtenerClaseStock(producto: ProductoDTO): string {
+    if (producto.stock === 0) {
+      return 'stock-agotado';
+    } else if (this.tieneStockBajo(producto)) {
+      return 'stock-bajo';
+    } else {
+      return 'stock-normal';
+    }
+  }
 }

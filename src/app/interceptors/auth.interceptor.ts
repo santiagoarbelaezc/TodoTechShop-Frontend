@@ -22,11 +22,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
   
-  // Si no hay token o está revocado, redirigir al login
-  if (!token) {
-    authService.revokeToken(); // Asegurar revocación
+  // Si no hay token o el usuario no está logueado, redirigir al login
+  if (!token || !authService.isLoggedIn()) {
+    authService.logout(); // Usar el método público logout()
     router.navigate(['/login']);
-    return throwError(() => new Error('Token no disponible o revocado'));
+    return throwError(() => new Error('Token no disponible o usuario no autenticado'));
   }
   
   const authReq = req.clone({
@@ -38,7 +38,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 || error.status === 403) {
-        authService.revokeToken(); // Revocar token en errores de auth
+        authService.logout(); // Usar el método público logout() en errores de auth
         router.navigate(['/login']);
       }
       return throwError(() => error);

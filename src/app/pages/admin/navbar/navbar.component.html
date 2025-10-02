@@ -1,0 +1,84 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <!-- Logo -->
+    <div class="nav-logo">
+      <span class="logo-text">TodoTechAdmin</span>
+    </div>
+
+    <!-- Menú de navegación -->
+    <ul class="nav-menu">
+      <li class="nav-item">
+        <a href="#" 
+           class="nav-link" 
+           (click)="navegar('usuarios'); $event.preventDefault()"
+           [class.active]="seccionActiva === 'usuarios'">
+          <i class="fas fa-user-plus"></i>
+          <span>Creación Usuarios</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a href="#" 
+           class="nav-link" 
+           (click)="navegar('usuariosRegistrados'); $event.preventDefault()"
+           [class.active]="seccionActiva === 'usuariosRegistrados'">
+          <i class="fas fa-users"></i>
+          <span>Usuarios Registrados</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a href="#" 
+           class="nav-link" 
+           (click)="navegar('productos'); $event.preventDefault()"
+           [class.active]="seccionActiva === 'productos'">
+          <i class="fas fa-box"></i>
+          <span>Productos</span>
+        </a>
+      </li>
+      
+      <!-- Las siguientes secciones pueden mantenerse o eliminarse según lo necesites -->
+      <li class="nav-item">
+        <a href="#" 
+           class="nav-link" 
+           (click)="navegar('ordenes'); $event.preventDefault()"
+           [class.active]="seccionActiva === 'ordenes'">
+          <i class="fas fa-shopping-cart"></i>
+          <span>Órdenes de Venta</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a href="#" 
+           class="nav-link" 
+           (click)="navegar('reportes'); $event.preventDefault()"
+           [class.active]="seccionActiva === 'reportes'">
+          <i class="fas fa-chart-bar"></i>
+          <span>Reportes</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a href="#" 
+           class="nav-link" 
+           (click)="navegar('configuracion'); $event.preventDefault()"
+           [class.active]="seccionActiva === 'configuracion'">
+          <i class="fas fa-cog"></i>
+          <span>Configuración</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- Menú de usuario -->
+    <div class="nav-user">
+      <div class="user-info">
+        <span class="user-name">{{ usuarioNombre }}</span>
+        <span class="user-role">{{ usuarioRol }}</span>
+      </div>
+      <button class="logout-btn" (click)="salir(); $event.preventDefault()" title="Cerrar sesión">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Salir</span>
+      </button>
+    </div>
+  </div>
+</nav>

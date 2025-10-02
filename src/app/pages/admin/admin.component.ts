@@ -3,21 +3,10 @@ import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, HostListener } 
 import { FormsModule, NgForm } from '@angular/forms';
 import { UsuarioService } from '../../services/usuario.service';
 import { UsuarioDto } from '../../models/usuario.dto';
-import { ProductoService } from '../../services/producto.service';
-import { ProductoDTO } from '../../models/producto.dto';
-import { CrearProductoDTO } from '../../models/crearProducto.dto';
-import { OrdenVentaService } from '../../services/orden-venta.service';
-import { OrdenVentaDTO } from '../../models/ordenventa.dto';
-import { ReporteService } from '../../services/reporte.service';
-import { ReporteRendimientoDTO } from '../../models/reporteRendimiento.dto';
-import { VendedorService } from '../../services/vendedor.service';
-import { DespachadorService } from '../../services/despachador.service';
-import { CajeroService } from '../../services/cajero.service';
 import { Router } from '@angular/router';
-import { ProductoReporteRequest } from '../../models/productoReporteRequest.dto';
 import { MensajeDto } from '../../models/mensaje.dto';
 import { AuthService } from '../../services/auth.service';
-import { LoginResponse } from '../../models/login-response.dto';
+import { NavbarComponent } from './navbar/navbar.component';
 
 export interface CrearUsuarioDTO {
   nombre: string;
@@ -34,25 +23,17 @@ export interface CrearUsuarioDTO {
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavbarComponent],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
 export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('formUsuario') formUsuario!: NgForm;
-  
-  nombre: string = '';
-  correo: string = '';
-  telefono: string = '';
+
   seccionActiva: string = 'bienvenida';
 
   usuarios: UsuarioDto[] = [];
-  productos: ProductoDTO[] = [];
-  ordenes: OrdenVentaDTO[] = [];
-  reportesPorVendedor: ReporteRendimientoDTO[] = [];
-  productosReporte: ProductoReporteRequest[] = [];
-  ordenesFiltradas: OrdenVentaDTO[] = [];
-  terminoBusqueda: string = '';
+
   usuarioEditando: boolean = false;
   usuarioEditandoId: number | null = null;
 
@@ -89,32 +70,14 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     estado: true
   };
 
-  nuevoProducto: CrearProductoDTO = {
-    id: 0,
-    nombre: '',
-    codigo: '',
-    descripcion: '',
-    precio: 0,
-    stock: 0,
-    categoria: '',
-    imagen: ''
-  };
-
   constructor(
     private usuarioService: UsuarioService,
-    private productoService: ProductoService,
-    private ordenVentaService: OrdenVentaService,
-    private reporteService: ReporteService,
-    private vendedorService: VendedorService,
-    private despachadorService: DespachadorService,
-    private cajeroService: CajeroService,
     private authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit() {
     const user = this.authService.getCurrentUser();
-    const token = this.authService.getToken();
     
     if (!user || user.role !== 'ADMIN') {
       this.router.navigate(['/login']);
@@ -154,15 +117,15 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private verificarScrollTabla() {
-    const tablaScrollElements = document.querySelectorAll('.tabla-scroll');
+    const tablaScrollElements = document.querySelectorAll('.tabla-scroll, .tabla-scroll2');
     
     tablaScrollElements.forEach(element => {
       const scrollElement = element as HTMLElement;
-      this.tablaTieneScroll = scrollElement.scrollWidth > scrollElement.clientWidth;
+      const tieneScroll = scrollElement.scrollWidth > scrollElement.clientWidth;
       
       const container = scrollElement.closest('.tabla-container');
       if (container) {
-        if (this.tablaTieneScroll) {
+        if (tieneScroll) {
           container.classList.add('has-scroll');
         } else {
           container.classList.remove('has-scroll');
@@ -174,19 +137,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   mostrarSeccion(seccion: string) {
     this.seccionActiva = seccion;
     
-    switch (seccion) {
-      case 'usuarios':
-        this.cargarUsuarios();
-        break;
-      case 'productos':
-        this.cargarProductos();
-        break;
-      case 'ordenes':
-        this.cargarOrdenes();
-        break;
-      case 'reportes':
-        this.cargarReportePorVendedor();
-        break;
+    if (seccion === 'usuarios' || seccion === 'usuariosRegistrados') {
+      this.cargarUsuarios();
     }
     
     setTimeout(() => this.verificarScrollTabla(), 300);
@@ -211,79 +163,80 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
   }
-guardarUsuario() {
-  if (this.formUsuario.invalid) {
-    Object.keys(this.formUsuario.controls).forEach(key => {
-      this.formUsuario.controls[key].markAsTouched();
-    });
-    alert('Por favor, complete todos los campos obligatorios correctamente.');
-    return;
-  }
-  
-  const contrasenaAEnviar = this.usuario.contrasena || '';
-  
-  if (this.usuarioEditando && this.usuarioEditandoId) {
-    // Para edición: usar la lógica normal
-    const usuarioActualizado: UsuarioDto = {
-      id: this.usuarioEditandoId,
-      nombre: this.usuario.nombre,
-      cedula: this.usuario.cedula,
-      correo: this.usuario.correo,
-      telefono: this.usuario.telefono,
-      nombreUsuario: this.usuario.nombreUsuario,
-      contrasena: contrasenaAEnviar,
-      cambiarContrasena: this.usuario.cambiarContrasena,
-      tipoUsuario: this.usuario.tipoUsuario,
-      fechaCreacion: new Date(),
-      estado: this.usuario.estado
-    };
 
-    this.usuarioService.actualizarUsuarioAdmin(this.usuarioEditandoId, usuarioActualizado).subscribe({
-      next: (response: MensajeDto<string>) => {
-        if (!response.error) {
-          alert(response.mensaje);
-          this.limpiarFormulario();
-          this.cargarUsuarios();
-        } else {
-          alert('Error: ' + response.mensaje);
-        }
-      },
-      error: (error) => {
-        alert('Error al actualizar usuario: ' + error.message);
-      }
-    });
-  } else {
-    // Para CREACIÓN: Forzar cambiarContrasena a true para que el backend acepte la contraseña
-    const nuevoUsuario: UsuarioDto = {
-      id: 0,
-      nombre: this.usuario.nombre,
-      cedula: this.usuario.cedula,
-      correo: this.usuario.correo,
-      telefono: this.usuario.telefono,
-      nombreUsuario: this.usuario.nombreUsuario,
-      contrasena: contrasenaAEnviar,
-      cambiarContrasena: true, // ¡IMPORTANTE! Forzar a true para creación
-      tipoUsuario: this.usuario.tipoUsuario,
-      fechaCreacion: new Date(),
-      estado: this.usuario.estado
-    };
+  guardarUsuario() {
+    if (this.formUsuario.invalid) {
+      Object.keys(this.formUsuario.controls).forEach(key => {
+        this.formUsuario.controls[key].markAsTouched();
+      });
+      alert('Por favor, complete todos los campos obligatorios correctamente.');
+      return;
+    }
+    
+    const contrasenaAEnviar = this.usuario.contrasena || '';
+    
+    if (this.usuarioEditando && this.usuarioEditandoId) {
+      // Para edición: usar la lógica normal
+      const usuarioActualizado: UsuarioDto = {
+        id: this.usuarioEditandoId,
+        nombre: this.usuario.nombre,
+        cedula: this.usuario.cedula,
+        correo: this.usuario.correo,
+        telefono: this.usuario.telefono,
+        nombreUsuario: this.usuario.nombreUsuario,
+        contrasena: contrasenaAEnviar,
+        cambiarContrasena: this.usuario.cambiarContrasena,
+        tipoUsuario: this.usuario.tipoUsuario,
+        fechaCreacion: new Date(),
+        estado: this.usuario.estado
+      };
 
-    this.usuarioService.crearUsuario(nuevoUsuario).subscribe({
-      next: (response: MensajeDto<string>) => {
-        if (!response.error) {
-          alert(response.mensaje);
-          this.limpiarFormulario();
-          this.cargarUsuarios();
-        } else {
-          alert('Error: ' + response.mensaje);
+      this.usuarioService.actualizarUsuarioAdmin(this.usuarioEditandoId, usuarioActualizado).subscribe({
+        next: (response: MensajeDto<string>) => {
+          if (!response.error) {
+            alert(response.mensaje);
+            this.limpiarFormulario();
+            this.cargarUsuarios();
+          } else {
+            alert('Error: ' + response.mensaje);
+          }
+        },
+        error: (error) => {
+          alert('Error al actualizar usuario: ' + error.message);
         }
-      },
-      error: (error) => {
-        alert('Error al crear usuario: ' + error.message);
-      }
-    });
+      });
+    } else {
+      // Para CREACIÓN: Forzar cambiarContrasena a true para que el backend acepte la contraseña
+      const nuevoUsuario: UsuarioDto = {
+        id: 0,
+        nombre: this.usuario.nombre,
+        cedula: this.usuario.cedula,
+        correo: this.usuario.correo,
+        telefono: this.usuario.telefono,
+        nombreUsuario: this.usuario.nombreUsuario,
+        contrasena: contrasenaAEnviar,
+        cambiarContrasena: true, // ¡IMPORTANTE! Forzar a true para creación
+        tipoUsuario: this.usuario.tipoUsuario,
+        fechaCreacion: new Date(),
+        estado: this.usuario.estado
+      };
+
+      this.usuarioService.crearUsuario(nuevoUsuario).subscribe({
+        next: (response: MensajeDto<string>) => {
+          if (!response.error) {
+            alert(response.mensaje);
+            this.limpiarFormulario();
+            this.cargarUsuarios();
+          } else {
+            alert('Error: ' + response.mensaje);
+          }
+        },
+        error: (error) => {
+          alert('Error al crear usuario: ' + error.message);
+        }
+      });
+    }
   }
-}
 
   editarUsuario(usuario: UsuarioDto) {
     this.usuarioEditando = true;
@@ -473,54 +426,6 @@ guardarUsuario() {
     this.fechaEspecificaFiltro = '';
     this.tipoFiltroFecha = '';
     this.cargarUsuarios();
-  }
-
-  cargarProductos() {
-    // Tu implementación aquí
-  }
-
-  cargarProductosReporte() {
-    // Tu implementación aquí
-  }
-
-  cargarOrdenes() {
-    // Tu implementación aquí
-  }
-
-  cargarReportePorVendedor() {
-    // Tu implementación aquí
-  }
-
-  guardarProducto() {
-    // Tu implementación aquí
-  }
-
-  filtrarOrdenes(tipo?: string) {
-    // Tu implementación aquí
-  }
-
-  aplicarFiltroBusqueda() {
-    // Tu implementación aquí
-  }
-
-  editarProducto(producto: ProductoDTO) {
-    // Tu implementación aquí
-  }
-
-  eliminarProducto(producto: ProductoDTO) {
-    // Tu implementación aquí
-  }
-
-  verDetallesProducto(producto: ProductoDTO) {
-    // Tu implementación aquí
-  }
-
-  verDetallesOrden(orden: OrdenVentaDTO) {
-    // Tu implementación aquí
-  }
-
-  actualizarProducto() {
-    // Tu implementación aquí
   }
 
   onCambiarContrasenaChange() {

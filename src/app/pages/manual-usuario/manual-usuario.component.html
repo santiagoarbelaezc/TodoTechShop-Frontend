@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual de Usuario - TodoTech Shop</title>
+  <link rel="stylesheet" href="manual-usuario.component.css">
+</head>
+<body>
+  <!-- Botón de volver al login -->
+  <div class="back-button-container">
+    <button class="back-button" (click)="goBack()">
+      <span class="back-icon">←</span>
+      <span class="back-tooltip">Volver al login</span>
+    </button>
+  </div>
+  
+  <main class="manual-container">
+    <!-- Sección del menú lateral -->
+    <div class="menu-section">
+      <div class="menu-header">
+        <div class="menu-logo">
+          <img src="assets/TigreCircle.png" alt="Logo TodoTech Shop" class="logo">
+        </div>
+        <h2>Manual de Usuario</h2>
+        <p>Guía completa del sistema</p>
+      </div>
+      
+      <nav class="menu-nav">
+        <ul>
+          <li>
+            <a href="#cliente-catalogo" class="nav-item active" data-section="cliente-catalogo">
+              <span class="nav-icon">🛒</span>
+              <span class="nav-text">Soy cliente, ¿cómo puedo ver el catálogo?</span>
+            </a>
+          </li>
+          <li>
+            <a href="#navegar-catalogo" class="nav-item" data-section="navegar-catalogo">
+              <span class="nav-icon">🧭</span>
+              <span class="nav-text">Cómo navegar a través del catálogo</span>
+            </a>
+          </li>
+          <li>
+            <a href="#problema-ingreso" class="nav-item" data-section="problema-ingreso">
+              <span class="nav-icon">🔐</span>
+              <span class="nav-text">No me está dejando ingresar</span>
+            </a>
+          </li>
+          <li>
+            <a href="#recuperar-contrasena" class="nav-item" data-section="recuperar-contrasena">
+              <span class="nav-icon">🔑</span>
+              <span class="nav-text">Cómo recuperar mi contraseña</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    
+    <!-- Sección del contenido -->
+    <div class="content-section">
+      <div class="content-scroll">
+        <!-- Sección 1: Soy cliente, ¿cómo puedo ver el catálogo? -->
+        <section id="cliente-catalogo" class="content-item active">
+          <div class="content-header">
+            <h1>Soy cliente, ¿cómo puedo ver el catálogo?</h1>
+            <p>Guía completa para acceder y explorar nuestro catálogo de productos</p>
+          </div>
+          
+          <div class="content-body">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <h3>Accede a nuestra plataforma</h3>
+                <p>Visita nuestro sitio web oficial de TodoTech Shop o descarga nuestra aplicación móvil desde la tienda de aplicaciones.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Página de inicio de TodoTech Shop</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <h3>Navega sin necesidad de registro</h3>
+                <p>Puedes explorar nuestro catálogo completo sin crear una cuenta. Simplemente haz clic en la sección "Productos" o "Catálogo" en el menú principal.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Sección de catálogo público</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <h3>Filtra y busca productos</h3>
+                <p>Utiliza nuestra barra de búsqueda y filtros por categoría, precio o marca para encontrar exactamente lo que necesitas.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Herramientas de búsqueda y filtrado</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="tip-box">
+              <div class="tip-icon">💡</div>
+              <div class="tip-content">
+                <h4>Consejo importante</h4>
+                <p>Crear una cuenta te permitirá guardar productos en tu lista de deseos, recibir notificaciones de ofertas y realizar compras de manera más rápida.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Sección 2: Cómo navegar a través del catálogo -->
+        <section id="navegar-catalogo" class="content-item">
+          <div class="content-header">
+            <h1>Cómo navegar a través del catálogo</h1>
+            <p>Aprende a utilizar todas las funciones de nuestro catálogo interactivo</p>
+          </div>
+          
+          <div class="content-body">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <h3>Explora por categorías</h3>
+                <p>Navega a través de nuestras categorías organizadas para encontrar productos similares. Tenemos secciones como Electrónicos, Computación, Smartphones, Accesorios y más.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Menú de categorías</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <h3>Usa la búsqueda inteligente</h3>
+                <p>Escribe palabras clave en la barra de búsqueda. Nuestro sistema sugiere productos relacionados mientras escribes.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Barra de búsqueda con sugerencias</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <h3>Aplica filtros avanzados</h3>
+                <p>Refina tu búsqueda usando filtros por precio, marca, valoración de clientes, disponibilidad y características específicas.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Panel de filtros avanzados</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <h3>Visualiza productos</h3>
+                <p>Haz clic en cualquier producto para ver imágenes en alta resolución, descripción detallada, especificaciones técnicas y reseñas de otros clientes.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Página de detalles del producto</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Sección 3: No me está dejando ingresar -->
+        <section id="problema-ingreso" class="content-item">
+          <div class="content-header">
+            <h1>No me está dejando ingresar al sistema</h1>
+            <p>Soluciona problemas comunes de acceso a tu cuenta</p>
+          </div>
+          
+          <div class="content-body">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <h3>Verifica tus credenciales</h3>
+                <p>Asegúrate de que estás ingresando correctamente tu nombre de usuario y contraseña. Recuerda que ambos campos distinguen entre mayúsculas y minúsculas.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Formulario de login con campos destacados</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <h3>Comprueba tu conexión a internet</h3>
+                <p>Un problema de conexión puede impedir el acceso. Verifica que tienes una conexión estable a internet.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Icono de conexión a internet</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <h3>Limpia la caché del navegador</h3>
+                <p>Los datos almacenados en caché pueden causar problemas de acceso. Intenta limpiar la caché y cookies de tu navegador.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Configuración del navegador</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <h3>Intenta con otro navegador o dispositivo</h3>
+                <p>Si el problema persiste, intenta acceder desde un navegador diferente o desde otro dispositivo para descartar problemas específicos del entorno.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Diferentes dispositivos</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="warning-box">
+              <div class="warning-icon">⚠️</div>
+              <div class="warning-content">
+                <h4>Si el problema continúa</h4>
+                <p>Contacta a nuestro soporte técnico proporcionando detalles del error que recibes y el navegador que estás utilizando.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Sección 4: Cómo recuperar mi contraseña -->
+        <section id="recuperar-contrasena" class="content-item">
+          <div class="content-header">
+            <h1>Cómo recuperar mi contraseña</h1>
+            <p>Sigue estos pasos para restablecer tu contraseña de manera segura</p>
+          </div>
+          
+          <div class="content-body">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <h3>Accede a la opción "¿Olvidaste tu contraseña?"</h3>
+                <p>En la pantalla de login, haz clic en el enlace "¿Olvidaste tu contraseña?" ubicado debajo del formulario de acceso.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Enlace de recuperación de contraseña</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <h3>Ingresa tu correo electrónico</h3>
+                <p>Introduce la dirección de correo electrónico asociada a tu cuenta. Recibirás un enlace de recuperación en tu bandeja de entrada.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Formulario de recuperación</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <h3>Revisa tu correo electrónico</h3>
+                <p>Abre el mensaje de TodoTech Shop y haz clic en el enlace para restablecer tu contraseña. Este enlace es válido por 24 horas.</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Correo electrónico de recuperación</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <h3>Crea una nueva contraseña</h3>
+                <p>Ingresa una contraseña segura que cumpla con nuestros requisitos de seguridad (mínimo 8 caracteres, mayúsculas, minúsculas y números).</p>
+                <div class="step-image">
+                  <div class="image-placeholder">
+                    <span>Imagen: Formulario de nueva contraseña</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="tip-box">
+              <div class="tip-icon">💡</div>
+              <div class="tip-content">
+                <h4>Consejo de seguridad</h4>
+                <p>Utiliza una contraseña única para TodoTech Shop y no la compartas con nadie. Considera usar un administrador de contraseñas para mayor seguridad.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  
+
+  <script>
+    // Script para la navegación entre secciones
+    document.addEventListener('DOMContentLoaded', function() {
+      const navItems = document.querySelectorAll('.nav-item');
+      const contentItems = document.querySelectorAll('.content-item');
+      
+      navItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          // Remover clase active de todos los items
+          navItems.forEach(nav => nav.classList.remove('active'));
+          contentItems.forEach(content => content.classList.remove('active'));
+          
+          // Agregar clase active al item clickeado
+          this.classList.add('active');
+          
+          // Mostrar la sección correspondiente
+          const sectionId = this.getAttribute('data-section');
+          document.getElementById(sectionId).classList.add('active');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

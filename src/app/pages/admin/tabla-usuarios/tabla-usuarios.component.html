@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Usuarios - TodoTech</title>
+  <link rel="stylesheet" href="tabla-usuarios.component.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+
+<div class="overlay"></div>
+
+<!-- Navbar Component -->
+<app-navbar 
+  [seccionActiva]="seccionActiva"
+  (seccionCambiada)="mostrarSeccion($event)">
+</app-navbar>
+
+<main>
+  <section class="content"> 
+
+ 
+ <div *ngIf="seccionActiva === 'usuariosRegistrados'">
+      <h2>Usuarios Registrados</h2>
+
+      <div class="filtros-container">
+        <h4>Filtros de Búsqueda</h4>
+        
+        <div class="filtros-row">
+          <!-- Búsqueda por nombre -->
+          <div class="filtro-group">
+            <label>Buscar por Nombre:</label>
+            <input type="text" [(ngModel)]="terminoBusquedaNombre" 
+                   placeholder="Ingrese nombre..." 
+                   (keyup.enter)="buscarPorNombre()">
+            <button (click)="buscarPorNombre()">Buscar</button>
+          </div>
+
+          <!-- Búsqueda por cédula -->
+          <div class="filtro-group">
+            <label>Buscar por Cédula:</label>
+            <input type="text" [(ngModel)]="terminoBusquedaCedula" 
+                   placeholder="Ingrese cédula..." 
+                   (keyup.enter)="buscarPorCedula()">
+            <button (click)="buscarPorCedula()">Buscar</button>
+          </div>
+
+          <!-- Filtro por tipo de usuario -->
+          <div class="filtro-group">
+            <label>Filtrar por Tipo:</label>
+            <select [(ngModel)]="tipoUsuarioFiltro" (change)="filtrarPorTipo()">
+              <option *ngFor="let tipo of tiposUsuario" [value]="tipo.value">
+                {{ tipo.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filtros-row">
+          <!-- Filtro por fecha -->
+          <div class="filtro-group">
+            <label>Filtrar por Fecha:</label>
+            <select [(ngModel)]="tipoFiltroFecha">
+              <option value="">Seleccione tipo</option>
+              <option value="rango">Por rango de fechas</option>
+              <option value="despues">Creados después de</option>
+              <option value="antes">Creados antes de</option>
+            </select>
+          </div>
+
+          <div class="filtro-group fecha-group" *ngIf="tipoFiltroFecha === 'rango'">
+            <label>Desde:</label>
+            <input type="date" [(ngModel)]="fechaInicioFiltro">
+            <label>Hasta:</label>
+            <input type="date" [(ngModel)]="fechaFinFiltro">
+            <button (click)="filtrarPorFecha()">Aplicar</button>
+          </div>
+
+          <div class="filtro-group fecha-group" *ngIf="tipoFiltroFecha === 'despues' || tipoFiltroFecha === 'antes'">
+            <label>{{ tipoFiltroFecha === 'despues' ? 'Después de:' : 'Antes de:' }}</label>
+            <input type="date" [(ngModel)]="fechaEspecificaFiltro">
+            <button (click)="filtrarPorFecha()">Aplicar</button>
+          </div>
+
+          <!-- Botón para limpiar filtros -->
+          <div class="filtro-group">
+            <button (click)="limpiarFiltros()" class="btn-limpiar">Limpiar Filtros</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tabla-container">
+        <h3>Lista de Usuarios</h3>
+        <div class="tabla-scroll">
+          <table class="tabla-usuarios">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cédula</th>
+                <th>Nombre</th>
+                <th>Usuario</th>
+                <th>Correo</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Fecha Creación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let u of usuarios">
+                <td>{{ u.id }}</td>
+                <td>{{ u.cedula }}</td>
+                <td>{{ u.nombre }}</td>
+                <td>{{ u.nombreUsuario }}</td>
+                <td>{{ u.correo }}</td>
+                <td><span class="badge-tipo">{{ u.tipoUsuario }}</span></td>
+                <td>
+                  <span [class.estado-activo]="u.estado" [class.estado-inactivo]="!u.estado">
+                    {{ u.estado ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td>{{ u.fechaCreacion | date:'short' }}</td>
+                <td>
+                  <div class="acciones-usuario">
+                    <button (click)="editarUsuario(u)" title="Editar usuario">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button (click)="cambiarEstadoUsuario(u)" [class]="u.estado ? 'btn-desactivar' : 'btn-activar'" 
+                            [title]="u.estado ? 'Desactivar usuario' : 'Activar usuario'">
+                      <i [class]="u.estado ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
+                    </button>
+                    <button (click)="eliminarUsuario(u)" class="btn-eliminar" title="Eliminar usuario permanentemente">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p *ngIf="usuarios.length === 0" class="sin-registros">No hay usuarios registrados</p>
+      </div>
+    </div>
+
+    </section>
+</main>
+</body>
+</html>

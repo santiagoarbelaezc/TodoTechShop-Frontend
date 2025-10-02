@@ -13,17 +13,16 @@ export class AdminService {
   private authService = inject(AuthService);
   private router = inject(Router);
   
-  private apiUrl: string = 'https://todotechbackend-iqb0.onrender.com';
+  private apiUrl: string = 'http://localhost:8080';
 
   private getHeaders(): HttpHeaders {
     // Usar el AuthService para obtener el token con validación de revocación
     const token = this.authService.getToken();
     
-    // Si no hay token o está revocado, redirigir al login
-    if (!token) {
-      this.authService.revokeToken(); // Asegurar revocación completa
-      this.router.navigate(['/login']);
-      throw new Error('Token no disponible o revocado');
+    // Si no hay token o el usuario no está logueado, redirigir al login
+    if (!token || !this.authService.isLoggedIn()) {
+      this.logoutAndRedirect();
+      throw new Error('Token no disponible o usuario no autenticado');
     }
     
     return new HttpHeaders({
@@ -110,9 +109,14 @@ export class AdminService {
   // Manejar errores de autenticación
   private handleAuthError(error: any): void {
     if (error.status === 401 || error.status === 403) {
-      this.authService.revokeToken();
-      this.router.navigate(['/login']);
+      this.logoutAndRedirect();
     }
+  }
+
+  // Método privado para logout y redirección
+  private logoutAndRedirect(): void {
+    // Usar el método público logout() en lugar del privado revokeToken()
+    this.authService.logout();
   }
 
   // Verificar conexión con el servidor (versión mejorada)
@@ -121,8 +125,7 @@ export class AdminService {
       map(() => true),
       catchError(error => {
         if (error.status === 401 || error.status === 403) {
-          this.authService.revokeToken();
-          this.router.navigate(['/login']);
+          this.logoutAndRedirect();
         }
         return [false];
       })

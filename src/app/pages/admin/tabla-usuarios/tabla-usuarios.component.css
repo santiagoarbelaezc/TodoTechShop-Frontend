@@ -1,0 +1,543 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1421cf 0%, #db1f1f 100%);
+    padding: 0;
+    position: relative;
+    overflow-x: hidden;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #1a1a1a;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.03);
+    z-index: -1;
+}
+
+/* CONTENIDO PRINCIPAL */
+main {
+    padding: 25px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.content {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    min-height: 70vh;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* TÍTULOS */
+h2 {
+    font-size: 24px;
+    color: #1a1a1a;
+    margin-bottom: 22px;
+    font-weight: 700;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+h3 {
+    font-size: 18px;
+    margin-bottom: 18px;
+    color: #333;
+    font-weight: 600;
+}
+
+h4 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-weight: 600;
+    font-size: 18px;
+    border-bottom: 2px solid #f0f5ff;
+    padding-bottom: 10px;
+}
+
+/* TABLAS MEJORADAS */
+.tabla-container {
+    background: #fff;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee;
+    margin-top: 25px;
+}
+
+/* Contenedor de tabla con scroll horizontal */
+.tabla-scroll {
+    overflow-x: auto;
+    border-radius: 10px;
+    margin-top: 18px;
+    border: 1px solid #e9ecef;
+    position: relative;
+}
+
+/* Tabla optimizada */
+.tabla-usuarios {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    font-size: 13.5px;
+    min-width: 1000px; /* Ancho mínimo para evitar compresión */
+}
+
+.tabla-usuarios th {
+    background: #f8f9fa;
+    padding: 14px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e9ecef;
+    font-size: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 1px 0 #e9ecef;
+}
+
+.tabla-usuarios td {
+    padding: 12px 12px;
+    border-bottom: 1px solid #e9ecef;
+    color: #555;
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+
+/* Anchos específicos para columnas */
+.tabla-usuarios th:nth-child(1), /* ID */
+.tabla-usuarios td:nth-child(1) {
+    width: 60px;
+    text-align: center;
+}
+
+.tabla-usuarios th:nth-child(2), /* Cédula */
+.tabla-usuarios td:nth-child(2) {
+    width: 120px;
+}
+
+.tabla-usuarios th:nth-child(3), /* Nombre */
+.tabla-usuarios td:nth-child(3) {
+    width: 180px;
+}
+
+.tabla-usuarios th:nth-child(4), /* Usuario */
+.tabla-usuarios td:nth-child(4) {
+    width: 120px;
+}
+
+.tabla-usuarios th:nth-child(5), /* Correo */
+.tabla-usuarios td:nth-child(5) {
+    width: 200px;
+}
+
+.tabla-usuarios th:nth-child(6), /* Tipo */
+.tabla-usuarios td:nth-child(6) {
+    width: 120px;
+}
+
+.tabla-usuarios th:nth-child(7), /* Estado */
+.tabla-usuarios td:nth-child(7) {
+    width: 100px;
+    text-align: center;
+}
+
+.tabla-usuarios th:nth-child(8), /* Fecha Creación */
+.tabla-usuarios td:nth-child(8) {
+    width: 150px;
+}
+
+.tabla-usuarios th:nth-child(9), /* Acciones */
+.tabla-usuarios td:nth-child(9) {
+    width: 140px;
+    text-align: center;
+}
+
+.tabla-usuarios tr:hover {
+    background: #f8f9fa;
+    transition: background 0.2s ease;
+}
+
+/* Scroll horizontal personalizado */
+.tabla-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+
+.tabla-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.tabla-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #1421cf 0%, #db1f1f 100%);
+    border-radius: 4px;
+}
+
+.tabla-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #0d1ab3 0%, #b01515 100%);
+}
+
+/* Indicador de scroll horizontal */
+.tabla-container.has-scroll::after {
+    content: '← Desplázate horizontalmente →';
+    display: block;
+    text-align: center;
+    color: #6c757d;
+    font-size: 12px;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+/* Acciones de usuario */
+.acciones-usuario {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
+.acciones-usuario button {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+}
+
+.acciones-usuario button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.acciones-usuario button:first-child {
+    background: linear-gradient(135deg, #1421cf 0%, #2a38e0 100%);
+}
+
+.btn-desactivar {
+    background: linear-gradient(135deg, #db1f1f 0%, #b01515 100%) !important;
+}
+
+.btn-activar {
+    background: linear-gradient(135deg, #0f9d58 0%, #0b8043 100%) !important;
+}
+
+.btn-eliminar {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+}
+
+/* Badges y estados */
+.badge-tipo {
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #f0f5ff;
+    color: #1421cf;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    text-align: center;
+}
+
+.estado-activo {
+    color: #0f9d58;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #e8f5e8;
+    font-size: 12px;
+}
+
+.estado-inactivo {
+    color: #db1f1f;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #ffe8e8;
+    font-size: 12px;
+}
+
+.sin-registros {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+    font-style: italic;
+    font-size: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+/* FILTROS */
+.filtros-container {
+    background: #fff;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee;
+    margin-bottom: 25px;
+}
+
+.filtros-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: end;
+    margin-bottom: 15px;
+}
+
+.filtro-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+    flex: 1;
+}
+
+.filtro-group label {
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #495057;
+    font-size: 14px;
+}
+
+.filtro-group input,
+.filtro-group select {
+    padding: 12px 14px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+    transition: all 0.3s ease;
+}
+
+.filtro-group input:focus,
+.filtro-group select:focus {
+    outline: none;
+    border-color: #000;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.filtro-group button {
+    margin-top: 8px;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, #000 0%, #2a2a2a 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.filtro-group button:hover {
+    background: linear-gradient(135deg, #2a2a2a 0%, #4a4a4a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.filtro-group button:active {
+    transform: translateY(0);
+}
+
+.btn-limpiar {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+    padding: 12px 20px !important;
+    align-self: flex-end;
+    height: fit-content;
+}
+
+.btn-limpiar:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #495057 100%) !important;
+}
+
+/* Ajustes para grupos de filtros de fecha */
+.filtro-group.fecha-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filtro-group.fecha-group label {
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.filtro-group.fecha-group input {
+    flex: 1;
+    min-width: 140px;
+}
+
+/* BOTONES */
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+}
+
+.button-group button {
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #000 0%, #2a2a2a 100%);
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    flex: 1;
+    min-width: 140px;
+}
+
+.button-group button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2a2a2a 0%, #4a4a4a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.button-group button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.button-group button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+}
+
+.btn-cancelar {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+}
+
+.btn-cancelar:hover:not(:disabled) {
+    background: linear-gradient(135deg, #5a6268 0%, #495057 100%) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tabla-container {
+        padding: 15px;
+        margin: 15px -10px;
+        border-radius: 8px;
+    }
+    
+    .tabla-scroll {
+        margin: 10px -5px;
+    }
+    
+    .acciones-usuario {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .acciones-usuario button {
+        min-width: 100%;
+        justify-content: flex-start;
+        padding: 8px 12px;
+    }
+    
+    .filtros-row {
+        flex-direction: column;
+    }
+    
+    .filtro-group {
+        min-width: 100%;
+    }
+    
+    .filtro-group.fecha-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .filtro-group.fecha-group input {
+        min-width: 100%;
+    }
+    
+    /* Ajustar anchos de columnas en móvil */
+    .tabla-usuarios th:nth-child(1),
+    .tabla-usuarios td:nth-child(1) {
+        width: 50px;
+    }
+    
+    .tabla-usuarios th:nth-child(2),
+    .tabla-usuarios td:nth-child(2) {
+        width: 100px;
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+    
+    .button-group button {
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .tabla-usuarios {
+        font-size: 12px;
+    }
+    
+    .tabla-usuarios th,
+    .tabla-usuarios td {
+        padding: 8px 6px;
+    }
+    
+    .filtros-container {
+        padding: 15px;
+    }
+    
+    main {
+        padding: 15px;
+    }
+    
+    .content {
+        padding: 20px;
+    }
+    
+    h2 {
+        font-size: 20px;
+    }
+    
+    h3 {
+        font-size: 16px;
+    }
+    
+    h4 {
+        font-size: 16px;
+    }
+}

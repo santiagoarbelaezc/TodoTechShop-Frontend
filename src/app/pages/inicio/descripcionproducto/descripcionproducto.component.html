@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ producto?.nombre }} - TodoTech Shop</title>
+    <link rel="stylesheet" href="descripcionproducto.component.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar igual al inicio -->
+    <app-navbar-inicio></app-navbar-inicio>
+
+    <!-- Loading state -->
+    <div *ngIf="!producto" class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Cargando producto...</p>
+    </div>
+
+    <!-- Contenido principal del producto -->
+    <main class="product-detail-container" *ngIf="producto">
+        <div class="product-detail">
+            <!-- Columna izquierda: Imagen y controles -->
+            <div class="product-left-column">
+                <!-- Imagen principal del producto -->
+                <div class="product-image-section">
+                    <div class="main-image-container">
+                        <img [src]="'assets/' + producto.imagen" [alt]="producto.nombre" class="main-product-image">
+                    </div>
+                </div>
+
+                <!-- Controles de cantidad y botones debajo de la imagen -->
+                <div class="product-controls-section">
+                    <div class="quantity-selector">
+                        <label for="quantity">Cantidad:</label>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" (click)="decreaseQuantity()" [disabled]="quantity <= 1">−</button>
+                            <input type="number" id="quantity" [(ngModel)]="quantity" min="1" [max]="producto.stock" class="quantity-input">
+                            <button class="quantity-btn" (click)="increaseQuantity()" [disabled]="quantity >= producto.stock">+</button>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-carrito" (click)="addToCart()" [disabled]="producto.stock === 0">
+                            <span class="btn-icon">🛒</span>
+                            <span class="btn-text">{{ producto.stock > 0 ? 'Agregar al Carrito' : 'Producto Agotado' }}</span>
+                        </button>
+                        <button class="btn-secondary" (click)="goBack()">
+                            <i class="fas fa-arrow-left"></i>
+                            Volver
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna derecha: Información del producto -->
+            <div class="product-info-section">
+                <div class="product-header">
+                    <h1 class="product-title">{{ producto.nombre }}</h1>
+                    <div class="product-category">
+                        <span class="category-badge">{{ producto.categoria.nombre }}</span>
+                    </div>
+                </div>
+
+                <div class="product-price-section">
+                    <div class="product-price-container">
+                        <span class="price price-subtle">
+                            ${{ producto.precio | number:'1.0-0' }}
+                            <div class="price-inner-glow"></div>
+                        </span>
+                    </div>
+                    <div class="stock-section">
+                        <span class="stock-info" [class.low-stock]="producto.stock < 5" [class.out-of-stock]="producto.stock === 0">
+                            {{ producto.stock > 0 ? 'Stock: ' + producto.stock : 'Agotado' }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="product-description">
+                    <h3>Descripción</h3>
+                    <p>{{ producto.descripcion }}</p>
+                </div>
+
+                <div class="product-specs">
+                    <h3>Características</h3>
+                    <div class="specs-grid">
+                        <div class="spec-item">
+                            <span class="spec-label">Código:</span>
+                            <span class="spec-value">{{ producto.codigo }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Categoría:</span>
+                            <span class="spec-value">{{ producto.categoria.nombre }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Disponibilidad:</span>
+                            <span class="spec-value" [class.available]="producto.stock > 0" [class.unavailable]="producto.stock === 0">
+                                {{ producto.stock > 0 ? 'Disponible' : 'Agotado' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos recomendados -->
+        <section class="recommended-section" *ngIf="productosRecomendados.length > 0">
+            <div class="section-header">
+                <h2 class="section-title">📱 Productos Recomendados</h2>
+                <p class="section-subtitle">Descubre productos similares que te pueden interesar</p>
+            </div>
+
+            <div class="recommended-grid">
+                <div class="recommended-card" *ngFor="let productoRec of productosRecomendados" (click)="viewProduct(productoRec)">
+                    <div class="product-image-container">
+                        <img [src]="'assets/' + productoRec.imagen" [alt]="productoRec.nombre" class="product-image">
+                    </div>
+                    <div class="product-content">
+                        <div class="product-header">
+                            <h3 class="product-title">{{ productoRec.nombre }}</h3>
+                        </div>
+                        <div class="product-price-section">
+                            <div class="product-price-container">
+                                <span class="price price-subtle">
+                                    ${{ productoRec.precio | number:'1.0-0' }}
+                                    <div class="price-inner-glow"></div>
+                                </span>
+                            </div>
+                            <div class="stock-section">
+                                <span class="stock-info" [class.low-stock]="productoRec.stock < 5" [class.out-of-stock]="productoRec.stock === 0">
+                                    {{ productoRec.stock > 0 ? 'Stock: ' + productoRec.stock : 'Agotado' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section about">
+                <h2>TodoTech Shop</h2>
+                <p>Tu destino para lo último en tecnología. Encuentra laptops, smartphones, gaming y más.</p>
+            </div>
+            
+            <div class="footer-section links">
+                <h3>Enlaces rápidos</h3>
+                <ul>
+                    <li><a href="#" (click)="goHome(); $event.preventDefault()">Inicio</a></li>
+                    <li><a href="#">Ofertas</a></li>
+                    <li><a href="#">Política de privacidad</a></li>
+                    <li><a href="#">Términos y condiciones</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section contact">
+                <h3>Contacto</h3>
+                <p>Teléfono: +57 305 407 8225</p>
+            </div>
+
+            <div class="footer-section social">
+                <h3>Síguenos</h3>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2025 TodoTech Shop. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>

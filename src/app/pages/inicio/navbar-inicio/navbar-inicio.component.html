@@ -1,0 +1,76 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <!-- Logo -->
+    <div class="nav-logo">
+      <img src="assets/logoTech.png" alt="TodoTech Shop" class="logo-img">
+    </div>
+
+    <!-- Menú de navegación -->
+    <ul class="nav-menu">
+      <li class="nav-item">
+        <button class="nav-link" 
+                (click)="irAInicio()"
+                [class.active]="seccionActiva === 'inicio'">
+          <i class="fas fa-home"></i>
+          <span>Inicio</span>
+        </button>
+      </li>
+      
+      <li class="nav-item">
+        <button class="nav-link" 
+                (click)="irALaptops()"
+                [class.active]="seccionActiva === 'laptops'">
+          <i class="fas fa-laptop"></i>
+          <span>Laptops & PCs</span>
+        </button>
+      </li>
+      
+      <li class="nav-item">
+        <button class="nav-link" 
+                (click)="irAPhone()"
+                [class.active]="seccionActiva === 'phone'">
+          <i class="fas fa-mobile-alt"></i>
+          <span>Smartphones</span>
+        </button>
+      </li>
+      
+      <li class="nav-item">
+        <button class="nav-link" 
+                (click)="irAGaming()"
+                [class.active]="seccionActiva === 'gaming'">
+          <i class="fas fa-gamepad"></i>
+          <span>Gaming</span>
+        </button>
+      </li>
+      
+      <li class="nav-item">
+        <button class="nav-link" 
+                (click)="irAAccesorios()"
+                [class.active]="seccionActiva === 'accesorios'">
+          <i class="fas fa-headphones"></i>
+          <span>Accesorios</span>
+        </button>
+      </li>
+    </ul>
+
+    <!-- Menú de usuario -->
+    <div class="nav-user">
+      <div class="user-actions">
+        <!-- Botón de búsqueda que redirige directamente -->
+        <button class="action-btn" 
+                (click)="irABuscar()" 
+                title="Buscar productos">
+          <i class="fas fa-search"></i>
+        </button>
+        
+        <button class="action-btn" title="Carrito de compras">
+          <i class="fas fa-shopping-cart"></i>
+        </button>
+      </div>
+      <button class="logout-btn" (click)="salir()" title="Cerrar sesión">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Salir</span>
+      </button>
+    </div>
+  </div>
+</nav>

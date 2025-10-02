@@ -10,6 +10,7 @@ import { OrdenVentaDTO } from '../../models/ordenventa.dto';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { UsuarioDto } from '../../models/usuario.dto';
+import { AuthService } from '../../services/auth.service'; // Importar AuthService
 
 @Component({
   selector: 'app-orden-venta',
@@ -38,7 +39,8 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
     private usuarioService: UsuarioService,
     private ordenVentaService: OrdenVentaService,
     private router: Router,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private authService: AuthService // Inyectar AuthService
   ) {}
 
   ngOnInit(): void {
@@ -47,6 +49,12 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     // Implementación pendiente
+  }
+
+  // Método para salir/cerrar sesión
+  salir(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 
   private initSmoothSwap(): void {
@@ -78,6 +86,11 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
   }
 
   onSubmit(): void {
-    // Implementación pendiente
-  }
+  console.log('Procesando venta...');
+  
+  // Redirigir después de 1 segundo para dar feedback visual
+  setTimeout(() => {
+    this.router.navigate(['/inicio']);
+  }, 1000);
+}
 }

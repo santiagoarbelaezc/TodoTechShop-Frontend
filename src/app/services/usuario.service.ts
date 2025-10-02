@@ -1,25 +1,33 @@
 // src/app/services/usuario.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { UsuarioDto } from '../models/usuario.dto';
 import { MensajeDto } from '../models/mensaje.dto';
 import { LoginResponse } from '../models/login-response.dto';
-import { AdminService } from './admin.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UsuarioService {
-  private adminService = inject(AdminService);
   private http = inject(HttpClient);
   
-  private apiUrl: string = 'https://todotechbackend-iqb0.onrender.com';
+  private apiUrl: string = 'http://localhost:8080';
   private usuarioSubject = new BehaviorSubject<LoginResponse | null>(null);
 
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('authToken');
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+  }
+
   obtenerUsuarios(): Observable<UsuarioDto[]> {
-    return this.adminService.get<MensajeDto<UsuarioDto[]>>('/usuarios').pipe(
+    return this.http.get<MensajeDto<UsuarioDto[]>>(`${this.apiUrl}/usuarios`, { 
+      headers: this.getHeaders() 
+    }).pipe(
       map(response => {
         if (response && typeof response.error === 'boolean' && Array.isArray(response.data)) {
           return response.data;
@@ -34,11 +42,18 @@ export class UsuarioService {
   }
 
   crearUsuario(usuarioDTO: UsuarioDto): Observable<MensajeDto<string>> {
-    return this.adminService.post<MensajeDto<string>>('/usuarios', usuarioDTO);
+    return this.http.post<MensajeDto<string>>(
+      `${this.apiUrl}/usuarios`, 
+      usuarioDTO, 
+      { headers: this.getHeaders() }
+    );
   }
 
   obtenerUltimoUsuario(): Observable<UsuarioDto> {
-    return this.adminService.get<MensajeDto<UsuarioDto>>('/usuarios/ultimo').pipe(
+    return this.http.get<MensajeDto<UsuarioDto>>(
+      `${this.apiUrl}/usuarios/ultimo`, 
+      { headers: this.getHeaders() }
+    ).pipe(
       map(response => response.data),
       catchError(error => {
         throw error;
@@ -47,19 +62,33 @@ export class UsuarioService {
   }
 
   actualizarUsuarioAdmin(id: number, usuario: UsuarioDto): Observable<MensajeDto<string>> {
-    return this.adminService.put<MensajeDto<string>>(`/usuarios/${id}`, usuario);
+    return this.http.put<MensajeDto<string>>(
+      `${this.apiUrl}/usuarios/${id}`, 
+      usuario, 
+      { headers: this.getHeaders() }
+    );
   }
 
   cambiarEstadoUsuario(id: number, estado: boolean): Observable<MensajeDto<string>> {
-    return this.adminService.patch<MensajeDto<string>>(`/usuarios/${id}/estado?estado=${estado}`);
+    return this.http.patch<MensajeDto<string>>(
+      `${this.apiUrl}/usuarios/${id}/estado?estado=${estado}`, 
+      {}, 
+      { headers: this.getHeaders() }
+    );
   }
 
   eliminarUsuario(id: number): Observable<MensajeDto<string>> {
-    return this.adminService.delete<MensajeDto<string>>(`/usuarios/${id}`);
+    return this.http.delete<MensajeDto<string>>(
+      `${this.apiUrl}/usuarios/${id}`, 
+      { headers: this.getHeaders() }
+    );
   }
 
   obtenerUsuarioPorId(id: number): Observable<UsuarioDto> {
-    return this.adminService.get<MensajeDto<UsuarioDto>>(`/usuarios/${id}`).pipe(
+    return this.http.get<MensajeDto<UsuarioDto>>(
+      `${this.apiUrl}/usuarios/${id}`, 
+      { headers: this.getHeaders() }
+    ).pipe(
       map(response => response.data),
       catchError(error => {
         throw error;
@@ -68,7 +97,10 @@ export class UsuarioService {
   }
 
   obtenerUsuariosActivos(): Observable<UsuarioDto[]> {
-    return this.adminService.get<MensajeDto<UsuarioDto[]>>('/usuarios/activos').pipe(
+    return this.http.get<MensajeDto<UsuarioDto[]>>(
+      `${this.apiUrl}/usuarios/activos`, 
+      { headers: this.getHeaders() }
+    ).pipe(
       map(response => response.data),
       catchError(error => {
         throw error;
@@ -77,7 +109,10 @@ export class UsuarioService {
   }
 
   obtenerUsuariosInactivos(): Observable<UsuarioDto[]> {
-    return this.adminService.get<MensajeDto<UsuarioDto[]>>('/usuarios/inactivos').pipe(
+    return this.http.get<MensajeDto<UsuarioDto[]>>(
+      `${this.apiUrl}/usuarios/inactivos`, 
+      { headers: this.getHeaders() }
+    ).pipe(
       map(response => response.data),
       catchError(error => {
         throw error;
@@ -86,7 +121,10 @@ export class UsuarioService {
   }
 
   buscarUsuariosPorNombre(nombre: string): Observable<UsuarioDto[]> {
-    return this.adminService.get<MensajeDto<UsuarioDto[]>>(`/usuarios/buscar/nombre?nombre=${encodeURIComponent(nombre)}`).pipe(
+    return this.http.get<MensajeDto<UsuarioDto[]>>(
+      `${this.apiUrl}/usuarios/buscar/nombre?nombre=${encodeURIComponent(nombre)}`, 
+      { headers: this.getHeaders() }
+    ).pipe(
       map(response => response.data),
       catchError(error => {
         throw error;
@@ -95,7 +133,10 @@ export class UsuarioService {
   }
 
   buscarUsuariosPorCedula(cedula: string): Observable<UsuarioDto[]> {
-    return this.adminService.get<MensajeDto<UsuarioDto[]>>(`/usuarios/buscar/cedula?cedula=${encodeURIComponent(cedula)}`).pipe(
+    return this.http.get<MensajeDto<UsuarioDto[]>>(
+      `${this.apiUrl}/usuarios/buscar/cedula?cedula=${encodeURIComponent(cedula)}`, 
+      { headers: this.getHeaders() }
+    ).pipe(
       map(response => response.data),
       catchError(error => {
         throw error;
@@ -104,7 +145,10 @@ export class UsuarioService {
   }
 
   obtenerUsuariosPorTipo(tipo: string): Observable<UsuarioDto[]> {
-    return this.adminService.get<MensajeDto<UsuarioDto[]>>(`/usuarios/tipo/${tipo}`).pipe(
+    return this.http.get<MensajeDto<UsuarioDto[]>>(
+      `${this.apiUrl}/usuarios/tipo/${tipo}`, 
+      { headers: this.getHeaders() }
+    ).pipe(
       map(response => response.data),
       catchError(error => {
         throw error;
@@ -116,8 +160,9 @@ export class UsuarioService {
     const fechaInicioStr = fechaInicio.toISOString();
     const fechaFinStr = fechaFin.toISOString();
     
-    return this.adminService.get<MensajeDto<UsuarioDto[]>>(
-      `/usuarios/fecha-creacion?fechaInicio=${fechaInicioStr}&fechaFin=${fechaFinStr}`
+    return this.http.get<MensajeDto<UsuarioDto[]>>(
+      `${this.apiUrl}/usuarios/fecha-creacion?fechaInicio=${fechaInicioStr}&fechaFin=${fechaFinStr}`,
+      { headers: this.getHeaders() }
     ).pipe(
       map(response => response.data),
       catchError(error => {
@@ -129,8 +174,9 @@ export class UsuarioService {
   obtenerUsuariosCreadosDespuesDe(fecha: Date): Observable<UsuarioDto[]> {
     const fechaStr = fecha.toISOString();
     
-    return this.adminService.get<MensajeDto<UsuarioDto[]>>(
-      `/usuarios/fecha-creacion/despues?fecha=${fechaStr}`
+    return this.http.get<MensajeDto<UsuarioDto[]>>(
+      `${this.apiUrl}/usuarios/fecha-creacion/despues?fecha=${fechaStr}`,
+      { headers: this.getHeaders() }
     ).pipe(
       map(response => response.data),
       catchError(error => {
@@ -142,8 +188,9 @@ export class UsuarioService {
   obtenerUsuariosCreadosAntesDe(fecha: Date): Observable<UsuarioDto[]> {
     const fechaStr = fecha.toISOString();
     
-    return this.adminService.get<MensajeDto<UsuarioDto[]>>(
-      `/usuarios/fecha-creacion/antes?fecha=${fechaStr}`
+    return this.http.get<MensajeDto<UsuarioDto[]>>(
+      `${this.apiUrl}/usuarios/fecha-creacion/antes?fecha=${fechaStr}`,
+      { headers: this.getHeaders() }
     ).pipe(
       map(response => response.data),
       catchError(error => {
@@ -153,9 +200,10 @@ export class UsuarioService {
   }
 
   solicitarRecordatorioContrasena(correo: string): Observable<MensajeDto<string>> {
-    return this.adminService.post<MensajeDto<string>>(
-      `/usuarios/recordar-contrasena?correo=${encodeURIComponent(correo)}`,
-      {}
+    return this.http.post<MensajeDto<string>>(
+      `${this.apiUrl}/usuarios/recordar-contrasena?correo=${encodeURIComponent(correo)}`,
+      {},
+      { headers: this.getHeaders() }
     );
   }
 
