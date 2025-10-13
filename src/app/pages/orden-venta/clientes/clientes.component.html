@@ -179,6 +179,16 @@
                   {{ formatearFecha(cliente.fechaRegistro) }}
                 </td>
                 <td class="cliente-acciones">
+                  <!-- Botón Continuar con Cliente -->
+                  <button 
+                    (click)="continuarConCliente(cliente)" 
+                    class="btn-action btn-continue"
+                    title="Continuar con este cliente">
+                    <i class="fas fa-arrow-right"></i>
+                    Continuar
+                  </button>
+                  
+                  <!-- Botones existentes -->
                   <button 
                     (click)="editarCliente(cliente)" 
                     class="btn-action btn-edit"
@@ -261,6 +271,64 @@
         </div>
       </div>
     </div>
+
+
+    <!-- Modal de Confirmación para Continuar -->
+<div *ngIf="mostrarConfirmacionContinuar && clienteSeleccionado" class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3>Continuar con Cliente</h3>
+      <button (click)="cancelarContinuar()" class="btn-close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="modal-confirmacion">
+        <div class="confirmacion-icono">
+          <i class="fas fa-user-check"></i>
+        </div>
+        
+        <div class="confirmacion-mensaje">
+          <h4>¿Desea continuar con este cliente?</h4>
+          <p>Está a punto de crear una orden de venta para el siguiente cliente:</p>
+        </div>
+        
+        <div class="info-cliente">
+          <h5>Información del Cliente</h5>
+          <div class="detalles-cliente">
+            <div class="detalle-item">
+              <span class="detalle-label">Nombre</span>
+              <span class="detalle-valor">{{ clienteSeleccionado.nombre }}</span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-label">Cédula/NIT</span>
+              <span class="detalle-valor">{{ clienteSeleccionado.cedula }}</span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-label">Tipo</span>
+              <span class="detalle-valor">{{ obtenerTipoClienteTexto(clienteSeleccionado.tipoCliente) }}</span>
+            </div>
+            <div class="detalle-item">
+              <span class="detalle-label">Descuento</span>
+              <span class="detalle-valor">{{ clienteSeleccionado.descuentoAplicable || 0 }}%</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" (click)="cancelarContinuar()" class="btn-secondary">
+            Cancelar
+          </button>
+          <button (click)="crearOrdenVenta()" class="btn-crear-orden">
+            <i class="fas fa-file-invoice-dollar"></i>
+            Crear Orden de Venta
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
   </main>
 </body>
 </html>

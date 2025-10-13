@@ -585,6 +585,25 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
     return this.cliente.tipoCliente === 'JURIDICO' ? 10.0 : 5.0;
   }
 
+  continuarConOrden(): void {
+    console.log('=== 🚀 CONTINUANDO CON ORDEN DE VENTA ===');
+    
+    if (!this.clienteCreado) {
+        this.errorMessage = 'No hay cliente creado para continuar';
+        return;
+    }
+
+    if (!this.usuarioActual) {
+        this.errorMessage = 'No hay usuario autenticado';
+        return;
+    }
+
+    console.log('📦 Creando orden para el cliente:', this.clienteCreado);
+    
+    // Llamar al método para crear la orden
+    this.crearOrdenVenta();
+}
+
   // Método para formatear moneda
   formatearMoneda(valor: number): string {
     return new Intl.NumberFormat('es-ES', {

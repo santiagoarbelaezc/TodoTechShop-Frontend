@@ -47,7 +47,8 @@
         </div>
       </div>
 
-      <form (ngSubmit)="onSubmit()" class="venta-form">
+      <!-- Formulario principal -->
+      <form *ngIf="!clienteCreado" (ngSubmit)="onSubmit()" class="venta-form">
         
         <!-- Contenedor principal con dos columnas -->
         <div class="form-content-wrapper">
@@ -195,6 +196,60 @@
           </div>
         </div>
       </form>
+
+      <!-- Panel de confirmación cuando el cliente es creado -->
+      <div *ngIf="clienteCreado" class="confirmation-panel">
+        <div class="confirmation-header">
+          <i class="fas fa-check-circle success-icon"></i>
+          <h2 class="confirmation-title">¡Cliente Registrado Exitosamente!</h2>
+          <p class="confirmation-subtitle">El cliente ha sido registrado correctamente. Ahora puedes continuar con la orden de venta.</p>
+        </div>
+
+        <div class="client-details-card">
+          <h3 class="details-title">Datos del Cliente Registrado</h3>
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="detail-label">Nombre:</span>
+              <span class="detail-value">{{ clienteCreado.nombre }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Cédula:</span>
+              <span class="detail-value">{{ clienteCreado.cedula }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Tipo de Cliente:</span>
+              <span class="detail-value">{{ clienteCreado.tipoCliente === 'NATURAL' ? 'Persona Natural' : 'Persona Jurídica' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Descuento Aplicable:</span>
+              <span class="detail-value">{{ clienteCreado.descuentoAplicable }}%</span>
+            </div>
+            <div class="detail-item" *ngIf="clienteCreado.correo">
+              <span class="detail-label">Correo:</span>
+              <span class="detail-value">{{ clienteCreado.correo }}</span>
+            </div>
+            <div class="detail-item" *ngIf="clienteCreado.telefono">
+              <span class="detail-label">Teléfono:</span>
+              <span class="detail-value">{{ clienteCreado.telefono }}</span>
+            </div>
+            <div class="detail-item" *ngIf="clienteCreado.direccion">
+              <span class="detail-label">Dirección:</span>
+              <span class="detail-value">{{ clienteCreado.direccion }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="confirmation-actions">
+          <button type="button" class="btn-secondary" (click)="limpiarFormulario()">
+            <i class="fas fa-user-plus"></i>
+            Registrar Otro Cliente
+          </button>
+          <button type="button" class="btn-continue" (click)="continuarConOrden()">
+            <i class="fas fa-arrow-right"></i>
+            Continuar con Orden de Venta
+          </button>
+        </div>
+      </div>
     </div>
   </main>
 </body>

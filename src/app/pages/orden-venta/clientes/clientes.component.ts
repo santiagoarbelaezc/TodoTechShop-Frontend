@@ -31,6 +31,7 @@ export class ClientesComponent implements OnInit {
   // Estados de UI
   cargando: boolean = false;
   mostrarFormularioEdicion: boolean = false;
+  mostrarConfirmacionContinuar: boolean = false;
   errorMessage: string = '';
   successMessage: string = '';
 
@@ -372,5 +373,64 @@ export class ClientesComponent implements OnInit {
   recargarDatos(): void {
     this.limpiarFiltros();
     this.cargarClientes();
+  }
+
+  // ✅ MÉTODO: Continuar con un cliente existente - MODIFICADO
+  continuarConCliente(cliente: ClienteDto): void {
+    console.log('=== 🚀 CONTINUANDO CON CLIENTE EXISTENTE ===');
+    console.log('👤 Cliente seleccionado:', cliente);
+    
+    this.clienteSeleccionado = cliente;
+    this.mostrarConfirmacionContinuar = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  // ✅ NUEVO MÉTODO: Cancelar la acción de continuar
+  cancelarContinuar(): void {
+    this.mostrarConfirmacionContinuar = false;
+    this.clienteSeleccionado = null;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  // ✅ NUEVO MÉTODO: Crear orden de venta
+  crearOrdenVenta(): void {
+    if (!this.clienteSeleccionado) {
+      this.errorMessage = 'No se ha seleccionado ningún cliente';
+      return;
+    }
+
+    console.log('=== 📋 CREANDO ORDEN DE VENTA ===');
+    console.log('👤 Cliente para orden:', this.clienteSeleccionado);
+    
+    // Aquí va tu lógica para crear la orden de venta
+    // Por ejemplo, navegar a la página de orden de venta
+    // this.router.navigate(['/orden-venta'], { 
+    //   state: { cliente: this.clienteSeleccionado } 
+    // });
+
+    // O abrir un modal de creación de orden
+    // this.abrirModalOrdenVenta();
+
+    // Por ahora, solo mostraremos un mensaje de éxito
+    this.successMessage = `✅ Orden de venta creada para: ${this.clienteSeleccionado.nombre}`;
+    
+    // Cerrar el modal después de crear la orden
+    this.mostrarConfirmacionContinuar = false;
+    this.clienteSeleccionado = null;
+
+    // Opcional: Limpiar el mensaje después de unos segundos
+    setTimeout(() => {
+      this.successMessage = '';
+    }, 5000);
+  }
+
+  // ✅ MÉTODO AUXILIAR: Obtener información de contacto formateada
+  obtenerInfoContacto(cliente: ClienteDto): string {
+    const contactos = [];
+    if (cliente.correo) contactos.push(cliente.correo);
+    if (cliente.telefono) contactos.push(cliente.telefono);
+    return contactos.join(' • ') || 'Sin información de contacto';
   }
 }
