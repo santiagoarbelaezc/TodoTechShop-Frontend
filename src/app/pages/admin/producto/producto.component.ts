@@ -2,10 +2,13 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../../services/producto.service';
-import { ProductoDTO, CategoriaDTO } from '../../../models/producto.dto';
-import { EstadoProducto } from '../../../models/estado-producto.enum';
+
+
 import { MensajeDto } from '../../../models/mensaje.dto';
 import { NavbarComponent } from '../navbar/navbar.component';
+import { CategoriaDto } from '../../../models/categoria.dto';
+import { EstadoProducto } from '../../../models/enums/estado-producto.enum';
+import { ProductoDto } from '../../../models/producto/producto.dto';
 
 @Component({
   selector: 'app-producto',
@@ -22,12 +25,12 @@ export class ProductoComponent implements OnInit {
   productoEditando: boolean = false;
 
   // Modelo de producto
-  producto: ProductoDTO = this.inicializarProducto();
+  producto: ProductoDto = this.inicializarProducto();
 
   // Listas
-  productos: ProductoDTO[] = [];
-  productosFiltrados: ProductoDTO[] = [];
-  categorias: CategoriaDTO[] = [
+  productos: ProductoDto[] = [];
+  productosFiltrados: ProductoDto[] = [];
+  categorias: CategoriaDto[] = [
     { id: 1, nombre: 'Electrónicos' },
     { id: 2, nombre: 'Computación' },
     { id: 3, nombre: 'Smartphones' },
@@ -46,7 +49,7 @@ export class ProductoComponent implements OnInit {
   // Filtros
   terminoBusquedaNombre: string = '';
   terminoBusquedaCodigo: string = '';
-  categoriaFiltro: CategoriaDTO | null = null;
+  categoriaFiltro: CategoriaDto | null = null;
   estadoFiltro: EstadoProducto | '' = '';
   stockFiltro: string = '';
 
@@ -55,8 +58,9 @@ export class ProductoComponent implements OnInit {
   }
 
   // Inicialización
-  private inicializarProducto(): ProductoDTO {
+  private inicializarProducto(): ProductoDto {
     return {
+      id: 0,
       nombre: '',
       codigo: '',
       descripcion: '',
@@ -65,7 +69,7 @@ export class ProductoComponent implements OnInit {
       stock: 0,
       imagenUrl: '',
       marca: '',
-      garantia: undefined,
+      garantia: 0,
       estado: EstadoProducto.ACTIVO
     };
   }
@@ -139,18 +143,18 @@ export class ProductoComponent implements OnInit {
     });
   }
 
-  editarProducto(producto: ProductoDTO): void {
+  editarProducto(producto: ProductoDto): void {
     this.producto = { ...producto };
     this.productoEditando = true;
     // Scroll al formulario
     document.querySelector('.form-container')?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  cambiarEstadoProducto(producto: ProductoDTO): void {
+  cambiarEstadoProducto(producto: ProductoDto): void {
     if (!producto.id) return;
 
     const confirmacion = confirm(
-      `¿Está seguro de que desea ${producto.estado === 'ACTIVO' ? 'desactivar' : 'activar'} el producto "${producto.nombre}"?`
+      `¿Está seguro de que desea ${producto.estado === EstadoProducto.ACTIVO ? 'desactivar' : 'activar'} el producto "${producto.nombre}"?`
     );
 
     if (!confirmacion) return;
@@ -171,7 +175,7 @@ export class ProductoComponent implements OnInit {
     });
   }
 
-  eliminarProducto(producto: ProductoDTO): void {
+  eliminarProducto(producto: ProductoDto): void {
     if (!producto.id) return;
 
     const confirmacion = confirm(

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Órdenes de Venta - TodoTech Shop</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+  <div class="overlay"></div>
+  
+  <!-- Navbar -->
+  <app-navbar-orden></app-navbar-orden>
+  
+  <!-- Contenido Principal -->
+  <main class="ordenes-container">
+    
+    <!-- Header de la página -->
+    <header class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <i class="fas fa-shopping-cart"></i>
+          Órdenes de Venta Activas
+        </h1>
+        <p class="page-subtitle">Gestiona y consulta todas las órdenes de venta del sistema</p>
+      </div>
+      
+      <!-- Estadísticas -->
+      <div class="stats-container">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-file-invoice"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ getTotalOrdenes() }}</span>
+            <span class="stat-label">Total Órdenes</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon pendiente">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ totalOrdenesPendientes }}</span>
+            <span class="stat-label">Pendientes</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon total">
+            <i class="fas fa-dollar-sign"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ formatearMoneda(getTotalVentas()) }}</span>
+            <span class="stat-label">Valor Total</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Panel de Filtros -->
+    <section class="filtros-section">
+      <div class="filtros-container">
+        <div class="filtro-group">
+          <div class="input-with-icon">
+            <i class="fas fa-search"></i>
+            <input 
+              type="text" 
+              [(ngModel)]="filtros.numeroOrden" 
+              (input)="aplicarFiltros()"
+              placeholder="Buscar por número de orden..."
+              class="filtro-input">
+          </div>
+        </div>
+        
+        <div class="filtro-group">
+          <select 
+            [(ngModel)]="filtros.estado" 
+            (change)="aplicarFiltros()"
+            class="filtro-select">
+            <option value="">Todos los estados</option>
+            <option *ngFor="let estado of estados" [value]="estado">
+              {{ estado }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filtro-group">
+          <input 
+            type="date" 
+            [(ngModel)]="filtros.fechaDesde" 
+            (change)="aplicarFiltros()"
+            class="filtro-input"
+            placeholder="Fecha desde">
+        </div>
+
+        <div class="filtro-group">
+          <input 
+            type="date" 
+            [(ngModel)]="filtros.fechaHasta" 
+            (change)="aplicarFiltros()"
+            class="filtro-input"
+            placeholder="Fecha hasta">
+        </div>
+
+        <button 
+          (click)="limpiarFiltros()" 
+          class="btn-limpiar"
+          [disabled]="!filtros.estado && !filtros.numeroOrden && !filtros.fechaDesde && !filtros.fechaHasta">
+          <i class="fas fa-times"></i>
+          Limpiar Filtros
+        </button>
+      </div>
+
+      <!-- Información de resultados -->
+      <div class="resultados-info">
+        <span class="resultados-text">
+          Mostrando <strong>{{ ordenesPaginadas.length }}</strong> de <strong>{{ getTotalOrdenes() }}</strong> órdenes
+          <span *ngIf="getTotalOrdenes() > 0" class="valor-total">
+            • Total: {{ formatearMoneda(getTotalVentas()) }}
+          </span>
+          <span *ngIf="filtros.estado || filtros.numeroOrden || filtros.fechaDesde || filtros.fechaHasta" class="filtros-activos">
+            (filtros aplicados)
+          </span>
+        </span>
+      </div>
+    </section>
+
+    <!-- Tabla de Órdenes -->
+    <section class="tabla-section">
+      <div class="tabla-container">
+        <!-- Empty State -->
+        <div *ngIf="ordenesPaginadas.length === 0" class="empty-state">
+          <i class="fas fa-file-invoice-dollar"></i>
+          <h3>No se encontraron órdenes</h3>
+          <p *ngIf="filtros.estado || filtros.numeroOrden || filtros.fechaDesde || filtros.fechaHasta">
+            No hay órdenes que coincidan con los filtros aplicados.
+          </p>
+          <p *ngIf="!filtros.estado && !filtros.numeroOrden && !filtros.fechaDesde && !filtros.fechaHasta">
+            No hay órdenes registradas en el sistema.
+          </p>
+          <button (click)="limpiarFiltros()" class="btn-primary" *ngIf="filtros.estado || filtros.numeroOrden || filtros.fechaDesde || filtros.fechaHasta">
+            Limpiar Filtros
+          </button>
+        </div>
+
+        <!-- Tabla de Órdenes -->
+        <div *ngIf="ordenesPaginadas.length > 0" class="table-responsive">
+          <table class="ordenes-table">
+            <thead>
+              <tr>
+                <th (click)="cambiarOrden('numeroOrden')" class="sortable">
+                  <span>N° Orden</span>
+                  <span class="sort-icon" *ngIf="ordenarPor === 'numeroOrden'">
+                    {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+                  </span>
+                </th>
+                <th (click)="cambiarOrden('fecha')" class="sortable">
+                  <span>Fecha</span>
+                  <span class="sort-icon" *ngIf="ordenarPor === 'fecha'">
+                    {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+                  </span>
+                </th>
+                <th (click)="cambiarOrden('cliente')" class="sortable">
+                  <span>Cliente</span>
+                  <span class="sort-icon" *ngIf="ordenarPor === 'cliente'">
+                    {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+                  </span>
+                </th>
+                <th>Productos</th>
+                <th (click)="cambiarOrden('total')" class="sortable">
+                  <span>Total</span>
+                  <span class="sort-icon" *ngIf="ordenarPor === 'total'">
+                    {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+                  </span>
+                </th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let orden of ordenesPaginadas" class="orden-row">
+                <td class="orden-numero">
+                  <strong>{{ orden.numeroOrden }}</strong>
+                  <small *ngIf="orden.observaciones" class="orden-observaciones" title="{{ orden.observaciones }}">
+                    <i class="fas fa-info-circle"></i>
+                    Observaciones
+                  </small>
+                </td>
+                <td class="orden-fecha">
+                  {{ formatearFecha(orden.fecha) }}
+                </td>
+                <td class="orden-cliente">
+                  <div class="cliente-info">
+                    <strong class="cliente-nombre">{{ orden.cliente.nombre }}</strong>
+                    <div class="cliente-detalles">
+                      <small class="cliente-cedula">
+                        <i class="fas fa-id-card"></i>
+                        {{ orden.cliente.cedula }}
+                      </small>
+                      <small class="cliente-tipo" [class.tipo-juridico]="orden.cliente.tipoCliente === 'JURIDICO'">
+                        {{ orden.cliente.tipoCliente }}
+                      </small>
+                    </div>
+                  </div>
+                </td>
+                <td class="orden-productos">
+                  <div class="productos-lista">
+                    <div *ngFor="let detalle of orden.productos" class="producto-item">
+                      <div class="producto-info">
+                        <span class="producto-nombre">{{ detalle.producto.nombre }}</span>
+                        <span class="producto-marca">{{ detalle.producto.marca }}</span>
+                      </div>
+                      <div class="producto-detalles">
+                        <span class="producto-cantidad">x{{ detalle.cantidad }}</span>
+                        <span class="producto-precio">{{ formatearMoneda(detalle.precioUnitario) }}</span>
+                        <span [class]="'badge-producto ' + getEstadoProductoBadge(detalle.producto.estado)" 
+                              [title]="'Stock: ' + detalle.producto.stock">
+                          {{ detalle.producto.estado }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="orden-total">
+                  <div class="total-content">
+                    <strong class="total-valor">{{ formatearMoneda(orden.total) }}</strong>
+                    <div class="total-detalles">
+                      <small class="subtotal">Sub: {{ formatearMoneda(orden.subtotal) }}</small>
+                      <small *ngIf="orden.descuento > 0" class="descuento-aplicado">
+                        Desc: -{{ formatearMoneda(orden.descuento) }}
+                      </small>
+                    </div>
+                  </div>
+                </td>
+                <td class="orden-estado">
+                  <span [class]="'badge badge-' + orden.estado.toLowerCase()">
+                    {{ orden.estado }}
+                  </span>
+                </td>
+                <td class="orden-acciones">
+                  <div class="acciones-buttons">
+                    <button 
+                      class="btn-action btn-view"
+                      title="Ver detalles completos">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button 
+                      class="btn-action btn-edit"
+                      title="Editar orden">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button 
+                      class="btn-action btn-print"
+                      title="Imprimir orden">
+                      <i class="fas fa-print"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="paginacion" *ngIf="totalPaginas > 1">
+        <button (click)="cambiarPagina(1)" 
+                [disabled]="paginaActual === 1" 
+                class="btn-pagina btn-pagina-first">
+          <i class="fas fa-angle-double-left"></i>
+          Primera
+        </button>
+        <button (click)="cambiarPagina(paginaActual - 1)" 
+                [disabled]="paginaActual === 1" 
+                class="btn-pagina">
+          <i class="fas fa-angle-left"></i>
+          Anterior
+        </button>
+        
+        <div class="paginas-numeros">
+          <span *ngFor="let pagina of getPaginas()" 
+                [class.active]="pagina === paginaActual"
+                (click)="cambiarPagina(pagina)"
+                class="numero-pagina">
+            {{ pagina }}
+          </span>
+        </div>
+        
+        <button (click)="cambiarPagina(paginaActual + 1)" 
+                [disabled]="paginaActual === totalPaginas" 
+                class="btn-pagina">
+          Siguiente
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button (click)="cambiarPagina(totalPaginas)" 
+                [disabled]="paginaActual === totalPaginas" 
+                class="btn-pagina btn-pagina-last">
+          Última
+          <i class="fas fa-angle-double-right"></i>
+        </button>
+        
+        <span class="info-pagina">
+          Página {{ paginaActual }} de {{ totalPaginas }}
+        </span>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

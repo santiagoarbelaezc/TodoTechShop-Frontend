@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
-import { ProductoDTO, CategoriaDTO } from '../models/producto.dto';
-import { EstadoProducto } from '../models/estado-producto.enum';
+
+import { EstadoProducto } from '../models/enums/estado-producto.enum';
+import { CategoriaDto } from '../models/categoria.dto';
+import { ProductoDto } from '../models/producto/producto.dto';
+
 
 @Injectable({
   providedIn: 'root'
@@ -8,7 +11,7 @@ import { EstadoProducto } from '../models/estado-producto.enum';
 export class ProductoPruebaService {
   
   // Categorías de ejemplo
-  private categorias: CategoriaDTO[] = [
+  private categorias: CategoriaDto[] = [
     { id: 1, nombre: 'Smartphones' },
     { id: 2, nombre: 'Laptops' },
     { id: 3, nombre: 'Gaming' },
@@ -16,7 +19,7 @@ export class ProductoPruebaService {
   ];
 
   // Productos de ejemplo
-  private productosEjemplo: ProductoDTO[] = [
+  private productosEjemplo: ProductoDto[] = [
     // Productos iPhone
     {
       id: 1,
@@ -141,29 +144,29 @@ export class ProductoPruebaService {
   constructor() { }
 
   // Obtener todos los productos
-  obtenerTodosLosProductos(): ProductoDTO[] {
+  obtenerTodosLosProductos(): ProductoDto[] {
     return [...this.productosEjemplo];
   }
 
   // Obtener producto por ID
-  obtenerProductoPorId(id: number): ProductoDTO | undefined {
+  obtenerProductoPorId(id: number): ProductoDto | undefined {
     return this.productosEjemplo.find(producto => producto.id === id);
   }
 
   // Obtener productos por categoría
-  obtenerProductosPorCategoria(categoriaId: number): ProductoDTO[] {
+  obtenerProductosPorCategoria(categoriaId: number): ProductoDto[] {
     return this.productosEjemplo.filter(producto => producto.categoria.id === categoriaId);
   }
 
   // Obtener productos por nombre (búsqueda)
-  obtenerProductosPorNombre(nombre: string): ProductoDTO[] {
+  obtenerProductosPorNombre(nombre: string): ProductoDto[] {
     return this.productosEjemplo.filter(producto => 
       producto.nombre.toLowerCase().includes(nombre.toLowerCase())
     );
   }
 
   // Obtener productos iPhone
-  obtenerProductosIphone(): ProductoDTO[] {
+  obtenerProductosIphone(): ProductoDto[] {
     return this.productosEjemplo.filter(p => 
       p.nombre.toLowerCase().includes('iphone') || 
       p.codigo.toLowerCase().includes('iph')
@@ -171,7 +174,7 @@ export class ProductoPruebaService {
   }
 
   // Obtener productos HP
-  obtenerProductosHp(): ProductoDTO[] {
+  obtenerProductosHp(): ProductoDto[] {
     return this.productosEjemplo.filter(p => 
       p.nombre.toLowerCase().includes('hp') || 
       p.codigo.toLowerCase().includes('hp')
@@ -179,34 +182,34 @@ export class ProductoPruebaService {
   }
 
   // Obtener productos por marca
-  obtenerProductosPorMarca(marca: string): ProductoDTO[] {
+  obtenerProductosPorMarca(marca: string): ProductoDto[] {
     return this.productosEjemplo.filter(p => 
       p.marca?.toLowerCase().includes(marca.toLowerCase())
     );
   }
 
   // Obtener productos en stock
-  obtenerProductosEnStock(): ProductoDTO[] {
+  obtenerProductosEnStock(): ProductoDto[] {
     return this.productosEjemplo.filter(p => p.stock > 0);
   }
 
   // Obtener productos con bajo stock
-  obtenerProductosBajoStock(limite: number = 5): ProductoDTO[] {
+  obtenerProductosBajoStock(limite: number = 5): ProductoDto[] {
     return this.productosEjemplo.filter(p => p.stock > 0 && p.stock <= limite);
   }
 
   // Obtener todas las categorías
-  obtenerTodasLasCategorias(): CategoriaDTO[] {
+  obtenerTodasLasCategorias(): CategoriaDto[] {
     return [...this.categorias];
   }
 
   // Obtener categoría por ID
-  obtenerCategoriaPorId(id: number): CategoriaDTO | undefined {
+  obtenerCategoriaPorId(id: number): CategoriaDto | undefined {
     return this.categorias.find(categoria => categoria.id === id);
   }
 
   // Buscar productos por término (nombre, código o marca)
-  buscarProductos(termino: string): ProductoDTO[] {
+  buscarProductos(termino: string): ProductoDto[] {
     const terminoLower = termino.toLowerCase();
     return this.productosEjemplo.filter(producto => 
       producto.nombre.toLowerCase().includes(terminoLower) ||
@@ -217,7 +220,7 @@ export class ProductoPruebaService {
   }
 
   // Obtener productos recomendados (misma categoría, excluyendo el actual)
-  obtenerProductosRecomendados(productoId: number, limite: number = 4): ProductoDTO[] {
+  obtenerProductosRecomendados(productoId: number, limite: number = 4): ProductoDto[] {
     const producto = this.obtenerProductoPorId(productoId);
     if (!producto) return [];
 

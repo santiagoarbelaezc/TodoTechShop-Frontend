@@ -23,6 +23,8 @@ import { CreacionComponent } from './pages/admin/creacion/creacion.component';
 import { TablaUsuariosComponent } from './pages/admin/tabla-usuarios/tabla-usuarios.component';
 import { DescripcionproductoComponent } from './pages/inicio/descripcionproducto/descripcionproducto.component';
 import { BuscarInicioComponent } from './pages/inicio/buscar-inicio/buscar-inicio.component';
+import { ClientesComponent } from './pages/orden-venta/clientes/clientes.component';
+import { OrdenesActivasComponent } from './pages/orden-venta/ordenes-activas/ordenes-activas.component';
 
 export const routes: Routes = [
   // 🔓 RUTAS PÚBLICAS
@@ -134,6 +136,18 @@ export const routes: Routes = [
   { 
     path: 'ordenVenta', 
     component: OrdenVentaComponent, 
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['VENDEDOR'] }
+  },
+  { 
+    path: 'ordenVenta/clientes-registrados', 
+    component: ClientesComponent, 
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['VENDEDOR'] }
+  },
+  { 
+    path: 'ordenVenta/ordenes-activas', 
+    component: OrdenesActivasComponent, 
     canActivate: [authGuard, roleGuard],
     data: { roles: ['VENDEDOR'] }
   },

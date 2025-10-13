@@ -1,4 +1,4 @@
-import { UsuarioDto } from "./usuario.dto";
+import { UsuarioDto } from "./usuario/usuario.dto";
 
 
 export interface PersonaDTO {

@@ -2,11 +2,10 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { UsuarioService } from '../../../services/usuario.service';
-import { UsuarioDto } from '../../../models/usuario.dto';
+import { UsuarioDto } from '../../../models/usuario/usuario.dto';
 import { MensajeDto } from '../../../models/mensaje.dto';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { CrearUsuarioDTO } from '../admin.component';
-
 
 
 @Component({

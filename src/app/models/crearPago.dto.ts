@@ -1,5 +1,5 @@
 // crearPago.dto.ts
-import { OrdenVentaDTO } from "./ordenventa.dto";
+
 
 export enum MetodoPago {
   TARJETA_BANCARIA = 'TARJETA_BANCARIA',

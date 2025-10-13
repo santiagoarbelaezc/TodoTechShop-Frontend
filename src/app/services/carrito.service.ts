@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { DetalleOrdenService } from './detalle-orden.service';
 import { ProductoService } from './producto.service';
 import { OrdenVentaService } from './orden-venta.service';
-import { ProductoDTO } from '../models/producto.dto';
+import { ProductoDTO } from '../models/producto/producto.dto';
 import { DetalleOrdenDTO } from '../models/detalle-orden.dto';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 

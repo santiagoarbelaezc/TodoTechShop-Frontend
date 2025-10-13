@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ producto?.nombre }} - TodoTech Shop</title>
+    <title>{{ producto ? producto.nombre + ' - TodoTech Shop' : 'TodoTech Shop' }}</title>
     <link rel="stylesheet" href="descripcionproducto.component.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -12,20 +12,30 @@
     <app-navbar-inicio></app-navbar-inicio>
 
     <!-- Loading state -->
-    <div *ngIf="!producto" class="loading-container">
+    <div *ngIf="loading" class="loading-container">
         <div class="loading-spinner"></div>
         <p>Cargando producto...</p>
     </div>
 
+    <!-- Error state -->
+    <div *ngIf="error && !loading" class="error-container">
+        <div class="error-message">
+            <h3>😕 Ocurrió un error</h3>
+            <p>{{ error }}</p>
+            <button (click)="reload()" class="btn-retry">Reintentar</button>
+            <button (click)="goHome()" class="btn-home">Volver al Inicio</button>
+        </div>
+    </div>
+
     <!-- Contenido principal del producto -->
-    <main class="product-detail-container" *ngIf="producto">
+    <main class="product-detail-container" *ngIf="!loading && !error && producto">
         <div class="product-detail">
             <!-- Columna izquierda: Imagen y controles -->
             <div class="product-left-column">
                 <!-- Imagen principal del producto -->
                 <div class="product-image-section">
                     <div class="main-image-container">
-                        <img [src]="'assets/' + producto.imagen" [alt]="producto.nombre" class="main-product-image">
+                        <img [src]="producto.imagen" [alt]="producto.nombre" class="main-product-image" (error)="producto.imagen = 'assets/images/default-product.png'">
                     </div>
                 </div>
 
@@ -41,7 +51,7 @@
                     </div>
 
                     <div class="action-buttons">
-                        <button class="btn-carrito" (click)="addToCart()" [disabled]="producto.stock === 0">
+                        <button class="btn-carrito" (click)="addToCart()" [disabled]="producto.stock === 0 || loading">
                             <span class="btn-icon">🛒</span>
                             <span class="btn-text">{{ producto.stock > 0 ? 'Agregar al Carrito' : 'Producto Agotado' }}</span>
                         </button>
@@ -70,15 +80,21 @@
                         </span>
                     </div>
                     <div class="stock-section">
-                        <span class="stock-info" [class.low-stock]="producto.stock < 5" [class.out-of-stock]="producto.stock === 0">
+                        <span class="stock-info" 
+                              [class.low-stock]="producto.stock < 5 && producto.stock > 0" 
+                              [class.out-of-stock]="producto.stock === 0"
+                              [class.in-stock]="producto.stock >= 5">
                             {{ producto.stock > 0 ? 'Stock: ' + producto.stock : 'Agotado' }}
+                        </span>
+                        <span class="product-status" [class]="'status-' + producto.estado.toLowerCase()">
+                            {{ producto.estado }}
                         </span>
                     </div>
                 </div>
 
                 <div class="product-description">
                     <h3>Descripción</h3>
-                    <p>{{ producto.descripcion }}</p>
+                    <p>{{ producto.descripcion || 'No hay descripción disponible para este producto.' }}</p>
                 </div>
 
                 <div class="product-specs">
@@ -93,6 +109,14 @@
                             <span class="spec-value">{{ producto.categoria.nombre }}</span>
                         </div>
                         <div class="spec-item">
+                            <span class="spec-label">Marca:</span>
+                            <span class="spec-value">{{ producto.marca || 'No especificada' }}</span>
+                        </div>
+                        <div class="spec-item" *ngIf="producto.garantia">
+                            <span class="spec-label">Garantía:</span>
+                            <span class="spec-value">{{ producto.garantia }} meses</span>
+                        </div>
+                        <div class="spec-item">
                             <span class="spec-label">Disponibilidad:</span>
                             <span class="spec-value" [class.available]="producto.stock > 0" [class.unavailable]="producto.stock === 0">
                                 {{ producto.stock > 0 ? 'Disponible' : 'Agotado' }}
@@ -104,7 +128,7 @@
         </div>
 
         <!-- Productos recomendados -->
-        <section class="recommended-section" *ngIf="productosRecomendados.length > 0">
+        <section class="recommended-section" *ngIf="productosRecomendados.length > 0 && !loading">
             <div class="section-header">
                 <h2 class="section-title">📱 Productos Recomendados</h2>
                 <p class="section-subtitle">Descubre productos similares que te pueden interesar</p>
@@ -113,11 +137,12 @@
             <div class="recommended-grid">
                 <div class="recommended-card" *ngFor="let productoRec of productosRecomendados" (click)="viewProduct(productoRec)">
                     <div class="product-image-container">
-                        <img [src]="'assets/' + productoRec.imagen" [alt]="productoRec.nombre" class="product-image">
+                        <img [src]="productoRec.imagen" [alt]="productoRec.nombre" class="product-image" (error)="productoRec.imagen = 'assets/images/default-product.png'">
                     </div>
                     <div class="product-content">
                         <div class="product-header">
                             <h3 class="product-title">{{ productoRec.nombre }}</h3>
+                            <span class="category-tag">{{ productoRec.categoria.nombre }}</span>
                         </div>
                         <div class="product-price-section">
                             <div class="product-price-container">
@@ -127,13 +152,28 @@
                                 </span>
                             </div>
                             <div class="stock-section">
-                                <span class="stock-info" [class.low-stock]="productoRec.stock < 5" [class.out-of-stock]="productoRec.stock === 0">
+                                <span class="stock-info" 
+                                      [class.low-stock]="productoRec.stock < 5 && productoRec.stock > 0" 
+                                      [class.out-of-stock]="productoRec.stock === 0"
+                                      [class.in-stock]="productoRec.stock >= 5">
                                     {{ productoRec.stock > 0 ? 'Stock: ' + productoRec.stock : 'Agotado' }}
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- Mensaje cuando no hay productos recomendados -->
+        <section class="no-recommendations" *ngIf="productosRecomendados.length === 0 && !loading">
+            <div class="section-header">
+                <h2 class="section-title">📦 Más Productos</h2>
+                <p class="section-subtitle">No hay productos recomendados disponibles en este momento</p>
+                <button class="btn-secondary" (click)="goHome()">
+                    <i class="fas fa-store"></i>
+                    Ver Todos los Productos
+                </button>
             </div>
         </section>
     </main>

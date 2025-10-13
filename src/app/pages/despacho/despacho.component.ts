@@ -1,18 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { OrdenVentaDTO } from '../../models/ordenventa.dto';
+import { OrdenConDetallesDto, EstadoOrden } from '../../models/orden-venta/ordenventa.dto';
 
 @Component({
   selector: 'app-despacho',
   standalone: true,
-  imports: [CommonModule,FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './despacho.component.html',
   styleUrl: './despacho.component.css'
 })
 export class DespachoComponent implements OnInit {
-  ordenes: OrdenVentaDTO[] = [];
-  ordenSeleccionada: OrdenVentaDTO | null = null;
+  ordenes: OrdenConDetallesDto[] = [];
+  ordenSeleccionada: OrdenConDetallesDto | null = null;
   mostrarMensajeria = false;
   metodoDespacho = '';
   empresaMensajeria = 'servientrega';
@@ -41,53 +41,34 @@ export class DespachoComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {
-    // Cargar órdenes pendientes de despacho
-    this.cargarOrdenes();
+    // TODO: Implementar inicialización del componente
   }
 
   cargarOrdenes(): void {
-    // Lógica para cargar órdenes pendientes de despacho
+    // TODO: Implementar carga de órdenes pendientes de despacho
   }
 
-  seleccionarOrden(orden: OrdenVentaDTO): void {
-    this.ordenSeleccionada = orden;
+  seleccionarOrden(orden: OrdenConDetallesDto): void {
+    // TODO: Implementar selección de orden
   }
 
   mostrarCamposMensajeria(mostrar: boolean): void {
-    this.mostrarMensajeria = mostrar;
+    // TODO: Implementar mostrar/ocultar campos de mensajería
   }
 
   selectItem(item: { icon: string; text: string; active: boolean }): void {
-    this.menuItems.forEach(i => i.active = false);
-    item.active = true;
-}
+    // TODO: Implementar selección de ítem del menú
+  }
 
   rastrearPedido(): void {
-    if (this.codigoRastreo) {
-      // Lógica para consultar estado de rastreo
-      this.estadoRastreo = true;
-      this.eventosRastreo = [
-        { fecha: '2023-05-01 10:00', descripcion: 'Pedido recibido', estado: 'Recibido' },
-        { fecha: '2023-05-02 09:30', descripcion: 'En tránsito', estado: 'En camino' },
-        { fecha: '2023-05-03 14:15', descripcion: 'En reparto', estado: 'En reparto' }
-      ];
-    }
+    // TODO: Implementar lógica de rastreo de pedido
   }
 
   confirmarDespacho(): void {
-    if (this.metodoDespacho === 'mensajeria' && !this.numeroGuia) {
-      alert('Por favor ingrese el número de guía');
-      return;
-    }
-    
-    // Lógica para confirmar despacho
-    alert('Despacho confirmado exitosamente');
+    // TODO: Implementar confirmación de despacho
   }
 
   cancelarDespacho(): void {
-    if (confirm('¿Está seguro que desea cancelar este despacho?')) {
-      // Lógica para cancelar despacho
-      alert('Despacho cancelado');
-    }
+    // TODO: Implementar cancelación de despacho
   }
 }

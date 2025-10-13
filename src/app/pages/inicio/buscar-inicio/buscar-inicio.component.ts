@@ -4,14 +4,16 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../../services/producto.service';
 import { NavbarInicioComponent } from '../navbar-inicio/navbar-inicio.component';
-import { CategoriaDTO, ProductoDTO } from '../../../models/producto.dto';
+
 import { ProductoPruebaService } from '../../../services/producto-prueba.service';
 import { AuthService } from '../../../services/auth.service';
+import { CategoriaDto } from '../../../models/categoria.dto';
+import { ProductoDto } from '../../../models/producto/producto.dto';
 
 interface DetalleCarrito {
   cantidad: number;
   subtotal: number;
-  producto?: ProductoDTO;
+  producto?: ProductoDto;
 }
 
 @Component({
@@ -28,9 +30,9 @@ export class BuscarInicioComponent implements AfterViewInit {
   private productoService = inject(ProductoService);
   private productoPruebaService = inject(ProductoPruebaService);
 
-  productos: ProductoDTO[] = [];
-  productosFiltrados: ProductoDTO[] = [];
-  categorias: CategoriaDTO[] = [];
+  productos: ProductoDto[] = [];
+  productosFiltrados: ProductoDto[] = [];
+  categorias: CategoriaDto[] = [];
 
   terminoBusqueda: string = '';
   categoriaSeleccionada: string = 'todas';
@@ -169,7 +171,7 @@ export class BuscarInicioComponent implements AfterViewInit {
   }
 
   // Método para ordenar productos
-  private ordenarProductos(productos: ProductoDTO[]): ProductoDTO[] {
+  private ordenarProductos(productos: ProductoDto[]): ProductoDto[] {
     switch (this.ordenarPor) {
       case 'precio-asc':
         return productos.sort((a, b) => a.precio - b.precio);
@@ -195,13 +197,13 @@ export class BuscarInicioComponent implements AfterViewInit {
   }
 
   // Método para ver detalle del producto
-  verDetalleProducto(producto: ProductoDTO): void {
+  verDetalleProducto(producto: ProductoDto): void {
     this.productoService.seleccionarProducto(producto);
     this.router.navigate(['/descripcion-producto']);
   }
 
   // Método para agregar al carrito
-  agregarAlCarrito(producto: ProductoDTO, event?: Event): void {
+  agregarAlCarrito(producto: ProductoDto, event?: Event): void {
     if (event) {
       event.stopPropagation();
     }
@@ -326,7 +328,7 @@ export class BuscarInicioComponent implements AfterViewInit {
   }
 
   // Método auxiliar para obtener imagen del producto
-  obtenerImagenProducto(producto: ProductoDTO): string {
+  obtenerImagenProducto(producto: ProductoDto): string {
     return producto.imagenUrl || 'assets/images/default-product.png';
   }
 
@@ -340,12 +342,12 @@ export class BuscarInicioComponent implements AfterViewInit {
   }
 
   // Método para verificar si un producto tiene stock bajo
-  tieneStockBajo(producto: ProductoDTO): boolean {
+  tieneStockBajo(producto: ProductoDto): boolean {
     return producto.stock <= 3;
   }
 
   // Método para obtener el texto de stock
-  obtenerTextoStock(producto: ProductoDTO): string {
+  obtenerTextoStock(producto: ProductoDto): string {
     if (producto.stock === 0) {
       return 'Sin stock';
     } else if (this.tieneStockBajo(producto)) {
@@ -356,7 +358,7 @@ export class BuscarInicioComponent implements AfterViewInit {
   }
 
   // Método para obtener la clase CSS del stock
-  obtenerClaseStock(producto: ProductoDTO): string {
+  obtenerClaseStock(producto: ProductoDto): string {
     if (producto.stock === 0) {
       return 'stock-agotado';
     } else if (this.tieneStockBajo(producto)) {
@@ -367,7 +369,7 @@ export class BuscarInicioComponent implements AfterViewInit {
   }
 
   // Método para obtener productos agrupados por categoría para el carrusel
-  obtenerProductosPorCategoria(): {categoria: CategoriaDTO, productos: ProductoDTO[]}[] {
+  obtenerProductosPorCategoria(): {categoria: CategoriaDto, productos: ProductoDto[]}[] {
     return this.categorias.map(categoria => ({
       categoria,
       productos: this.productosFiltrados.filter(p => p.categoria.id === categoria.id)

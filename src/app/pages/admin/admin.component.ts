@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { UsuarioService } from '../../services/usuario.service';
-import { UsuarioDto } from '../../models/usuario.dto';
+import { UsuarioDto } from '../../models/usuario/usuario.dto';
 import { Router } from '@angular/router';
 import { MensajeDto } from '../../models/mensaje.dto';
 import { AuthService } from '../../services/auth.service';

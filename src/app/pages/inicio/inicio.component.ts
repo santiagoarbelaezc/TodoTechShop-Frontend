@@ -1,17 +1,17 @@
-import { Component, AfterViewInit, HostListener, inject } from '@angular/core';
+import { Component, AfterViewInit, HostListener, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { NavbarInicioComponent } from './navbar-inicio/navbar-inicio.component';
 import { ProductoService } from '../../services/producto.service';
-import { ProductoPruebaService } from '../../services/producto-prueba.service';
-import { ProductoDTO, CategoriaDTO } from '../../models/producto.dto';
+import { ProductoDto } from '../../models/producto/producto.dto';
+
 
 interface DetalleCarrito {
   cantidad: number;
   subtotal: number;
-  producto?: ProductoDTO;
+  producto?: ProductoDto;
 }
 
 @Component({
@@ -21,18 +21,20 @@ interface DetalleCarrito {
   templateUrl: './inicio.component.html',
   styleUrls: ['./inicio.component.css']
 })
-export class InicioComponent implements AfterViewInit {
+export class InicioComponent implements AfterViewInit, OnInit {
 
   carrito: { detalle: DetalleCarrito, nombreProducto: string }[] = [];
 
   private productoService = inject(ProductoService);
-  private productoPruebaService = inject(ProductoPruebaService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-  productos: ProductoDTO[] = [];
-  productosAsus: ProductoDTO[] = [];
-  productosIphone: ProductoDTO[] = [];
-  productosSamsung: ProductoDTO[] = [];
-  productosHp: ProductoDTO[] = [];
+  productos: ProductoDto[] = [];
+  productosAsus: ProductoDto[] = [];
+  productosIphone: ProductoDto[] = [];
+  productosSamsung: ProductoDto[] = [];
+  productosHp: ProductoDto[] = [];
+  productosActivos: ProductoDto[] = [];
 
   mostrarCarrito = false;
   carritoVisible = false;
@@ -50,10 +52,12 @@ export class InicioComponent implements AfterViewInit {
     'VIP15': 15
   };
 
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
+  loading: boolean = true;
+  error: string | null = null;
+
+  ngOnInit(): void {
+    this.cargarProductos();
+  }
 
   // Método para controlar el scroll del carrusel
   scrollCarousel(direction: 'prev' | 'next', carouselId: string): void {
@@ -106,69 +110,83 @@ export class InicioComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.inicializarProductos();
     this.inicializarCarruseles();
     this.inicializarCarritoEjemplo();
   }
 
-  private inicializarProductos(): void {
-    // Obtener productos desde el servicio de prueba
-    this.productos = this.productoPruebaService.obtenerTodosLosProductos();
-    
-    // Obtener productos específicos desde el servicio
-    this.productosIphone = this.productoPruebaService.obtenerProductosIphone();
-    this.productosHp = this.productoPruebaService.obtenerProductosHp();
-    
-    // Inicializar arrays vacíos para los que no se están usando
-    this.productosAsus = [];
-    this.productosSamsung = [];
+  private cargarProductos(): void {
+    this.loading = true;
+    this.error = null;
 
-    console.log('Productos cargados desde servicio:', {
-      total: this.productos.length,
-      iphone: this.productosIphone.length,
-      hp: this.productosHp.length
+    // Obtener productos activos desde el servicio real
+    this.productoService.obtenerProductosActivos().subscribe({
+      next: (productos) => {
+        this.productosActivos = productos;
+        this.organizarProductosPorCategoria();
+        this.loading = false;
+        
+        console.log('Productos cargados desde servicio:', {
+          total: productos.length,
+          activos: this.productosActivos.length,
+          iphone: this.productosIphone.length,
+          hp: this.productosHp.length
+        });
+      },
+      error: (error) => {
+        console.error('Error al cargar productos:', error);
+        this.error = 'Error al cargar los productos. Intente nuevamente.';
+        this.loading = false;
+      }
     });
   }
 
+  private organizarProductosPorCategoria(): void {
+    // Filtrar productos por categoría para los carruseles
+    this.productosIphone = this.productosActivos.filter(producto => 
+      producto.categoria.nombre.toLowerCase().includes('smartphone') || 
+      producto.nombre.toLowerCase().includes('iphone')
+    );
+
+    this.productosHp = this.productosActivos.filter(producto => 
+      producto.categoria.nombre.toLowerCase().includes('laptop') || 
+      producto.marca.toLowerCase().includes('hp') ||
+      producto.nombre.toLowerCase().includes('hp')
+    );
+
+    this.productosAsus = this.productosActivos.filter(producto => 
+      producto.marca.toLowerCase().includes('asus') ||
+      producto.nombre.toLowerCase().includes('asus')
+    );
+
+    this.productosSamsung = this.productosActivos.filter(producto => 
+      producto.marca.toLowerCase().includes('samsung') ||
+      producto.nombre.toLowerCase().includes('samsung')
+    );
+
+    // Productos generales (todos los activos)
+    this.productos = this.productosActivos;
+  }
+
   private inicializarCarruseles(): void {
-    // Simular inicialización de carruseles (sin servicios)
+    // Simular inicialización de carruseles
     setTimeout(() => {
       console.log('Carruseles inicializados con productos:', {
         iphone: this.productosIphone.length,
-        hp: this.productosHp.length
+        hp: this.productosHp.length,
+        asus: this.productosAsus.length,
+        samsung: this.productosSamsung.length
       });
     }, 100);
   }
 
   private inicializarCarritoEjemplo(): void {
-    // Carrito de ejemplo con algunos productos
-    const producto1 = this.productoPruebaService.obtenerProductoPorId(1); // iPhone 13
-    const producto6 = this.productoPruebaService.obtenerProductoPorId(6); // HP Pavilion
-
-    if (producto1 && producto6) {
-      this.carrito = [
-        {
-          detalle: {
-            cantidad: 2,
-            subtotal: producto1.precio * 2,
-            producto: producto1
-          },
-          nombreProducto: producto1.nombre
-        },
-        {
-          detalle: {
-            cantidad: 1,
-            subtotal: producto6.precio,
-            producto: producto6
-          },
-          nombreProducto: producto6.nombre
-        }
-      ];
-    }
+    // Carrito de ejemplo con algunos productos (opcional)
+    // Si quieres un carrito vacío inicial, simplemente inicializa como array vacío
+    this.carrito = [];
   }
 
   // Método para ver detalle del producto
-  verDetalleProducto(producto: ProductoDTO): void {
+  verDetalleProducto(producto: ProductoDto): void {
     // Almacenar temporalmente el producto en el servicio
     this.productoService.seleccionarProducto(producto);
     
@@ -177,7 +195,7 @@ export class InicioComponent implements AfterViewInit {
   }
 
   // Método corregido para agregar al carrito
-  agregarAlCarrito(producto: ProductoDTO, event?: Event): void {
+  agregarAlCarrito(producto: ProductoDto, event?: Event): void {
     // Prevenir que el clic se propague al card padre
     if (event) {
       event.stopPropagation();
@@ -185,6 +203,7 @@ export class InicioComponent implements AfterViewInit {
 
     if (producto.stock <= 0) {
       console.warn('Producto sin stock disponible.');
+      alert('Producto sin stock disponible.');
       return;
     }
 
@@ -207,16 +226,17 @@ export class InicioComponent implements AfterViewInit {
       });
     }
 
-    // Actualizar stock local
+    // Actualizar stock local (esto es simulación - en una app real se haría en el backend)
     producto.stock--;
     
     console.log('Producto agregado al carrito:', producto.nombre);
+    alert(`${producto.nombre} agregado al carrito`);
   }
 
   eliminarProducto(index: number): void {
     const item = this.carrito[index];
     if (item.detalle.producto) {
-      // Restaurar stock
+      // Restaurar stock (simulación)
       item.detalle.producto.stock += item.detalle.cantidad;
     }
     this.carrito.splice(index, 1);
@@ -234,12 +254,19 @@ export class InicioComponent implements AfterViewInit {
       if (producto.stock > 0) {
         item.detalle.cantidad++;
         producto.stock--;
+      } else {
+        alert('No hay más stock disponible de este producto');
+        return;
       }
     } else {
       // Disminuir cantidad
       if (item.detalle.cantidad > 1) {
         item.detalle.cantidad--;
         producto.stock++;
+      } else {
+        // Si la cantidad es 1, eliminar el producto
+        this.eliminarProducto(index);
+        return;
       }
     }
 
@@ -285,6 +312,7 @@ export class InicioComponent implements AfterViewInit {
       this.mostrarInputDescuento = false;
       this.codigoDescuento = '';
       this.aplicandoDescuento = false;
+      alert(`¡Descuento del ${porcentaje}% aplicado exitosamente!`);
     }, 1000);
   }
 
@@ -294,12 +322,25 @@ export class InicioComponent implements AfterViewInit {
   }
 
   pagarCarrito() {
+    if (this.carrito.length === 0) {
+      alert('El carrito está vacío');
+      return;
+    }
+    
     this.router.navigate(['/caja']).then(() => {
       console.log('Navegando a caja para pagar');
     });
   }
 
   cancelarOrden(): void {
+    if (this.carrito.length === 0) {
+      alert('El carrito ya está vacío');
+      return;
+    }
+
+    const confirmacion = confirm('¿Está seguro de que desea cancelar la orden y vaciar el carrito?');
+    if (!confirmacion) return;
+
     // Restaurar stock de todos los productos en el carrito
     this.carrito.forEach(item => {
       if (item.detalle.producto) {
@@ -309,6 +350,7 @@ export class InicioComponent implements AfterViewInit {
     
     this.carrito = [];
     console.log('Orden cancelada y stock restaurado');
+    alert('Orden cancelada y carrito vaciado');
   }
 
   // Métodos de navegación
@@ -324,7 +366,7 @@ export class InicioComponent implements AfterViewInit {
   }
 
   // Método auxiliar para obtener imagen del producto
-  obtenerImagenProducto(producto: ProductoDTO): string {
+  obtenerImagenProducto(producto: ProductoDto): string {
     // Si el producto tiene imagenUrl, usarla, sino usar una imagen por defecto
     return producto.imagenUrl || 'assets/images/default-product.png';
   }
@@ -339,12 +381,12 @@ export class InicioComponent implements AfterViewInit {
   }
 
   // Método para verificar si un producto tiene stock bajo
-  tieneStockBajo(producto: ProductoDTO): boolean {
+  tieneStockBajo(producto: ProductoDto): boolean {
     return producto.stock <= 3;
   }
 
   // Método para obtener el texto de stock
-  obtenerTextoStock(producto: ProductoDTO): string {
+  obtenerTextoStock(producto: ProductoDto): string {
     if (producto.stock === 0) {
       return 'Sin stock';
     } else if (this.tieneStockBajo(producto)) {
@@ -355,7 +397,7 @@ export class InicioComponent implements AfterViewInit {
   }
 
   // Método para obtener la clase CSS del stock
-  obtenerClaseStock(producto: ProductoDTO): string {
+  obtenerClaseStock(producto: ProductoDto): string {
     if (producto.stock === 0) {
       return 'stock-agotado';
     } else if (this.tieneStockBajo(producto)) {
@@ -363,5 +405,10 @@ export class InicioComponent implements AfterViewInit {
     } else {
       return 'stock-normal';
     }
+  }
+
+  // Método para recargar en caso de error
+  recargarProductos(): void {
+    this.cargarProductos();
   }
 }

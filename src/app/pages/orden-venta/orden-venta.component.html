@@ -5,132 +5,197 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orden de Venta - TodoTech Shop</title>
   <link rel="stylesheet" href="orden-venta.component.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
 <body>
-  <!-- Botones de cambio de tema -->
+  <div class="overlay"></div>
   
-  <!-- Botón de salir agregado aquí -->
-  <div class="header-actions">
-    <button class="btn-salir svg-version" (click)="salir()">
-        <span>Cerrar Sesión</span>
-    </button>
-</div>
+  <!-- Navbar -->
+  <app-navbar-orden></app-navbar-orden>
   
+  <!-- Contenido Principal -->
   <main class="orden-venta-container" id="ordenVentaContainer">
-    <!-- Sección del formulario -->
+    
+    <!-- Sección del Formulario -->
     <div class="orden-venta-form">
-      <h1 class="orden-venta-title">Orden de Venta</h1>
-      <p class="orden-venta-subtitle">Registra una nueva venta para tu cliente</p>
-      
-      <form (ngSubmit)="onSubmit()">
-        <div class="input-group">
-          <input 
-            type="text" 
-            id="nombreCliente" 
-            name="nombreCliente" 
-            required 
-            [(ngModel)]="cliente.nombre"
-            placeholder=" ">
-          <label for="nombreCliente">Nombre del Cliente</label>
+      <header class="form-header">
+        <h1 class="orden-venta-title">
+          <i class="fas fa-shopping-cart"></i>
+          Orden de Venta
+        </h1>
+        <p class="orden-venta-subtitle">Registra una nueva venta para tu cliente</p>
+      </header>
+
+      <!-- Mensajes de estado -->
+      <div class="messages-container">
+        <!-- Mensaje de carga -->
+        <div *ngIf="isLoading" class="message loading-message">
+          <i class="fas fa-spinner fa-spin"></i>
+          Creando cliente, por favor espere...
         </div>
 
-        <div class="input-group">
-          <input 
-            type="email" 
-            id="correoCliente" 
-            name="correoCliente" 
-            required 
-            [(ngModel)]="cliente.correo"
-            placeholder=" ">
-          <label for="correoCliente">Correo Electrónico</label>
+        <!-- Mensaje de éxito -->
+        <div *ngIf="successMessage && !isLoading" class="message success-message">
+          <i class="fas fa-check-circle"></i>
+          {{ successMessage }}
         </div>
 
-        <div class="input-group">
-          <input 
-            type="tel" 
-            id="telefonoCliente" 
-            name="telefonoCliente" 
-            required 
-            [(ngModel)]="cliente.telefono"
-            placeholder=" ">
-          <label for="telefonoCliente">Teléfono</label>
+        <!-- Mensaje de error -->
+        <div *ngIf="errorMessage && !isLoading" class="message error-message">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ errorMessage }}
         </div>
+      </div>
 
-        <div class="input-group">
-          <input 
-            type="password" 
-            id="claveCliente" 
-            name="claveCliente" 
-            [(ngModel)]="cliente.clave"
-            placeholder=" ">
-          <label for="claveCliente">Clave</label>
+      <form (ngSubmit)="onSubmit()" class="venta-form">
+        
+        <!-- Contenedor principal con dos columnas -->
+        <div class="form-content-wrapper">
+          
+          <!-- Columna izquierda: Información del Cliente -->
+          <div class="form-column-left">
+            <!-- Información del Cliente -->
+            <section class="form-section">
+              <h3 class="section-title">Información del Cliente</h3>
+              
+              <div class="form-grid">
+                <div class="input-group">
+                  <input 
+                    type="text" 
+                    id="nombreCliente" 
+                    name="nombreCliente" 
+                    required 
+                    [(ngModel)]="cliente.nombre"
+                    minlength="2"
+                    maxlength="150"
+                    placeholder=" "
+                    [disabled]="isLoading">
+                  <label for="nombreCliente">Nombre del Cliente *</label>
+                  <small class="input-hint">Entre 2 y 150 caracteres</small>
+                </div>
+
+                <div class="input-group">
+                  <input 
+                    type="text" 
+                    id="cedulaCliente" 
+                    name="cedulaCliente" 
+                    required 
+                    [(ngModel)]="cliente.cedula"
+                    minlength="5"
+                    maxlength="20"
+                    placeholder=" "
+                    [disabled]="isLoading">
+                  <label for="cedulaCliente">Cédula *</label>
+                  <small class="input-hint">Entre 5 y 20 caracteres (debe ser única)</small>
+                </div>
+
+                <div class="input-group">
+                  <input 
+                    type="email" 
+                    id="correoCliente" 
+                    name="correoCliente" 
+                    [(ngModel)]="cliente.correo"
+                    maxlength="100"
+                    placeholder=" "
+                    [disabled]="isLoading">
+                  <label for="correoCliente">Correo Electrónico</label>
+                </div>
+
+                <div class="input-group">
+                  <input 
+                    type="tel" 
+                    id="telefonoCliente" 
+                    name="telefonoCliente" 
+                    [(ngModel)]="cliente.telefono"
+                    pattern="[+]?[0-9]{10,20}"
+                    maxlength="20"
+                    placeholder=" "
+                    [disabled]="isLoading">
+                  <label for="telefonoCliente">Teléfono</label>
+                  <small class="input-hint">Formato: +1234567890 o 1234567890</small>
+                </div>
+              </div>
+
+              <div class="input-group full-width">
+                <textarea
+                  id="direccionCliente" 
+                  name="direccionCliente" 
+                  [(ngModel)]="cliente.direccion"
+                  maxlength="255"
+                  placeholder=" "
+                  rows="3"
+                  [disabled]="isLoading"></textarea>
+                <label for="direccionCliente">Dirección</label>
+              </div>
+            </section>
+          </div>
+          
+          <!-- Columna derecha: Tipo de Cliente y Acciones -->
+          <div class="form-column-right">
+            <!-- Tipo de Cliente -->
+            <section class="form-section">
+              <h3 class="section-title">Tipo de Cliente</h3>
+              
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input 
+                    type="radio" 
+                    id="tipoNatural" 
+                    name="tipoCliente" 
+                    value="NATURAL"
+                    [(ngModel)]="cliente.tipoCliente"
+                    required
+                    [disabled]="isLoading">
+                  <label for="tipoNatural">Persona Natural</label>
+                  <span class="radio-description">(5% de descuento por defecto)</span>
+                </div>
+                
+                <div class="radio-option">
+                  <input 
+                    type="radio" 
+                    id="tipoJuridico" 
+                    name="tipoCliente" 
+                    value="JURIDICO"
+                    [(ngModel)]="cliente.tipoCliente"
+                    required
+                    [disabled]="isLoading">
+                  <label for="tipoJuridico">Persona Jurídica</label>
+                  <span class="radio-description">(10% de descuento por defecto)</span>
+                </div>
+              </div>
+
+              <div class="input-group">
+                <input 
+                  type="number" 
+                  id="descuentoAplicable" 
+                  name="descuentoAplicable" 
+                  [(ngModel)]="cliente.descuentoAplicable"
+                  placeholder=" "
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  [disabled]="isLoading">
+                <label for="descuentoAplicable">Descuento Personalizado (%)</label>
+                <small class="input-hint">Opcional. Si se deja vacío, se aplicará el descuento por defecto según el tipo de cliente</small>
+              </div>
+            </section>
+
+            <!-- Acciones del Formulario -->
+            <section class="form-actions">
+              <button type="button" class="btn-secondary" (click)="limpiarFormulario()" [disabled]="isLoading">
+                <i class="fas fa-broom"></i>
+                Limpiar
+              </button>
+              <button type="submit" class="btn-primary" [disabled]="isLoading">
+                <i class="fas fa-save"></i>
+                <span *ngIf="!isLoading">Registrar Cliente y Crear Orden</span>
+                <span *ngIf="isLoading">Creando Cliente...</span>
+              </button>
+            </section>
+          </div>
         </div>
-
-        <button type="submit">Registrar Venta</button>
       </form>
     </div>
-    
-    <!-- Sección del logo con fondo negro -->
-    <div class="logo-section">
-      <div class="logo-wrapper">
-        <img src="assets/TigreCircle.png" alt="Logo TodoTech Shop" class="logo">
-        <!-- Contenedor de ondas -->
-        <div class="wave-container">
-          <div class="wave-circle"></div>
-          <div class="wave-circle"></div>
-          <div class="wave-circle"></div>
-        </div>
-
-        <!-- Puntos orbitales -->
-        <div class="orbit-dots">
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-        </div>
-      </div>
-      <div class="welcome-text">
-        <h2>TodoTech Shop</h2>
-        <p>Sistema de gestión de ventas</p>
-      </div>
-    </div>
   </main>
-
-  <!-- Tabla de Órdenes de Venta -->
-  <div class="tabla-container">
-    <h3>Órdenes Registradas</h3>
-    <table class="tabla-ordenes">
-      <thead>
-        <tr>
-          <th>N° Orden</th>
-          <th>Cliente</th>
-          <th>Fecha</th>
-          <th>Total</th>
-          <th>Estado</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let orden of ordenes">
-          <td>{{ orden.id }}</td>
-          <td>{{ orden.cliente.nombre }}</td>
-          <td>{{ orden.fecha | date:'shortDate' }}</td>
-          <td>{{ orden.total | currency:'USD' }}</td>
-          <td>{{ orden.estado }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  
-  <div class="orden-venta-horario">
-    <p>{{ fechaHora }}</p>
-  </div>
-
-  <footer>
-    © 2025 TodoTech Shop - Todos los derechos reservados.
-  </footer>
 </body>
 </html>

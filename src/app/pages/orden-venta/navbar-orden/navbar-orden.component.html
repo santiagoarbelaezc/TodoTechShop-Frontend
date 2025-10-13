@@ -1,0 +1,58 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <!-- Logo -->
+    <div class="nav-logo">
+      <span class="logo-text">TodoTechVendedor</span>
+    </div>
+
+    <!-- Menú de navegación -->
+    <ul class="nav-menu">
+      <li class="nav-item">
+        <a href="#" 
+           class="nav-link" 
+           (click)="navegar('creacionOrden'); $event.preventDefault()"
+           [class.active]="seccionActiva === 'creacionOrden'">
+          <i class="fas fa-plus-circle"></i>
+          <span>Creación Orden</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a href="#" 
+           class="nav-link" 
+           (click)="navegar('clientes'); $event.preventDefault()"
+           [class.active]="seccionActiva === 'clientes'">
+          <i class="fas fa-users"></i>
+          <span>Clientes Registrados</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a href="#" 
+           class="nav-link" 
+           (click)="navegar('ordenes'); $event.preventDefault()"
+           [class.active]="seccionActiva === 'ordenes'">
+          <i class="fas fa-shopping-cart"></i>
+          <span>Órdenes</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- Fecha y Hora -->
+    <div class="orden-venta-horario">
+      <p>{{ fechaHora }}</p>
+    </div>
+
+    <!-- Menú de usuario -->
+    <div class="nav-user">
+      <div class="user-info">
+        <span class="user-name">{{ usuarioNombre }}</span>
+        <span class="user-role">{{ usuarioRol }}</span>
+      </div>
+      <button class="logout-btn" (click)="salir(); $event.preventDefault()" title="Cerrar sesión">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Salir</span>
+      </button>
+    </div>
+  </div>
+</nav>

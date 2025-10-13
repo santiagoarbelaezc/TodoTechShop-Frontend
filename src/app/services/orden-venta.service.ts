@@ -1,34 +1,44 @@
 import { Injectable } from '@angular/core';
-import { OrdenVentaDTO, EstadoOrden } from '../models/ordenventa.dto';
-import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { map, Observable } from 'rxjs';
+
+import { 
+  OrdenDto, 
+  OrdenConDetallesDto, 
+  CreateOrdenDto 
+} from '../models/orden-venta/ordenventa.dto';
+import { MensajeDto } from '../models/mensaje.dto';
+
+export enum EstadoOrden {
+  PENDIENTE = 'PENDIENTE',
+  PAGADA = 'PAGADA',
+  ENTREGADA = 'ENTREGADA',
+  CERRADA = 'CERRADA'
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrdenVentaService {
-  private apiUrl = 'http://localhost:8080/api/ordenes';
-  private ordenActual: OrdenVentaDTO | null = null;
+  private apiUrl = 'http://localhost:8080/ordenes';
+  private ordenActual: OrdenDto | null = null;
 
   constructor(private http: HttpClient) { }
 
-  // Métodos existentes
-  setOrden(orden: OrdenVentaDTO): void {
+  // Métodos para manejar la orden actual en memoria
+  setOrden(orden: OrdenDto): void {
     this.ordenActual = orden;
   }
 
-  getOrden(): OrdenVentaDTO | null {
+  getOrden(): OrdenDto | null {
     return this.ordenActual;
-  }
-
-  obtenerOrdenPorId(id: number): Observable<OrdenVentaDTO> {
-    return this.http.get<OrdenVentaDTO>(`${this.apiUrl}/${id}`);
   }
 
   limpiarOrden(): void {
     this.ordenActual = null;
   }
 
+  // Métodos para manejar el ID de orden en localStorage
   getOrdenIdDesdeLocalStorage(): number | null {
     const id = localStorage.getItem('ordenId');
     return id ? parseInt(id, 10) : null;
@@ -42,50 +52,105 @@ export class OrdenVentaService {
     localStorage.removeItem('ordenId');
   }
 
-  crearOrdenTemporal(): Observable<OrdenVentaDTO> {
-    return this.http.post<OrdenVentaDTO>(`${this.apiUrl}/crear-temporal`, {});
+  // Métodos principales del servicio
+  crearOrden(createOrdenDto: CreateOrdenDto): Observable<OrdenDto> {
+    return this.http.post<MensajeDto<OrdenDto>>(this.apiUrl, createOrdenDto).pipe(
+      map(response => response.data!)
+    );
   }
 
-  obtenerOrdenes(): Observable<OrdenVentaDTO[]> {
-    return this.http.get<OrdenVentaDTO[]>(`${this.apiUrl}/obtenerTodos`);
+  obtenerOrdenPorId(id: number): Observable<OrdenDto> {
+    return this.http.get<MensajeDto<OrdenDto>>(`${this.apiUrl}/${id}`).pipe(
+      map(response => response.data!)
+    );
   }
 
-  obtenerUltimaOrden(): Observable<OrdenVentaDTO> {
-    return this.http.get<OrdenVentaDTO>(`${this.apiUrl}/ultima`);
+  obtenerOrdenConDetalles(id: number): Observable<OrdenConDetallesDto> {
+    return this.http.get<MensajeDto<OrdenConDetallesDto>>(`${this.apiUrl}/${id}/detalles`).pipe(
+      map(response => response.data!)
+    );
   }
 
-  // Nuevos métodos para los filtros
-  obtenerOrdenesPorFecha(): Observable<OrdenVentaDTO[]> {
-    return this.http.get<OrdenVentaDTO[]>(`${this.apiUrl}/por-fecha`);
+  obtenerTodasLasOrdenes(): Observable<OrdenDto[]> {
+    return this.http.get<MensajeDto<OrdenDto[]>>(this.apiUrl).pipe(
+      map(response => response.data!)
+    );
   }
 
-  obtenerOrdenesPorValor(): Observable<OrdenVentaDTO[]> {
-    return this.http.get<OrdenVentaDTO[]>(`${this.apiUrl}/por-valor`);
+  obtenerOrdenesPorCliente(clienteId: number): Observable<OrdenDto[]> {
+    return this.http.get<MensajeDto<OrdenDto[]>>(`${this.apiUrl}/cliente/${clienteId}`).pipe(
+      map(response => response.data!)
+    );
   }
 
-  obtenerOrdenesPorEstado(estado: EstadoOrden): Observable<OrdenVentaDTO[]> {
-    return this.http.get<OrdenVentaDTO[]>(`${this.apiUrl}/estado/${estado}`);
+  obtenerOrdenesPorEstado(estado: EstadoOrden): Observable<OrdenDto[]> {
+    return this.http.get<MensajeDto<OrdenDto[]>>(`${this.apiUrl}/estado/${estado}`).pipe(
+      map(response => response.data!)
+    );
   }
 
-  // Métodos específicos para los estados comunes
-  obtenerOrdenesPagadas(): Observable<OrdenVentaDTO[]> {
-    return this.obtenerOrdenesPorEstado('PAGADA');
+  actualizarOrden(id: number, ordenDto: OrdenDto): Observable<OrdenDto> {
+    return this.http.put<MensajeDto<OrdenDto>>(`${this.apiUrl}/${id}`, ordenDto).pipe(
+      map(response => response.data!)
+    );
   }
 
-  obtenerOrdenesPendientes(): Observable<OrdenVentaDTO[]> {
-    return this.obtenerOrdenesPorEstado('PENDIENTE');
+  actualizarEstadoOrden(id: number, nuevoEstado: EstadoOrden): Observable<OrdenDto> {
+    return this.http.patch<MensajeDto<OrdenDto>>(
+      `${this.apiUrl}/${id}/estado?nuevoEstado=${nuevoEstado}`, 
+      {}
+    ).pipe(
+      map(response => response.data!)
+    );
   }
 
-  obtenerOrdenesDespachadas(): Observable<OrdenVentaDTO[]> {
-    return this.obtenerOrdenesPorEstado('DESPACHADA');
+  marcarComoPagada(id: number): Observable<OrdenDto> {
+    return this.http.patch<MensajeDto<OrdenDto>>(`${this.apiUrl}/${id}/pagada`, {}).pipe(
+      map(response => response.data!)
+    );
   }
 
-  obtenerOrdenesCerradas(): Observable<OrdenVentaDTO[]> {
-    return this.obtenerOrdenesPorEstado('CERRADA');
+  marcarComoEntregada(id: number): Observable<OrdenDto> {
+    return this.http.patch<MensajeDto<OrdenDto>>(`${this.apiUrl}/${id}/entregada`, {}).pipe(
+      map(response => response.data!)
+    );
   }
 
-  // Método para crear una orden completa
-  crearOrden(ordenData: any): Observable<OrdenVentaDTO> {
-    return this.http.post<OrdenVentaDTO>(`${this.apiUrl}/crear`, ordenData);
+  marcarComoCerrada(id: number): Observable<OrdenDto> {
+    return this.http.patch<MensajeDto<OrdenDto>>(`${this.apiUrl}/${id}/cerrada`, {}).pipe(
+      map(response => response.data!)
+    );
+  }
+
+  aplicarDescuento(id: number, porcentajeDescuento: number): Observable<OrdenDto> {
+    return this.http.patch<MensajeDto<OrdenDto>>(
+      `${this.apiUrl}/${id}/descuento?porcentajeDescuento=${porcentajeDescuento}`, 
+      {}
+    ).pipe(
+      map(response => response.data!)
+    );
+  }
+
+  eliminarOrden(id: number): Observable<string> {
+    return this.http.delete<MensajeDto<string>>(`${this.apiUrl}/${id}`).pipe(
+      map(response => response.mensaje)
+    );
+  }
+
+  // Métodos específicos para los estados comunes (conveniencia)
+  obtenerOrdenesPendientes(): Observable<OrdenDto[]> {
+    return this.obtenerOrdenesPorEstado(EstadoOrden.PENDIENTE);
+  }
+
+  obtenerOrdenesPagadas(): Observable<OrdenDto[]> {
+    return this.obtenerOrdenesPorEstado(EstadoOrden.PAGADA);
+  }
+
+  obtenerOrdenesEntregadas(): Observable<OrdenDto[]> {
+    return this.obtenerOrdenesPorEstado(EstadoOrden.ENTREGADA);
+  }
+
+  obtenerOrdenesCerradas(): Observable<OrdenDto[]> {
+    return this.obtenerOrdenesPorEstado(EstadoOrden.CERRADA);
   }
 }

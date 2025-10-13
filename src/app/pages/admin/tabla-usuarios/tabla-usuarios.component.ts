@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, Input, Output, EventEmitter, OnDestroy, HostListener, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from '../navbar/navbar.component';
-import { UsuarioDto } from '../../../models/usuario.dto';
+import { UsuarioDto } from '../../../models/usuario/usuario.dto';
 import { UsuarioService } from '../../../services/usuario.service';
 import { MensajeDto } from '../../../models/mensaje.dto';
 

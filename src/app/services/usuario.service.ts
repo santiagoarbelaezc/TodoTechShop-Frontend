@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { UsuarioDto } from '../models/usuario.dto';
+import { UsuarioDto } from '../models/usuario/usuario.dto';
 import { MensajeDto } from '../models/mensaje.dto';
 import { LoginResponse } from '../models/login-response.dto';
 

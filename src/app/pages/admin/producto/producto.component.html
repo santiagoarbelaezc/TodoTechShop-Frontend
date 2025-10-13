@@ -109,7 +109,7 @@
               <select id="estado" name="estado" [(ngModel)]="producto.estado" 
                       #estadoInput="ngModel" required>
                 <option *ngFor="let estado of estadosProducto" [value]="estado">
-                  {{ estado | titlecase }}
+                  {{ estado }}
                 </option>
               </select>
               <div *ngIf="estadoInput.invalid && (estadoInput.dirty || estadoInput.touched)" class="error-message">
@@ -181,7 +181,7 @@
                 </td>
                 <td>{{ p.marca || 'N/A' }}</td>
                 <td>
-                  <span [class]="'estado-' + p.estado?.toLowerCase()">
+                  <span [class]="'estado-' + p.estado.toLowerCase()">
                     {{ p.estado }}
                   </span>
                 </td>
@@ -253,7 +253,7 @@
             <select [(ngModel)]="estadoFiltro" (change)="filtrarPorEstado()">
               <option value="">Todos los estados</option>
               <option *ngFor="let estado of estadosProducto" [value]="estado">
-                {{ estado | titlecase }}
+                {{ estado }}
               </option>
             </select>
           </div>
@@ -309,7 +309,7 @@
                 <td>{{ p.marca || 'N/A' }}</td>
                 <td>{{ p.garantia ? p.garantia + ' meses' : 'N/A' }}</td>
                 <td>
-                  <span [class]="'estado-' + p.estado?.toLowerCase()">
+                  <span [class]="'estado-' + p.estado.toLowerCase()">
                     {{ p.estado }}
                   </span>
                 </td>
