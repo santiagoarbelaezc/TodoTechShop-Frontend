@@ -13,7 +13,7 @@
 
 .nav-container {
     display: grid;
-    grid-template-columns: auto 1fr auto 1fr;
+    grid-template-columns: auto auto 1fr auto 1fr;
     align-items: center;
     padding: 0 40px;
     max-width: 1400px;
@@ -623,5 +623,103 @@
     .nav-link::before,
     .nav-link.active::after {
         display: none;
+    }
+}
+
+/* ========== BOTÓN REGRESAR ========== */
+.nav-regresar {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+.btn-regresar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    font-weight: 500;
+    font-size: 13px;
+    backdrop-filter: blur(10px);
+    white-space: nowrap;
+}
+
+.btn-regresar:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn-regresar i {
+    font-size: 14px;
+    transition: transform 0.3s ease;
+}
+
+.btn-regresar:hover i {
+    transform: translateX(-2px);
+}
+
+.btn-regresar span {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* ========== RESPONSIVE ========== */
+
+/* Tablets (768px - 992px) */
+@media (max-width: 992px) {
+    .nav-regresar {
+        margin-right: 10px;
+    }
+    
+    .btn-regresar {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    
+    .btn-regresar span {
+        font-size: 11px;
+    }
+}
+
+/* Móviles (hasta 768px) */
+@media (max-width: 768px) {
+    .nav-regresar {
+        margin-right: 8px;
+    }
+    
+    .btn-regresar {
+        padding: 6px 10px;
+    }
+    
+    .btn-regresar span {
+        display: none;
+    }
+    
+    .btn-regresar {
+        min-width: 40px;
+        justify-content: center;
+    }
+}
+
+/* Móviles pequeños (hasta 480px) */
+@media (max-width: 480px) {
+    .nav-regresar {
+        margin-right: 5px;
+    }
+    
+    .btn-regresar {
+        padding: 5px 8px;
+    }
+    
+    .btn-regresar i {
+        font-size: 12px;
     }
 }

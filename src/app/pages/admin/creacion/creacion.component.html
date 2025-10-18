@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestión de Usuarios - TodoTech</title>
-  <link rel="stylesheet" href="creacion.component.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
 <body>
@@ -17,273 +16,251 @@
   (seccionCambiada)="mostrarSeccion($event)">
 </app-navbar>
 
-<main>
-  <section class="content">
-    <!-- SECCIÓN DE GESTIÓN DE USUARIOS -->
-    <div *ngIf="seccionActiva === 'usuarios'">
-      <h2>Gestión de Usuarios</h2>
+<main class="usuarios-admin-container">
+  <!-- SECCIÓN DE GESTIÓN DE USUARIOS -->
+  <section *ngIf="seccionActiva === 'usuarios'" class="seccion-activa">
+    <!-- Header de la página -->
+    <header class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <i class="fas fa-users"></i>
+          Gestión de Usuarios
+        </h1>
+        <p class="page-subtitle">Administra y gestiona los usuarios del sistema</p>
+      </div>
       
-      <div class="form-container">
-        <h3>{{ usuarioEditando ? 'Editar' : 'Crear' }} Usuario</h3>
-        <form #formUsuario="ngForm" (ngSubmit)="guardarUsuario()">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="cedula">Cédula *</label>
-              <input type="text" id="cedula" name="cedula" [(ngModel)]="usuario.cedula" 
-                     #cedulaInput="ngModel"
-                     placeholder="Número de cédula" required pattern="[0-9]{6,15}" 
-                     title="La cédula debe contener solo números (6-15 dígitos)" />
-              <div *ngIf="cedulaInput.invalid && (cedulaInput.dirty || cedulaInput.touched)" class="error-message">
-                <div *ngIf="cedulaInput.errors?.['required']">La cédula es obligatoria</div>
-                <div *ngIf="cedulaInput.errors?.['pattern']">Debe contener solo números (6-15 dígitos)</div>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="nombre">Nombre completo *</label>
-              <input type="text" id="nombre" name="nombre" [(ngModel)]="usuario.nombre" 
-                     #nombreInput="ngModel"
-                     placeholder="Nombre completo" required />
-              <div *ngIf="nombreInput.invalid && (nombreInput.dirty || nombreInput.touched)" class="error-message">
-                El nombre es obligatorio
-              </div>
-            </div>
+      <!-- Estadísticas -->
+      <div class="stats-container">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-users"></i>
           </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="correo">Correo electrónico *</label>
-              <input type="email" id="correo" name="correo" [(ngModel)]="usuario.correo" 
-                     #correoInput="ngModel"
-                     placeholder="Correo electrónico" required />
-              <div *ngIf="correoInput.invalid && (correoInput.dirty || correoInput.touched)" class="error-message">
-                <div *ngIf="correoInput.errors?.['required']">El correo es obligatorio</div>
-                <div *ngIf="correoInput.errors?.['email']">Formato de correo inválido</div>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="telefono">Teléfono *</label>
-              <input type="tel" id="telefono" name="telefono" [(ngModel)]="usuario.telefono" 
-                     #telefonoInput="ngModel"
-                     placeholder="Número de teléfono" required pattern="[0-9]{7,10}" 
-                     title="El teléfono debe contener solo números (7-10 dígitos)" />
-              <div *ngIf="telefonoInput.invalid && (telefonoInput.dirty || telefonoInput.touched)" class="error-message">
-                <div *ngIf="telefonoInput.errors?.['required']">El teléfono es obligatorio</div>
-                <div *ngIf="telefonoInput.errors?.['pattern']">Debe contener solo números (7-10 dígitos)</div>
-              </div>
-            </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ usuarios.length }}</span>
+            <span class="stat-label">Total Usuarios</span>
           </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="nombreUsuario">Nombre de usuario *</label>
-              <input type="text" id="nombreUsuario" name="nombreUsuario" [(ngModel)]="usuario.nombreUsuario" 
-                     #nombreUsuarioInput="ngModel"
-                     placeholder="Nombre de usuario" required />
-              <div *ngIf="nombreUsuarioInput.invalid && (nombreUsuarioInput.dirty || nombreUsuarioInput.touched)" class="error-message">
-                El nombre de usuario es obligatorio
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="contrasena">Contraseña *</label>
-              <input type="password" id="contrasena" name="contrasena" [(ngModel)]="usuario.contrasena" 
-                     #contrasenaInput="ngModel"
-                     placeholder="Contraseña" required minlength="6" 
-                     [disabled]="!usuario.cambiarContrasena && usuarioEditando" />
-              
-              <!-- Mensaje informativo cuando está desactivado en modo edición -->
-              <div *ngIf="!usuario.cambiarContrasena && usuarioEditando" class="info-message">
-                <small>Se conservará la contraseña actual del usuario</small>
-              </div>
-              
-              <div *ngIf="contrasenaInput.invalid && (contrasenaInput.dirty || contrasenaInput.touched) && usuario.cambiarContrasena" class="error-message">
-                <div *ngIf="contrasenaInput.errors?.['required']">La contraseña es obligatoria</div>
-                <div *ngIf="contrasenaInput.errors?.['minlength']">Mínimo 6 caracteres</div>
-              </div>
-              
-              <!-- Interruptor estilo iOS para forzar cambio de contraseña -->
-              <div class="form-group-force-password">
-                <label class="ios-switch-label">Cambiar Contraseña</label>
-                <label class="ios-switch">
-                  <input type="checkbox" [(ngModel)]="usuario.cambiarContrasena" name="cambiarContrasena"
-                         (change)="onCambiarContrasenaChange()">
-                  <span class="ios-switch-slider"></span>
-                </label>
-              </div>
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="tipoUsuario">Tipo de Usuario *</label>
-              <select id="tipoUsuario" name="tipoUsuario" [(ngModel)]="usuario.tipoUsuario" 
-                      #tipoUsuarioInput="ngModel" required>
-                <option value="" disabled selected>Seleccione un tipo de usuario</option>
-                <option *ngFor="let tipo of tiposUsuario" [value]="tipo.value">
-                  {{ tipo.label }}
-                </option>
-              </select>
-              <div *ngIf="tipoUsuarioInput.invalid && (tipoUsuarioInput.dirty || tipoUsuarioInput.touched)" class="error-message">
-                El tipo de usuario es obligatorio
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="estado">Estado *</label>
-              <select id="estado" name="estado" [(ngModel)]="usuario.estado" 
-                      #estadoInput="ngModel" required>
-                <option [value]="true">Activo</option>
-                <option [value]="false">Inactivo</option>
-              </select>
-              <div *ngIf="estadoInput.invalid && (estadoInput.dirty || estadoInput.touched)" class="error-message">
-                El estado es obligatorio
-              </div>
-            </div>
-          </div>
-          
-          <!-- GRUPO DE BOTONES -->
-          <div class="button-group">
-            <button type="submit" [disabled]="formUsuario.invalid">
-              {{ usuarioEditando ? 'Actualizar' : 'Guardar' }} Usuario
-            </button>
-            <button type="button" (click)="limpiarFormulario()">Limpiar</button>
-            <button type="button" *ngIf="usuarioEditando" (click)="limpiarFormulario()" class="btn-cancelar">
-              Cancelar Edición
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div class="tabla-container">
-        <h3>Lista de Usuarios</h3>
-        <div class="tabla-scroll2">
-          <table class="tabla-usuarios">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Cédula</th>
-                <th>Nombre</th>
-                <th>Usuario</th>
-                <th>Correo</th>
-                <th>Tipo</th>
-                <th>Estado</th>
-                <th>Fecha Creación</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let u of usuarios">
-                <td>{{ u.id }}</td>
-                <td>{{ u.cedula }}</td>
-                <td>{{ u.nombre }}</td>
-                <td>{{ u.nombreUsuario }}</td>
-                <td>{{ u.correo }}</td>
-                <td><span class="badge-tipo">{{ u.tipoUsuario }}</span></td>
-                <td>
-                  <span [class.estado-activo]="u.estado" [class.estado-inactivo]="!u.estado">
-                    {{ u.estado ? 'Activo' : 'Inactivo' }}
-                  </span>
-                </td>
-                <td>{{ u.fechaCreacion | date:'short' }}</td>
-                <td>
-                  <div class="acciones-usuario">
-                    <button (click)="editarUsuario(u)" title="Editar usuario">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button (click)="cambiarEstadoUsuario(u)" [class]="u.estado ? 'btn-desactivar' : 'btn-activar'" 
-                            [title]="u.estado ? 'Desactivar usuario' : 'Activar usuario'">
-                      <i [class]="u.estado ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
-                    </button>
-                    <button (click)="eliminarUsuario(u)" class="btn-eliminar" title="Eliminar usuario permanentemente">
-                      <i class="fas fa-trash-alt"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
-        <p *ngIf="usuarios.length === 0" class="sin-registros">No hay usuarios registrados</p>
+        <div class="stat-card">
+          <div class="stat-icon activos">
+            <i class="fas fa-user-check"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ getUsuariosActivos() }}</span>
+            <span class="stat-label">Usuarios Activos</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon administradores">
+            <i class="fas fa-user-shield"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ getUsuariosAdministradores() }}</span>
+            <span class="stat-label">Administradores</span>
+          </div>
+        </div>
       </div>
+    </header>
+
+    <!-- Formulario de Usuario -->
+    <div class="form-container">
+      <div class="form-header">
+        <h2 class="form-title">
+          <i class="fas" [class.fa-user-plus]="!usuarioEditando" [class.fa-user-edit]="usuarioEditando"></i>
+          {{ usuarioEditando ? 'Editar' : 'Crear' }} Usuario
+        </h2>
+        <p class="form-subtitle">Complete la información del usuario</p>
+      </div>
+      
+      <form #formUsuario="ngForm" (ngSubmit)="guardarUsuario()" class="usuario-form">
+        <div class="form-grid">
+          <!-- Fila 1: Cédula y Nombre -->
+          <div class="input-group">
+            <input type="text" id="cedula" name="cedula" [(ngModel)]="usuario.cedula" 
+                   #cedulaInput="ngModel"
+                   placeholder=" "
+                   required pattern="[0-9]{6,15}" />
+            <label for="cedula">Cédula *</label>
+            <div *ngIf="cedulaInput.invalid && (cedulaInput.dirty || cedulaInput.touched)" class="error-message">
+              <div *ngIf="cedulaInput.errors?.['required']">La cédula es obligatoria</div>
+              <div *ngIf="cedulaInput.errors?.['pattern']">Debe contener solo números (6-15 dígitos)</div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <input type="text" id="nombre" name="nombre" [(ngModel)]="usuario.nombre" 
+                   #nombreInput="ngModel"
+                   placeholder=" "
+                   required />
+            <label for="nombre">Nombre completo *</label>
+            <div *ngIf="nombreInput.invalid && (nombreInput.dirty || nombreInput.touched)" class="error-message">
+              El nombre es obligatorio
+            </div>
+          </div>
+
+          <!-- Fila 2: Correo y Teléfono -->
+          <div class="input-group">
+            <input type="email" id="correo" name="correo" [(ngModel)]="usuario.correo" 
+                   #correoInput="ngModel"
+                   placeholder=" "
+                   required />
+            <label for="correo">Correo electrónico *</label>
+            <div *ngIf="correoInput.invalid && (correoInput.dirty || correoInput.touched)" class="error-message">
+              <div *ngIf="correoInput.errors?.['required']">El correo es obligatorio</div>
+              <div *ngIf="correoInput.errors?.['email']">Formato de correo inválido</div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <input type="tel" id="telefono" name="telefono" [(ngModel)]="usuario.telefono" 
+                   #telefonoInput="ngModel"
+                   placeholder=" "
+                   required pattern="[0-9]{7,10}" />
+            <label for="telefono">Teléfono *</label>
+            <div *ngIf="telefonoInput.invalid && (telefonoInput.dirty || telefonoInput.touched)" class="error-message">
+              <div *ngIf="telefonoInput.errors?.['required']">El teléfono es obligatorio</div>
+              <div *ngIf="telefonoInput.errors?.['pattern']">Debe contener solo números (7-10 dígitos)</div>
+            </div>
+          </div>
+
+          <!-- Fila 3: Nombre de usuario y Contraseña -->
+<div class="input-group">
+    <input type="text" id="nombreUsuario" name="nombreUsuario" [(ngModel)]="usuario.nombreUsuario" 
+           #nombreUsuarioInput="ngModel"
+           placeholder=" "
+           required />
+    <label for="nombreUsuario">Nombre de usuario *</label>
+    <div *ngIf="nombreUsuarioInput.invalid && (nombreUsuarioInput.dirty || nombreUsuarioInput.touched)" class="error-message">
+        El nombre de usuario es obligatorio
     </div>
+</div>
 
-    <!-- SECCIÓN DE USUARIOS REGISTRADOS -->
-    <div *ngIf="seccionActiva === 'usuariosRegistrados'">
-      <h2>Usuarios Registrados</h2>
+<div class="input-group">
+    <input type="password" id="contrasena" name="contrasena" [(ngModel)]="usuario.contrasena" 
+           #contrasenaInput="ngModel"
+           placeholder=" "
+           required minlength="6" 
+           [disabled]="!usuario.cambiarContrasena && usuarioEditando" />
+    <label for="contrasena">Contraseña *</label>
+    
+    <!-- Mensaje informativo cuando está desactivado en modo edición -->
+    <div *ngIf="!usuario.cambiarContrasena && usuarioEditando" class="info-message">
+        <small>Se conservará la contraseña actual del usuario</small>
+    </div>
+    
+    <div *ngIf="contrasenaInput.invalid && (contrasenaInput.dirty || contrasenaInput.touched) && usuario.cambiarContrasena" class="error-message">
+        <div *ngIf="contrasenaInput.errors?.['required']">La contraseña es obligatoria</div>
+        <div *ngIf="contrasenaInput.errors?.['minlength']">Mínimo 6 caracteres</div>
+    </div>
+</div>
 
-      <div class="filtros-container">
-        <h4>Filtros de Búsqueda</h4>
+<!-- INTERRUPTOR DE CAMBIO DE CONTRASEÑA - FUERA DEL INPUT-GROUP -->
+<div class="password-switch-container">
+    <div class="switch-header">
+        <h4 class="switch-title">
+            <i class="fas fa-key"></i>
+            Cambiar Contraseña
+        </h4>
+        <span class="switch-status" *ngIf="usuarioEditando">
+            {{ usuario.cambiarContrasena ? 'Activado' : 'Desactivado' }}
+        </span>
+    </div>
+    
+    <div class="switch-controls">
+        <p class="switch-description" *ngIf="!usuarioEditando">
+            El usuario deberá cambiar la contraseña en su primer acceso al sistema
+        </p>
+        <p class="switch-description" *ngIf="usuarioEditando && !usuario.cambiarContrasena">
+            Se conservará la contraseña actual del usuario
+        </p>
+        <p class="switch-description" *ngIf="usuarioEditando && usuario.cambiarContrasena">
+            Se solicitará al usuario que cambie su contraseña en el próximo acceso
+        </p>
         
-        <div class="filtros-row">
-          <!-- Búsqueda por nombre -->
-          <div class="filtro-group">
-            <label>Buscar por Nombre:</label>
-            <input type="text" [(ngModel)]="terminoBusquedaNombre" 
-                   placeholder="Ingrese nombre..." 
-                   (keyup.enter)="buscarPorNombre()">
-            <button (click)="buscarPorNombre()">Buscar</button>
-          </div>
+        <label class="switch" *ngIf="usuarioEditando">
+            <input type="checkbox" 
+                   [(ngModel)]="usuario.cambiarContrasena" 
+                   name="cambiarContrasena"
+                   (change)="onCambiarContrasenaChange()">
+            <span class="slider"></span>
+        </label>
+        <div *ngIf="!usuarioEditando" class="switch-disabled">
+            <i class="fas fa-check-circle"></i>
+            Activado para nuevo usuario
+        </div>
+    </div>
+</div>
 
-          <!-- Búsqueda por cédula -->
-          <div class="filtro-group">
-            <label>Buscar por Cédula:</label>
-            <input type="text" [(ngModel)]="terminoBusquedaCedula" 
-                   placeholder="Ingrese cédula..." 
-                   (keyup.enter)="buscarPorCedula()">
-            <button (click)="buscarPorCedula()">Buscar</button>
-          </div>
-
-          <!-- Filtro por tipo de usuario -->
-          <div class="filtro-group">
-            <label>Filtrar por Tipo:</label>
-            <select [(ngModel)]="tipoUsuarioFiltro" (change)="filtrarPorTipo()">
-              <option value="TODOS">Todos los tipos</option>
+          <!-- Fila 4: Tipo de Usuario y Estado -->
+          <div class="input-group">
+            <select id="tipoUsuario" name="tipoUsuario" [(ngModel)]="usuario.tipoUsuario" 
+                    #tipoUsuarioInput="ngModel" required>
+              <option value="" disabled selected>Seleccione tipo de usuario</option>
               <option *ngFor="let tipo of tiposUsuario" [value]="tipo.value">
                 {{ tipo.label }}
               </option>
             </select>
+            <label for="tipoUsuario">Tipo de Usuario *</label>
+            <div *ngIf="tipoUsuarioInput.invalid && (tipoUsuarioInput.dirty || tipoUsuarioInput.touched)" class="error-message">
+              El tipo de usuario es obligatorio
+            </div>
+          </div>
+
+          <div class="input-group">
+            <select id="estado" name="estado" [(ngModel)]="usuario.estado" 
+                    #estadoInput="ngModel" required>
+              <option value="" disabled selected>Seleccione estado</option>
+              <option [value]="true">Activo</option>
+              <option [value]="false">Inactivo</option>
+            </select>
+            <label for="estado">Estado *</label>
+            <div *ngIf="estadoInput.invalid && (estadoInput.dirty || estadoInput.touched)" class="error-message">
+              El estado es obligatorio
+            </div>
           </div>
         </div>
 
-        <div class="filtros-row">
-          <!-- Filtro por fecha -->
-          <div class="filtro-group">
-            <label>Filtrar por Fecha:</label>
-            <select [(ngModel)]="tipoFiltroFecha">
-              <option value="">Seleccione tipo</option>
-              <option value="rango">Por rango de fechas</option>
-              <option value="despues">Creados después de</option>
-              <option value="antes">Creados antes de</option>
-            </select>
-          </div>
+        <!-- Botones del formulario -->
+        <div class="form-actions">
+          <button type="submit" [disabled]="formUsuario.invalid" class="btn-primary">
+            <i class="fas" [class.fa-save]="!usuarioEditando" [class.fa-edit]="usuarioEditando"></i>
+            {{ usuarioEditando ? 'Actualizar' : 'Guardar' }} Usuario
+          </button>
+          <button type="button" (click)="limpiarFormulario()" class="btn-secondary">
+            <i class="fas fa-broom"></i>
+            Limpiar
+          </button>
+          <button type="button" *ngIf="usuarioEditando" (click)="limpiarFormulario()" class="btn-cancel">
+            <i class="fas fa-times"></i>
+            Cancelar Edición
+          </button>
+        </div>
+      </form>
+    </div>
 
-          <div class="filtro-group fecha-group" *ngIf="tipoFiltroFecha === 'rango'">
-            <label>Desde:</label>
-            <input type="date" [(ngModel)]="fechaInicioFiltro">
-            <label>Hasta:</label>
-            <input type="date" [(ngModel)]="fechaFinFiltro">
-            <button (click)="filtrarPorFecha()">Aplicar</button>
-          </div>
-
-          <div class="filtro-group fecha-group" *ngIf="tipoFiltroFecha === 'despues' || tipoFiltroFecha === 'antes'">
-            <label>{{ tipoFiltroFecha === 'despues' ? 'Después de:' : 'Antes de:' }}</label>
-            <input type="date" [(ngModel)]="fechaEspecificaFiltro">
-            <button (click)="filtrarPorFecha()">Aplicar</button>
-          </div>
-
-          <!-- Botón para limpiar filtros -->
-          <div class="filtro-group">
-            <button (click)="limpiarFiltros()" class="btn-limpiar">Limpiar Filtros</button>
-          </div>
+    <!-- Lista de Usuarios -->
+    <div class="tabla-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-list"></i>
+          Lista de Usuarios
+        </h3>
+        <div class="section-actions">
+          <button (click)="recargarUsuarios()" class="btn-refresh">
+            <i class="fas fa-sync-alt"></i>
+            Actualizar
+          </button>
         </div>
       </div>
-      
+
       <div class="tabla-container">
-        <h3>Lista de Usuarios</h3>
-        <div class="tabla-scroll">
-          <table class="tabla-usuarios">
+        <div *ngIf="usuarios.length === 0" class="empty-state">
+          <i class="fas fa-user-slash"></i>
+          <h3>No hay usuarios registrados</h3>
+          <p>Comienza agregando un nuevo usuario usando el formulario superior.</p>
+        </div>
+
+        <div *ngIf="usuarios.length > 0" class="table-responsive">
+          <table class="usuarios-table">
             <thead>
               <tr>
                 <th>ID</th>
@@ -298,29 +275,44 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let u of usuariosFiltrados">
-                <td>{{ u.id }}</td>
-                <td>{{ u.cedula }}</td>
-                <td>{{ u.nombre }}</td>
-                <td>{{ u.nombreUsuario }}</td>
-                <td>{{ u.correo }}</td>
-                <td><span class="badge-tipo">{{ u.tipoUsuario }}</span></td>
-                <td>
-                  <span [class.estado-activo]="u.estado" [class.estado-inactivo]="!u.estado">
+              <tr *ngFor="let u of usuarios" class="usuario-row">
+                <td class="usuario-id">{{ u.id }}</td>
+                <td class="usuario-cedula">
+                  <strong>{{ u.cedula }}</strong>
+                </td>
+                <td class="usuario-nombre">
+                  <strong>{{ u.nombre }}</strong>
+                </td>
+                <td class="usuario-username">
+                  <span class="username-badge">{{ u.nombreUsuario }}</span>
+                </td>
+                <td class="usuario-correo">
+                  <small>{{ u.correo }}</small>
+                </td>
+                <td class="usuario-tipo">
+                  <span [class]="'badge badge-' + u.tipoUsuario.toLowerCase()">
+                    {{ getTipoUsuarioTexto(u.tipoUsuario) }}
+                  </span>
+                </td>
+                <td class="usuario-estado">
+                  <span [class]="'badge ' + (u.estado ? 'badge-activo' : 'badge-inactivo')">
                     {{ u.estado ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
-                <td>{{ u.fechaCreacion | date:'short' }}</td>
-                <td>
-                  <div class="acciones-usuario">
-                    <button (click)="editarUsuario(u)" title="Editar usuario">
+                <td class="usuario-fecha">
+                  <small>{{ u.fechaCreacion | date:'dd/MM/yyyy' }}</small>
+                </td>
+                <td class="usuario-acciones">
+                  <div class="acciones-buttons">
+                    <button (click)="editarUsuario(u)" class="btn-action btn-edit" title="Editar usuario">
                       <i class="fas fa-edit"></i>
                     </button>
-                    <button (click)="cambiarEstadoUsuario(u)" [class]="u.estado ? 'btn-desactivar' : 'btn-activar'" 
+                    <button (click)="cambiarEstadoUsuario(u)" 
+                            [class]="u.estado ? 'btn-action btn-deactivate' : 'btn-action btn-activate'" 
                             [title]="u.estado ? 'Desactivar usuario' : 'Activar usuario'">
                       <i [class]="u.estado ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
                     </button>
-                    <button (click)="eliminarUsuario(u)" class="btn-eliminar" title="Eliminar usuario permanentemente">
+                    <button (click)="eliminarUsuario(u)" class="btn-action btn-delete" title="Eliminar usuario">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </div>
@@ -329,10 +321,260 @@
             </tbody>
           </table>
         </div>
-        <p *ngIf="usuariosFiltrados.length === 0" class="sin-registros">No hay usuarios que coincidan con los filtros</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN DE USUARIOS REGISTRADOS -->
+  <section *ngIf="seccionActiva === 'usuariosRegistrados'" class="seccion-activa">
+    <!-- Header de la página -->
+    <header class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <i class="fas fa-search"></i>
+          Usuarios Registrados
+        </h1>
+        <p class="page-subtitle">Consulta y filtra los usuarios del sistema</p>
+      </div>
+      
+      <!-- Estadísticas -->
+      <div class="stats-container">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ usuarios.length }}</span>
+            <span class="stat-label">Total Usuarios</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon activos">
+            <i class="fas fa-user-check"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ getUsuariosActivos() }}</span>
+            <span class="stat-label">Usuarios Activos</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon administradores">
+            <i class="fas fa-user-shield"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ getUsuariosAdministradores() }}</span>
+            <span class="stat-label">Administradores</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Panel de Filtros -->
+    <div class="filtros-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-filter"></i>
+          Filtros de Búsqueda
+        </h3>
+      </div>
+
+      <div class="filtros-container">
+        <div class="filtro-group">
+          <div class="input-with-icon">
+            <i class="fas fa-search"></i>
+            <input type="text" [(ngModel)]="terminoBusquedaNombre" 
+                   placeholder="Buscar por nombre..."
+                   (keyup.enter)="buscarPorNombre()">
+          </div>
+          <button (click)="buscarPorNombre()" class="btn-filtro">
+            <i class="fas fa-search"></i>
+            Buscar
+          </button>
+        </div>
+
+        <div class="filtro-group">
+          <div class="input-with-icon">
+            <i class="fas fa-id-card"></i>
+            <input type="text" [(ngModel)]="terminoBusquedaCedula" 
+                   placeholder="Buscar por cédula..."
+                   (keyup.enter)="buscarPorCedula()">
+          </div>
+          <button (click)="buscarPorCedula()" class="btn-filtro">
+            <i class="fas fa-search"></i>
+            Buscar
+          </button>
+        </div>
+
+        <div class="filtro-group">
+          <select [(ngModel)]="tipoUsuarioFiltro" (change)="filtrarPorTipo()">
+            <option value="TODOS">Todos los tipos</option>
+            <option *ngFor="let tipo of tiposUsuario" [value]="tipo.value">
+              {{ tipo.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filtro-group">
+          <select [(ngModel)]="estadoFiltro" (change)="filtrarPorEstado()">
+            <option value="TODOS">Todos los estados</option>
+            <option value="true">Activos</option>
+            <option value="false">Inactivos</option>
+          </select>
+        </div>
+
+        <div class="filtro-group">
+          <select [(ngModel)]="tipoFiltroFecha" (change)="onTipoFechaChange()">
+            <option value="">Filtrar por fecha</option>
+            <option value="rango">Por rango de fechas</option>
+            <option value="despues">Creados después de</option>
+            <option value="antes">Creados antes de</option>
+          </select>
+        </div>
+
+        <button (click)="limpiarFiltros()" class="btn-limpiar">
+          <i class="fas fa-times"></i>
+          Limpiar Filtros
+        </button>
+      </div>
+
+      <!-- Filtros de fecha dinámicos -->
+      <div class="filtros-fecha" *ngIf="tipoFiltroFecha">
+        <div class="filtro-fecha-group" *ngIf="tipoFiltroFecha === 'rango'">
+          <div class="fecha-inputs">
+            <div class="fecha-input">
+              <label>Desde:</label>
+              <input type="date" [(ngModel)]="fechaInicioFiltro">
+            </div>
+            <div class="fecha-input">
+              <label>Hasta:</label>
+              <input type="date" [(ngModel)]="fechaFinFiltro">
+            </div>
+          </div>
+          <button (click)="filtrarPorFecha()" class="btn-filtro-fecha">
+            <i class="fas fa-filter"></i>
+            Aplicar Filtro
+          </button>
+        </div>
+
+        <div class="filtro-fecha-group" *ngIf="tipoFiltroFecha === 'despues' || tipoFiltroFecha === 'antes'">
+          <div class="fecha-input">
+            <label>{{ tipoFiltroFecha === 'despues' ? 'Después de:' : 'Antes de:' }}</label>
+            <input type="date" [(ngModel)]="fechaEspecificaFiltro">
+          </div>
+          <button (click)="filtrarPorFecha()" class="btn-filtro-fecha">
+            <i class="fas fa-filter"></i>
+            Aplicar Filtro
+          </button>
+        </div>
+      </div>
+
+      <!-- Información de resultados -->
+      <div class="resultados-info">
+        <span class="resultados-text">
+          Mostrando <strong>{{ usuariosFiltrados.length }}</strong> de <strong>{{ usuarios.length }}</strong> usuarios
+          <span *ngIf="terminoBusquedaNombre || terminoBusquedaCedula || tipoUsuarioFiltro !== 'TODOS' || estadoFiltro !== 'TODOS' || tipoFiltroFecha" 
+                class="filtros-activos">
+            (filtros aplicados)
+          </span>
+        </span>
       </div>
     </div>
 
+    <!-- Lista de Usuarios Filtrados -->
+    <div class="tabla-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-list"></i>
+          Lista de Usuarios
+        </h3>
+        <div class="section-actions">
+          <button (click)="recargarUsuarios()" class="btn-refresh">
+            <i class="fas fa-sync-alt"></i>
+            Actualizar
+          </button>
+        </div>
+      </div>
+
+      <div class="tabla-container">
+        <div *ngIf="usuariosFiltrados.length === 0" class="empty-state">
+          <i class="fas fa-search"></i>
+          <h3>No se encontraron usuarios</h3>
+          <p *ngIf="terminoBusquedaNombre || terminoBusquedaCedula || tipoUsuarioFiltro !== 'TODOS' || estadoFiltro !== 'TODOS' || tipoFiltroFecha">
+            No hay usuarios que coincidan con los filtros aplicados.
+          </p>
+          <p *ngIf="!terminoBusquedaNombre && !terminoBusquedaCedula && tipoUsuarioFiltro === 'TODOS' && estadoFiltro === 'TODOS' && !tipoFiltroFecha">
+            No hay usuarios registrados en el sistema.
+          </p>
+          <button (click)="limpiarFiltros()" class="btn-primary" 
+                  *ngIf="terminoBusquedaNombre || terminoBusquedaCedula || tipoUsuarioFiltro !== 'TODOS' || estadoFiltro !== 'TODOS' || tipoFiltroFecha">
+            Limpiar Filtros
+          </button>
+        </div>
+
+        <div *ngIf="usuariosFiltrados.length > 0" class="table-responsive">
+          <table class="usuarios-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cédula</th>
+                <th>Nombre</th>
+                <th>Usuario</th>
+                <th>Correo</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Fecha Creación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let u of usuariosFiltrados" class="usuario-row">
+                <td class="usuario-id">{{ u.id }}</td>
+                <td class="usuario-cedula">
+                  <strong>{{ u.cedula }}</strong>
+                </td>
+                <td class="usuario-nombre">
+                  <strong>{{ u.nombre }}</strong>
+                </td>
+                <td class="usuario-username">
+                  <span class="username-badge">{{ u.nombreUsuario }}</span>
+                </td>
+                <td class="usuario-correo">
+                  <small>{{ u.correo }}</small>
+                </td>
+                <td class="usuario-tipo">
+                  <span [class]="'badge badge-' + u.tipoUsuario.toLowerCase()">
+                    {{ getTipoUsuarioTexto(u.tipoUsuario) }}
+                  </span>
+                </td>
+                <td class="usuario-estado">
+                  <span [class]="'badge ' + (u.estado ? 'badge-activo' : 'badge-inactivo')">
+                    {{ u.estado ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td class="usuario-fecha">
+                  <small>{{ u.fechaCreacion | date:'dd/MM/yyyy' }}</small>
+                </td>
+                <td class="usuario-acciones">
+                  <div class="acciones-buttons">
+                    <button (click)="editarUsuario(u)" class="btn-action btn-edit" title="Editar usuario">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button (click)="cambiarEstadoUsuario(u)" 
+                            [class]="u.estado ? 'btn-action btn-deactivate' : 'btn-action btn-activate'" 
+                            [title]="u.estado ? 'Desactivar usuario' : 'Activar usuario'">
+                      <i [class]="u.estado ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
+                    </button>
+                    <button (click)="eliminarUsuario(u)" class="btn-action btn-delete" title="Eliminar usuario">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </section>
 </main>
 

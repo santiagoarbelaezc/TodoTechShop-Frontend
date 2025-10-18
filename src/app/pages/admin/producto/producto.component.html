@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestión de Productos - TodoTech</title>
-  <link rel="stylesheet" href="producto.component.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
 <body>
@@ -17,143 +16,217 @@
   (seccionCambiada)="mostrarSeccion($event)">
 </app-navbar>
 
-<main>
-  <section class="content">
-    <!-- SECCIÓN DE GESTIÓN DE PRODUCTOS -->
-    <div *ngIf="seccionActiva === 'productos'">
-      <h2>Gestión de Productos</h2>
+<main class="productos-admin-container">
+  <!-- SECCIÓN DE GESTIÓN DE PRODUCTOS -->
+  <section *ngIf="seccionActiva === 'productos'" class="seccion-activa">
+    <!-- Header de la página -->
+    <header class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <i class="fas fa-boxes"></i>
+          Gestión de Productos
+        </h1>
+        <p class="page-subtitle">Administra y gestiona el inventario de productos</p>
+      </div>
       
-      <div class="form-container">
-        <h3>{{ productoEditando ? 'Editar' : 'Crear' }} Producto</h3>
-        <form #formProducto="ngForm" (ngSubmit)="guardarProducto()">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="codigo">Código *</label>
-              <input type="text" id="codigo" name="codigo" [(ngModel)]="producto.codigo" 
-                     #codigoInput="ngModel"
-                     placeholder="Código del producto" required 
-                     pattern="[A-Za-z0-9\-_]+" 
-                     title="Solo letras, números, guiones y guiones bajos" />
-              <div *ngIf="codigoInput.invalid && (codigoInput.dirty || codigoInput.touched)" class="error-message">
-                <div *ngIf="codigoInput.errors?.['required']">El código es obligatorio</div>
-                <div *ngIf="codigoInput.errors?.['pattern']">Solo letras, números, guiones y guiones bajos</div>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="nombre">Nombre *</label>
-              <input type="text" id="nombre" name="nombre" [(ngModel)]="producto.nombre" 
-                     #nombreInput="ngModel"
-                     placeholder="Nombre del producto" required />
-              <div *ngIf="nombreInput.invalid && (nombreInput.dirty || nombreInput.touched)" class="error-message">
-                El nombre es obligatorio
-              </div>
+      <!-- Estadísticas -->
+      <div class="stats-container">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-box"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ productos.length }}</span>
+            <span class="stat-label">Total Productos</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon activos">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ getProductosActivos() }}</span>
+            <span class="stat-label">Productos Activos</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stock-bajo">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ getProductosStockBajo() }}</span>
+            <span class="stat-label">Stock Bajo</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Formulario de Producto -->
+    <div class="form-container">
+      <div class="form-header">
+        <h2 class="form-title">
+          <i class="fas" [class.fa-plus]="!productoEditando" [class.fa-edit]="productoEditando"></i>
+          {{ productoEditando ? 'Editar' : 'Crear' }} Producto
+        </h2>
+        <p class="form-subtitle">Complete la información del producto</p>
+      </div>
+      
+      <form #formProducto="ngForm" (ngSubmit)="guardarProducto()" class="producto-form">
+        <div class="form-grid">
+          <!-- Fila 1: Código y Nombre -->
+          <div class="input-group">
+            <input type="text" id="codigo" name="codigo" [(ngModel)]="producto.codigo" 
+                   #codigoInput="ngModel"
+                   placeholder=" "
+                   required pattern="[A-Za-z0-9\-_]+" />
+            <label for="codigo">Código *</label>
+            <div *ngIf="codigoInput.invalid && (codigoInput.dirty || codigoInput.touched)" class="error-message">
+              <div *ngIf="codigoInput.errors?.['required']">El código es obligatorio</div>
+              <div *ngIf="codigoInput.errors?.['pattern']">Solo letras, números, guiones y guiones bajos</div>
             </div>
           </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="categoria">Categoría *</label>
-              <select id="categoria" name="categoria" [(ngModel)]="producto.categoria" 
-                      #categoriaInput="ngModel" required>
-                <option value="" disabled selected>Seleccione una categoría</option>
-                <option *ngFor="let cat of categorias" [ngValue]="cat">
-                  {{ cat.nombre }}
-                </option>
-              </select>
-              <div *ngIf="categoriaInput.invalid && (categoriaInput.dirty || categoriaInput.touched)" class="error-message">
-                La categoría es obligatoria
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="marca">Marca</label>
-              <input type="text" id="marca" name="marca" [(ngModel)]="producto.marca" 
-                     placeholder="Marca del producto" />
+
+          <div class="input-group">
+            <input type="text" id="nombre" name="nombre" [(ngModel)]="producto.nombre" 
+                   #nombreInput="ngModel"
+                   placeholder=" "
+                   required />
+            <label for="nombre">Nombre *</label>
+            <div *ngIf="nombreInput.invalid && (nombreInput.dirty || nombreInput.touched)" class="error-message">
+              El nombre es obligatorio
             </div>
           </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="precio">Precio *</label>
-              <input type="number" id="precio" name="precio" [(ngModel)]="producto.precio" 
-                     #precioInput="ngModel"
-                     placeholder="Precio del producto" required min="0" step="0.01" />
-              <div *ngIf="precioInput.invalid && (precioInput.dirty || precioInput.touched)" class="error-message">
-                <div *ngIf="precioInput.errors?.['required']">El precio es obligatorio</div>
-                <div *ngIf="precioInput.errors?.['min']">El precio debe ser mayor o igual a 0</div>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="stock">Stock *</label>
-              <input type="number" id="stock" name="stock" [(ngModel)]="producto.stock" 
-                     #stockInput="ngModel"
-                     placeholder="Cantidad en stock" required min="0" />
-              <div *ngIf="stockInput.invalid && (stockInput.dirty || stockInput.touched)" class="error-message">
-                <div *ngIf="stockInput.errors?.['required']">El stock es obligatorio</div>
-                <div *ngIf="stockInput.errors?.['min']">El stock debe ser mayor o igual a 0</div>
-              </div>
+
+          <!-- Fila 2: Categoría y Marca -->
+          <div class="input-group">
+            <select id="categoria" name="categoria" [(ngModel)]="producto.categoria" 
+                    #categoriaInput="ngModel" required>
+              <option value="" disabled selected>Seleccione una categoría</option>
+              <option *ngFor="let cat of categorias" [ngValue]="cat">
+                {{ cat.nombre }}
+              </option>
+            </select>
+            <label for="categoria">Categoría *</label>
+            <div *ngIf="categoriaInput.invalid && (categoriaInput.dirty || categoriaInput.touched)" class="error-message">
+              La categoría es obligatoria
             </div>
           </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="garantia">Garantía (meses)</label>
-              <input type="number" id="garantia" name="garantia" [(ngModel)]="producto.garantia" 
-                     placeholder="Meses de garantía" min="0" />
-            </div>
-            
-            <div class="form-group">
-              <label for="estado">Estado *</label>
-              <select id="estado" name="estado" [(ngModel)]="producto.estado" 
-                      #estadoInput="ngModel" required>
-                <option *ngFor="let estado of estadosProducto" [value]="estado">
-                  {{ estado }}
-                </option>
-              </select>
-              <div *ngIf="estadoInput.invalid && (estadoInput.dirty || estadoInput.touched)" class="error-message">
-                El estado es obligatorio
-              </div>
+
+          <div class="input-group">
+            <input type="text" id="marca" name="marca" [(ngModel)]="producto.marca" 
+                   placeholder=" " />
+            <label for="marca">Marca</label>
+          </div>
+
+          <!-- Fila 3: Precio y Stock -->
+          <div class="input-group">
+            <input type="number" id="precio" name="precio" [(ngModel)]="producto.precio" 
+                   #precioInput="ngModel"
+                   placeholder=" "
+                   required min="0" step="0.01" />
+            <label for="precio">Precio *</label>
+            <div *ngIf="precioInput.invalid && (precioInput.dirty || precioInput.touched)" class="error-message">
+              <div *ngIf="precioInput.errors?.['required']">El precio es obligatorio</div>
+              <div *ngIf="precioInput.errors?.['min']">El precio debe ser mayor o igual a 0</div>
             </div>
           </div>
-          
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label for="descripcion">Descripción</label>
-              <textarea id="descripcion" name="descripcion" [(ngModel)]="producto.descripcion" 
-                        placeholder="Descripción del producto" rows="3"></textarea>
+
+          <div class="input-group">
+            <input type="number" id="stock" name="stock" [(ngModel)]="producto.stock" 
+                   #stockInput="ngModel"
+                   placeholder=" "
+                   required min="0" />
+            <label for="stock">Stock *</label>
+            <div *ngIf="stockInput.invalid && (stockInput.dirty || stockInput.touched)" class="error-message">
+              <div *ngIf="stockInput.errors?.['required']">El stock es obligatorio</div>
+              <div *ngIf="stockInput.errors?.['min']">El stock debe ser mayor o igual a 0</div>
             </div>
           </div>
-          
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label for="imagenUrl">URL de Imagen</label>
-              <input type="url" id="imagenUrl" name="imagenUrl" [(ngModel)]="producto.imagenUrl" 
-                     placeholder="https://ejemplo.com/imagen.jpg" />
-              <div *ngIf="producto.imagenUrl" class="imagen-preview">
-                <img [src]="producto.imagenUrl" alt="Vista previa" (error)="manejarErrorImagen($event)" />
-              </div>
+
+          <!-- Fila 4: Garantía y Estado -->
+          <div class="input-group">
+            <input type="number" id="garantia" name="garantia" [(ngModel)]="producto.garantia" 
+                   placeholder=" "
+                   min="0" />
+            <label for="garantia">Garantía (meses)</label>
+          </div>
+
+          <div class="input-group">
+            <select id="estado" name="estado" [(ngModel)]="producto.estado" 
+                    #estadoInput="ngModel" required>
+              <option value="" disabled selected>Seleccione estado</option>
+              <option *ngFor="let estado of estadosProducto" [value]="estado">
+                {{ estado }}
+              </option>
+            </select>
+            <label for="estado">Estado *</label>
+            <div *ngIf="estadoInput.invalid && (estadoInput.dirty || estadoInput.touched)" class="error-message">
+              El estado es obligatorio
             </div>
           </div>
-          
-          <!-- GRUPO DE BOTONES -->
-          <div class="button-group">
-            <button type="submit" [disabled]="formProducto.invalid">
-              {{ productoEditando ? 'Actualizar' : 'Guardar' }} Producto
-            </button>
-            <button type="button" (click)="limpiarFormulario()">Limpiar</button>
-            <button type="button" *ngIf="productoEditando" (click)="limpiarFormulario()" class="btn-cancelar">
-              Cancelar Edición
-            </button>
+
+          <!-- Fila 5: Descripción (ancho completo) -->
+          <div class="input-group full-width">
+            <textarea id="descripcion" name="descripcion" [(ngModel)]="producto.descripcion" 
+                      placeholder=" "
+                      rows="3"></textarea>
+            <label for="descripcion">Descripción</label>
           </div>
-        </form>
+
+          <!-- Fila 6: URL de Imagen (ancho completo) -->
+          <div class="input-group full-width">
+            <input type="url" id="imagenUrl" name="imagenUrl" [(ngModel)]="producto.imagenUrl" 
+                   placeholder=" " />
+            <label for="imagenUrl">URL de Imagen</label>
+            <div *ngIf="producto.imagenUrl" class="imagen-preview">
+              <img [src]="producto.imagenUrl" alt="Vista previa" (error)="manejarErrorImagen($event)" />
+              <span class="preview-label">Vista previa</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones del formulario -->
+        <div class="form-actions">
+          <button type="submit" [disabled]="formProducto.invalid" class="btn-primary">
+            <i class="fas" [class.fa-save]="!productoEditando" [class.fa-edit]="productoEditando"></i>
+            {{ productoEditando ? 'Actualizar' : 'Guardar' }} Producto
+          </button>
+          <button type="button" (click)="limpiarFormulario()" class="btn-secondary">
+            <i class="fas fa-broom"></i>
+            Limpiar
+          </button>
+          <button type="button" *ngIf="productoEditando" (click)="limpiarFormulario()" class="btn-cancel">
+            <i class="fas fa-times"></i>
+            Cancelar Edición
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Lista de Productos -->
+    <div class="tabla-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-list"></i>
+          Lista de Productos
+        </h3>
+        <div class="section-actions">
+          <button (click)="recargarProductos()" class="btn-refresh">
+            <i class="fas fa-sync-alt"></i>
+            Actualizar
+          </button>
+        </div>
       </div>
 
       <div class="tabla-container">
-        <h3>Lista de Productos</h3>
-        <div class="tabla-scroll2">
-          <table class="tabla-productos">
+        <div *ngIf="productos.length === 0" class="empty-state">
+          <i class="fas fa-box-open"></i>
+          <h3>No hay productos registrados</h3>
+          <p>Comienza agregando un nuevo producto usando el formulario superior.</p>
+        </div>
+
+        <div *ngIf="productos.length > 0" class="table-responsive">
+          <table class="productos-table">
             <thead>
               <tr>
                 <th>ID</th>
@@ -168,34 +241,50 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let p of productos">
-                <td>{{ p.id }}</td>
-                <td>{{ p.codigo }}</td>
-                <td>{{ p.nombre }}</td>
-                <td>{{ p.categoria.nombre }}</td>
-                <td>{{ p.precio | currency }}</td>
-                <td>
-                  <span [class.stock-bajo]="p.stock <= 5" [class.stock-normal]="p.stock > 5">
+              <tr *ngFor="let p of productos" class="producto-row">
+                <td class="producto-id">{{ p.id }}</td>
+                <td class="producto-codigo">
+                  <strong>{{ p.codigo }}</strong>
+                </td>
+                <td class="producto-nombre">
+                  <div class="nombre-content">
+                    <strong>{{ p.nombre }}</strong>
+                    <small *ngIf="p.descripcion" class="producto-desc" [title]="p.descripcion">
+                      {{ p.descripcion | truncate:50 }}
+                    </small>
+                  </div>
+                </td>
+                <td class="producto-categoria">
+                  <span class="categoria-badge">{{ p.categoria.nombre }}</span>
+                </td>
+                <td class="producto-precio">
+                  <strong>{{ p.precio | currency:'COP':'$':'1.0-0' }}</strong>
+                </td>
+                <td class="producto-stock">
+                  <span [class]="getStockClass(p.stock)">
                     {{ p.stock }}
+                    <i *ngIf="p.stock <= 5" class="fas fa-exclamation-circle"></i>
                   </span>
                 </td>
-                <td>{{ p.marca || 'N/A' }}</td>
-                <td>
-                  <span [class]="'estado-' + p.estado.toLowerCase()">
+                <td class="producto-marca">
+                  {{ p.marca || 'N/A' }}
+                </td>
+                <td class="producto-estado">
+                  <span [class]="'badge badge-' + p.estado.toLowerCase()">
                     {{ p.estado }}
                   </span>
                 </td>
-                <td>
-                  <div class="acciones-producto">
-                    <button (click)="editarProducto(p)" title="Editar producto">
+                <td class="producto-acciones">
+                  <div class="acciones-buttons">
+                    <button (click)="editarProducto(p)" class="btn-action btn-edit" title="Editar producto">
                       <i class="fas fa-edit"></i>
                     </button>
                     <button (click)="cambiarEstadoProducto(p)" 
-                            [class]="p.estado === 'ACTIVO' ? 'btn-desactivar' : 'btn-activar'" 
+                            [class]="p.estado === 'ACTIVO' ? 'btn-action btn-deactivate' : 'btn-action btn-activate'" 
                             [title]="p.estado === 'ACTIVO' ? 'Desactivar producto' : 'Activar producto'">
                       <i [class]="p.estado === 'ACTIVO' ? 'fas fa-toggle-off' : 'fas fa-toggle-on'"></i>
                     </button>
-                    <button (click)="eliminarProducto(p)" class="btn-eliminar" title="Eliminar producto permanentemente">
+                    <button (click)="eliminarProducto(p)" class="btn-action btn-delete" title="Eliminar producto">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </div>
@@ -204,82 +293,168 @@
             </tbody>
           </table>
         </div>
-        <p *ngIf="productos.length === 0" class="sin-registros">No hay productos registrados</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN DE PRODUCTOS REGISTRADOS -->
+  <section *ngIf="seccionActiva === 'productosRegistrados'" class="seccion-activa">
+    <!-- Header de la página -->
+    <header class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <i class="fas fa-search"></i>
+          Productos Registrados
+        </h1>
+        <p class="page-subtitle">Consulta y filtra los productos del sistema</p>
+      </div>
+      
+      <!-- Estadísticas -->
+      <div class="stats-container">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-box"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ productos.length }}</span>
+            <span class="stat-label">Total Productos</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon activos">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ getProductosActivos() }}</span>
+            <span class="stat-label">Productos Activos</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stock-bajo">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ getProductosStockBajo() }}</span>
+            <span class="stat-label">Stock Bajo</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Panel de Filtros -->
+    <div class="filtros-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-filter"></i>
+          Filtros de Búsqueda
+        </h3>
+      </div>
+
+      <div class="filtros-container">
+        <div class="filtro-group">
+          <div class="input-with-icon">
+            <i class="fas fa-search"></i>
+            <input type="text" [(ngModel)]="terminoBusquedaNombre" 
+                   placeholder="Buscar por nombre..."
+                   (keyup.enter)="buscarPorNombre()">
+          </div>
+          <button (click)="buscarPorNombre()" class="btn-filtro">
+            <i class="fas fa-search"></i>
+            Buscar
+          </button>
+        </div>
+
+        <div class="filtro-group">
+          <div class="input-with-icon">
+            <i class="fas fa-barcode"></i>
+            <input type="text" [(ngModel)]="terminoBusquedaCodigo" 
+                   placeholder="Buscar por código..."
+                   (keyup.enter)="buscarPorCodigo()">
+          </div>
+          <button (click)="buscarPorCodigo()" class="btn-filtro">
+            <i class="fas fa-search"></i>
+            Buscar
+          </button>
+        </div>
+
+        <div class="filtro-group">
+          <select [(ngModel)]="categoriaFiltro" (change)="filtrarPorCategoria()">
+            <option value="">Todas las categorías</option>
+            <option *ngFor="let cat of categorias" [ngValue]="cat">
+              {{ cat.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filtro-group">
+          <select [(ngModel)]="estadoFiltro" (change)="filtrarPorEstado()">
+            <option value="">Todos los estados</option>
+            <option *ngFor="let estado of estadosProducto" [value]="estado">
+              {{ estado }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filtro-group">
+          <select [(ngModel)]="stockFiltro" (change)="filtrarPorStock()">
+            <option value="">Todo el stock</option>
+            <option value="bajo">Stock bajo (≤ 5)</option>
+            <option value="normal">Stock normal (> 5)</option>
+            <option value="agotado">Sin stock (0)</option>
+          </select>
+        </div>
+
+        <button (click)="limpiarFiltros()" class="btn-limpiar">
+          <i class="fas fa-times"></i>
+          Limpiar Filtros
+        </button>
+      </div>
+
+      <!-- Información de resultados -->
+      <div class="resultados-info">
+        <span class="resultados-text">
+          Mostrando <strong>{{ productosFiltrados.length }}</strong> de <strong>{{ productos.length }}</strong> productos
+          <span *ngIf="terminoBusquedaNombre || terminoBusquedaCodigo || categoriaFiltro || estadoFiltro || stockFiltro" 
+                class="filtros-activos">
+            (filtros aplicados)
+          </span>
+        </span>
       </div>
     </div>
 
-    <!-- SECCIÓN DE PRODUCTOS REGISTRADOS -->
-    <div *ngIf="seccionActiva === 'productosRegistrados'">
-      <h2>Productos Registrados</h2>
-
-      <div class="filtros-container">
-        <h4>Filtros de Búsqueda</h4>
-        
-        <div class="filtros-row">
-          <!-- Búsqueda por nombre -->
-          <div class="filtro-group">
-            <label>Buscar por Nombre:</label>
-            <input type="text" [(ngModel)]="terminoBusquedaNombre" 
-                   placeholder="Ingrese nombre..." 
-                   (keyup.enter)="buscarPorNombre()">
-            <button (click)="buscarPorNombre()">Buscar</button>
-          </div>
-
-          <!-- Búsqueda por código -->
-          <div class="filtro-group">
-            <label>Buscar por Código:</label>
-            <input type="text" [(ngModel)]="terminoBusquedaCodigo" 
-                   placeholder="Ingrese código..." 
-                   (keyup.enter)="buscarPorCodigo()">
-            <button (click)="buscarPorCodigo()">Buscar</button>
-          </div>
-
-          <!-- Filtro por categoría -->
-          <div class="filtro-group">
-            <label>Filtrar por Categoría:</label>
-            <select [(ngModel)]="categoriaFiltro" (change)="filtrarPorCategoria()">
-              <option value="">Todas las categorías</option>
-              <option *ngFor="let cat of categorias" [ngValue]="cat">
-                {{ cat.nombre }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <div class="filtros-row">
-          <!-- Filtro por estado -->
-          <div class="filtro-group">
-            <label>Filtrar por Estado:</label>
-            <select [(ngModel)]="estadoFiltro" (change)="filtrarPorEstado()">
-              <option value="">Todos los estados</option>
-              <option *ngFor="let estado of estadosProducto" [value]="estado">
-                {{ estado }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Filtro por stock -->
-          <div class="filtro-group">
-            <label>Filtrar por Stock:</label>
-            <select [(ngModel)]="stockFiltro" (change)="filtrarPorStock()">
-              <option value="">Todo el stock</option>
-              <option value="bajo">Stock bajo (≤ 5)</option>
-              <option value="normal">Stock normal (> 5)</option>
-              <option value="agotado">Sin stock (0)</option>
-            </select>
-          </div>
-
-          <!-- Botón para limpiar filtros -->
-          <div class="filtro-group">
-            <button (click)="limpiarFiltros()" class="btn-limpiar">Limpiar Filtros</button>
-          </div>
+    <!-- Lista de Productos Filtrados -->
+    <div class="tabla-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-list"></i>
+          Lista de Productos
+        </h3>
+        <div class="section-actions">
+          <button (click)="recargarProductos()" class="btn-refresh">
+            <i class="fas fa-sync-alt"></i>
+            Actualizar
+          </button>
         </div>
       </div>
-      
+
       <div class="tabla-container">
-        <h3>Lista de Productos</h3>
-        <div class="tabla-scroll">
-          <table class="tabla-productos">
+        <div *ngIf="productosFiltrados.length === 0" class="empty-state">
+          <i class="fas fa-search"></i>
+          <h3>No se encontraron productos</h3>
+          <p *ngIf="terminoBusquedaNombre || terminoBusquedaCodigo || categoriaFiltro || estadoFiltro || stockFiltro">
+            No hay productos que coincidan con los filtros aplicados.
+          </p>
+          <p *ngIf="!terminoBusquedaNombre && !terminoBusquedaCodigo && !categoriaFiltro && !estadoFiltro && !stockFiltro">
+            No hay productos registrados en el sistema.
+          </p>
+          <button (click)="limpiarFiltros()" class="btn-primary" 
+                  *ngIf="terminoBusquedaNombre || terminoBusquedaCodigo || categoriaFiltro || estadoFiltro || stockFiltro">
+            Limpiar Filtros
+          </button>
+        </div>
+
+        <div *ngIf="productosFiltrados.length > 0" class="table-responsive">
+          <table class="productos-table">
             <thead>
               <tr>
                 <th>ID</th>
@@ -295,35 +470,56 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let p of productosFiltrados">
-                <td>{{ p.id }}</td>
-                <td>{{ p.codigo }}</td>
-                <td>{{ p.nombre }}</td>
-                <td>{{ p.categoria.nombre }}</td>
-                <td>{{ p.precio | currency }}</td>
-                <td>
-                  <span [class.stock-bajo]="p.stock <= 5" [class.stock-normal]="p.stock > 5">
+              <tr *ngFor="let p of productosFiltrados" class="producto-row">
+                <td class="producto-id">{{ p.id }}</td>
+                <td class="producto-codigo">
+                  <strong>{{ p.codigo }}</strong>
+                </td>
+                <td class="producto-nombre">
+                  <div class="nombre-content">
+                    <strong>{{ p.nombre }}</strong>
+                    <small *ngIf="p.descripcion" class="producto-desc" [title]="p.descripcion">
+                      {{ p.descripcion | truncate:50 }}
+                    </small>
+                  </div>
+                </td>
+                <td class="producto-categoria">
+                  <span class="categoria-badge">{{ p.categoria.nombre }}</span>
+                </td>
+                <td class="producto-precio">
+                  <strong>{{ p.precio | currency:'COP':'$':'1.0-0' }}</strong>
+                </td>
+                <td class="producto-stock">
+                  <span [class]="getStockClass(p.stock)">
                     {{ p.stock }}
+                    <i *ngIf="p.stock <= 5" class="fas fa-exclamation-circle"></i>
                   </span>
                 </td>
-                <td>{{ p.marca || 'N/A' }}</td>
-                <td>{{ p.garantia ? p.garantia + ' meses' : 'N/A' }}</td>
-                <td>
-                  <span [class]="'estado-' + p.estado.toLowerCase()">
+                <td class="producto-marca">
+                  {{ p.marca || 'N/A' }}
+                </td>
+                <td class="producto-garantia">
+                  <span *ngIf="p.garantia" class="garantia-badge">
+                    {{ p.garantia }} meses
+                  </span>
+                  <span *ngIf="!p.garantia" class="sin-garantia">N/A</span>
+                </td>
+                <td class="producto-estado">
+                  <span [class]="'badge badge-' + p.estado.toLowerCase()">
                     {{ p.estado }}
                   </span>
                 </td>
-                <td>
-                  <div class="acciones-producto">
-                    <button (click)="editarProducto(p)" title="Editar producto">
+                <td class="producto-acciones">
+                  <div class="acciones-buttons">
+                    <button (click)="editarProducto(p)" class="btn-action btn-edit" title="Editar producto">
                       <i class="fas fa-edit"></i>
                     </button>
                     <button (click)="cambiarEstadoProducto(p)" 
-                            [class]="p.estado === 'ACTIVO' ? 'btn-desactivar' : 'btn-activar'" 
+                            [class]="p.estado === 'ACTIVO' ? 'btn-action btn-deactivate' : 'btn-action btn-activate'" 
                             [title]="p.estado === 'ACTIVO' ? 'Desactivar producto' : 'Activar producto'">
                       <i [class]="p.estado === 'ACTIVO' ? 'fas fa-toggle-off' : 'fas fa-toggle-on'"></i>
                     </button>
-                    <button (click)="eliminarProducto(p)" class="btn-eliminar" title="Eliminar producto permanentemente">
+                    <button (click)="eliminarProducto(p)" class="btn-action btn-delete" title="Eliminar producto">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </div>
@@ -332,10 +528,8 @@
             </tbody>
           </table>
         </div>
-        <p *ngIf="productosFiltrados.length === 0" class="sin-registros">No hay productos que coincidan con los filtros</p>
       </div>
     </div>
-
   </section>
 </main>
 

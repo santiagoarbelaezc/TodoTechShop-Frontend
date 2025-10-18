@@ -584,3 +584,142 @@ footer {
         font-size: 18px;
     }
 }
+
+
+/* Agrega esto al final de tu archivo CSS existente */
+
+/* ===== ESTILOS PARA MENSAJES DE ERROR DE DESCUENTO ===== */
+.input-error {
+    border-color: #e74c3c !important;
+    background: #fdf2f2 !important;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1) !important;
+}
+
+.input-error:focus {
+    border-color: #c0392b !important;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2) !important;
+}
+
+.input-error + label {
+    color: #e74c3c !important;
+}
+
+.error-message-descuento {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #fdf2f2 0%, #fce8e8 100%);
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    color: #721c24;
+    font-size: 13px;
+    font-weight: 500;
+    animation: slideInDown 0.3s ease-out;
+    border-left: 4px solid #e74c3c;
+}
+
+.error-message-descuento i {
+    color: #e74c3c;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.error-text {
+    flex: 1;
+    line-height: 1.4;
+}
+
+/* Efecto de shake cuando hay error */
+@keyframes shakeError {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.input-error {
+    animation: shakeError 0.4s ease-in-out;
+}
+
+/* Estilo para el input cuando hay error */
+.input-group:has(.input-error) .input-hint {
+    color: #e74c3c;
+}
+
+/* Efecto de pulso para el icono de error */
+.error-message-descuento i {
+    animation: pulseWarning 2s infinite;
+}
+
+@keyframes pulseWarning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Animación de entrada para el mensaje de error */
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== RESPONSIVE PARA MENSAJES DE ERROR ===== */
+@media (max-width: 768px) {
+    .error-message-descuento {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    
+    .error-message-descuento i {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .error-message-descuento {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+        text-align: left;
+    }
+    
+    .error-text {
+        margin-left: 0;
+    }
+}
+
+/* ===== MEJORAS VISUALES ADICIONALES ===== */
+.input-group:focus-within .input-hint {
+    color: #1421cf;
+}
+
+.input-group:has(.input-error):focus-within .input-hint {
+    color: #e74c3c;
+}
+
+/* Efecto de transición suave para los cambios de estado */
+.input-group input,
+.input-group textarea,
+.error-message-descuento {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estilo para el botón deshabilitado cuando hay error */
+.btn-primary:disabled {
+    background: linear-gradient(135deg, #ccc 0%, #999 100%) !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.btn-primary:disabled:hover {
+    background: linear-gradient(135deg, #ccc 0%, #999 100%) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}

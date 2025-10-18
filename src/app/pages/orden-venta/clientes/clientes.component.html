@@ -12,6 +12,31 @@
   <!-- Navbar -->
   <app-navbar-orden></app-navbar-orden>
   
+  <!-- Sistema de Mensajes -->
+  <div *ngIf="successMessage" class="mensaje-exito">
+    <i class="fas fa-check-circle"></i>
+    <div class="mensaje-contenido">
+      <div class="mensaje-titulo">¡Éxito!</div>
+      <div class="mensaje-texto">{{ successMessage }}</div>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="mensaje-error">
+    <i class="fas fa-exclamation-circle"></i>
+    <div class="mensaje-contenido">
+      <div class="mensaje-titulo">Error</div>
+      <div class="mensaje-texto">{{ errorMessage }}</div>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="mensaje-carga">
+    <i class="fas fa-spinner"></i>
+    <div class="mensaje-contenido">
+      <div class="mensaje-titulo">Procesando</div>
+      <div class="mensaje-texto">Creando orden de venta...</div>
+    </div>
+  </div>
+
   <!-- Contenido Principal -->
   <main class="clientes-container">
     
@@ -107,7 +132,7 @@
     <section class="tabla-section">
       <div class="tabla-container">
         <!-- Loading State -->
-        <div *ngIf="cargando" class="loading-state">
+        <div *ngIf="cargando && !mostrarConfirmacionContinuar" class="loading-state">
           <i class="fas fa-spinner fa-spin"></i>
           <p>Cargando clientes...</p>
         </div>
@@ -128,11 +153,11 @@
         </div>
 
         <!-- Tabla de Clientes -->
-        <div *ngIf="!cargando && hayResultados" class="table-responsive">
+        <div *ngIf="!cargando && hayResultados" class="table-responsive" [class.has-more-rows]="clientesFiltrados.length > 8">
           <table class="clientes-table">
             <thead>
               <tr>
-                <th>Nombre</th>
+                <th>Nombre/Dirección</th>
                 <th>Cédula/NIT</th>
                 <th>Contacto</th>
                 <th>Tipo</th>
@@ -213,14 +238,14 @@
     <div *ngIf="mostrarFormularioEdicion && clienteSeleccionado" class="modal-overlay">
       <div class="modal-container">
         <div class="modal-header">
-          <h3>Editar Cliente</h3>
+          <h3>{{ clienteSeleccionado.id ? 'Editar Cliente' : 'Crear Nuevo Cliente' }}</h3>
           <button (click)="cancelarEdicion()" class="btn-close">
             <i class="fas fa-times"></i>
           </button>
         </div>
         
         <div class="modal-body">
-          <form (ngSubmit)="guardarCliente()" class="edit-form">
+          <form (ngSubmit)="clienteSeleccionado.id ? guardarCliente() : guardarNuevoCliente()" class="edit-form">
             <div class="form-group">
               <label>Nombre *</label>
               <input 
@@ -228,7 +253,10 @@
                 [(ngModel)]="clienteSeleccionado.nombre" 
                 name="nombre"
                 required
-                class="form-input">
+                minlength="2"
+                maxlength="150"
+                class="form-input"
+                placeholder="Ingrese el nombre completo">
             </div>
             
             <div class="form-group">
@@ -238,7 +266,10 @@
                 [(ngModel)]="clienteSeleccionado.cedula" 
                 name="cedula"
                 required
-                class="form-input">
+                minlength="5"
+                maxlength="20"
+                class="form-input"
+                placeholder="Ingrese cédula o NIT">
             </div>
             
             <div class="form-group">
@@ -247,7 +278,8 @@
                 type="email" 
                 [(ngModel)]="clienteSeleccionado.correo" 
                 name="correo"
-                class="form-input">
+                class="form-input"
+                placeholder="correo@ejemplo.com">
             </div>
             
             <div class="form-group">
@@ -256,15 +288,50 @@
                 type="tel" 
                 [(ngModel)]="clienteSeleccionado.telefono" 
                 name="telefono"
+                class="form-input"
+                placeholder="Número de teléfono">
+            </div>
+
+            <div class="form-group">
+              <label>Dirección</label>
+              <input 
+                type="text" 
+                [(ngModel)]="clienteSeleccionado.direccion" 
+                name="direccion"
+                class="form-input"
+                placeholder="Dirección completa">
+            </div>
+
+            <div class="form-group">
+              <label>Tipo de Cliente *</label>
+              <select 
+                [(ngModel)]="clienteSeleccionado.tipoCliente" 
+                name="tipoCliente"
+                required
                 class="form-input">
+                <option value="NATURAL">Persona Natural</option>
+                <option value="JURIDICO">Persona Jurídica</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Descuento Aplicable (%)</label>
+              <input 
+                type="number" 
+                [(ngModel)]="clienteSeleccionado.descuentoAplicable" 
+                name="descuentoAplicable"
+                min="0"
+                max="100"
+                class="form-input"
+                placeholder="0">
             </div>
             
             <div class="form-actions">
               <button type="button" (click)="cancelarEdicion()" class="btn-secondary">
                 Cancelar
               </button>
-              <button type="submit" class="btn-primary">
-                Guardar Cambios
+              <button type="submit" class="btn-primary" [disabled]="cargando">
+                {{ cargando ? 'Guardando...' : (clienteSeleccionado.id ? 'Guardar Cambios' : 'Crear Cliente') }}
               </button>
             </div>
           </form>
@@ -272,63 +339,75 @@
       </div>
     </div>
 
-
     <!-- Modal de Confirmación para Continuar -->
-<div *ngIf="mostrarConfirmacionContinuar && clienteSeleccionado" class="modal-overlay">
-  <div class="modal-container">
-    <div class="modal-header">
-      <h3>Continuar con Cliente</h3>
-      <button (click)="cancelarContinuar()" class="btn-close">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-    
-    <div class="modal-body">
-      <div class="modal-confirmacion">
-        <div class="confirmacion-icono">
-          <i class="fas fa-user-check"></i>
+    <div *ngIf="mostrarConfirmacionContinuar && clienteSeleccionado" class="modal-overlay">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3>Continuar con Cliente</h3>
+          <button (click)="cancelarContinuar()" class="btn-close">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
         
-        <div class="confirmacion-mensaje">
-          <h4>¿Desea continuar con este cliente?</h4>
-          <p>Está a punto de crear una orden de venta para el siguiente cliente:</p>
-        </div>
-        
-        <div class="info-cliente">
-          <h5>Información del Cliente</h5>
-          <div class="detalles-cliente">
-            <div class="detalle-item">
-              <span class="detalle-label">Nombre</span>
-              <span class="detalle-valor">{{ clienteSeleccionado.nombre }}</span>
+        <div class="modal-body">
+          <div class="modal-confirmacion">
+            <div class="confirmacion-icono">
+              <i class="fas fa-user-check"></i>
             </div>
-            <div class="detalle-item">
-              <span class="detalle-label">Cédula/NIT</span>
-              <span class="detalle-valor">{{ clienteSeleccionado.cedula }}</span>
+            
+            <div class="confirmacion-mensaje">
+              <h4>¿Desea continuar con este cliente?</h4>
+              <p>Está a punto de crear una orden de venta para el siguiente cliente:</p>
             </div>
-            <div class="detalle-item">
-              <span class="detalle-label">Tipo</span>
-              <span class="detalle-valor">{{ obtenerTipoClienteTexto(clienteSeleccionado.tipoCliente) }}</span>
+            
+            <div class="info-cliente">
+              <h5>Información del Cliente</h5>
+              <div class="detalles-cliente">
+                <div class="detalle-item">
+                  <span class="detalle-label">Nombre</span>
+                  <span class="detalle-valor">{{ clienteSeleccionado.nombre }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-label">Cédula/NIT</span>
+                  <span class="detalle-valor">{{ clienteSeleccionado.cedula }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-label">Tipo</span>
+                  <span class="detalle-valor">{{ obtenerTipoClienteTexto(clienteSeleccionado.tipoCliente) }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-label">Descuento</span>
+                  <span class="detalle-valor">{{ clienteSeleccionado.descuentoAplicable || 0 }}%</span>
+                </div>
+              </div>
             </div>
-            <div class="detalle-item">
-              <span class="detalle-label">Descuento</span>
-              <span class="detalle-valor">{{ clienteSeleccionado.descuentoAplicable || 0 }}%</span>
+            
+            <div class="form-actions">
+              <button type="button" 
+                      (click)="cancelarContinuar()" 
+                      class="btn-secondary" 
+                      [disabled]="cargando">
+                Cancelar
+              </button>
+              <button (click)="crearOrdenVenta()" 
+                      class="btn-crear-orden" 
+                      [disabled]="cargando">
+                <i class="fas fa-file-invoice-dollar" [class.fa-spin]="cargando"></i>
+                {{ cargando ? 'Creando Orden...' : 'Crear Orden de Venta' }}
+              </button>
             </div>
           </div>
         </div>
-        
-        <div class="form-actions">
-          <button type="button" (click)="cancelarContinuar()" class="btn-secondary">
-            Cancelar
-          </button>
-          <button (click)="crearOrdenVenta()" class="btn-crear-orden">
-            <i class="fas fa-file-invoice-dollar"></i>
-            Crear Orden de Venta
-          </button>
-        </div>
       </div>
     </div>
-  </div>
-</div>
+
+    <!-- Botón para crear nuevo cliente -->
+    <div class="floating-action">
+      <button (click)="crearNuevoCliente()" class="btn-floating" title="Crear nuevo cliente">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+
   </main>
 </body>
 </html>

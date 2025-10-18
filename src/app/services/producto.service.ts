@@ -7,7 +7,9 @@ import { map, catchError } from 'rxjs/operators';
 import { MensajeDto } from '../models/mensaje.dto';
 import { EstadoProducto } from '../models/enums/estado-producto.enum';
 import { ProductoDto } from '../models/producto/producto.dto';
-
+import { CantidadRequestDto } from '../models/producto/cantidad-request.dto';
+import { AjusteStockRequestDto } from '../models/producto/ajuste-stock-request.dto';
+import { StockResponseDto } from '../models/producto/stock-response.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -244,6 +246,81 @@ export class ProductoService {
         console.error(`Error buscando productos con nombre ${nombre}:`, error);
         throw error;
       })
+    );
+  }
+
+  // ===== NUEVOS MÉTODOS PARA GESTIÓN DE STOCK =====
+
+  /**
+   * Incrementar stock de un producto
+   */
+  incrementarStock(id: number, cantidad: number): Observable<MensajeDto<string>> {
+    const request: CantidadRequestDto = { cantidad };
+    return this.http.patch<MensajeDto<string>>(
+      `${this.apiUrl}/${id}/stock/incrementar`,
+      request,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  /**
+   * Decrementar stock de un producto
+   */
+  decrementarStock(id: number, cantidad: number): Observable<MensajeDto<string>> {
+    const request: CantidadRequestDto = { cantidad };
+    return this.http.patch<MensajeDto<string>>(
+      `${this.apiUrl}/${id}/stock/decrementar`,
+      request,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  /**
+   * Establecer stock de un producto a un valor específico
+   */
+  establecerStock(id: number, nuevoStock: number): Observable<MensajeDto<string>> {
+    const request: CantidadRequestDto = { cantidad: nuevoStock };
+    return this.http.patch<MensajeDto<string>>(
+      `${this.apiUrl}/${id}/stock`,
+      request,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  /**
+   * Ajuste genérico de stock con operación específica
+   */
+  ajustarStock(id: number, cantidad: number, operacion: 'INCREMENTAR' | 'DECREMENTAR' | 'AJUSTAR'): Observable<MensajeDto<string>> {
+    const request: AjusteStockRequestDto = { cantidad, operacion };
+    return this.http.patch<MensajeDto<string>>(
+      `${this.apiUrl}/${id}/stock/ajustar`,
+      request,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  /**
+   * Consultar stock actual de un producto
+   */
+  consultarStock(id: number): Observable<StockResponseDto> {
+    return this.http.get<MensajeDto<StockResponseDto>>(
+      `${this.apiUrl}/${id}/stock`,
+      { headers: this.getHeaders() }
+    ).pipe(
+      map(response => response.data!),
+      catchError(error => {
+        console.error(`Error consultando stock del producto ${id}:`, error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Método conveniente para obtener el stock actual de un producto
+   */
+  obtenerStockActual(id: number): Observable<number> {
+    return this.consultarStock(id).pipe(
+      map(response => response.stock)
     );
   }
 }

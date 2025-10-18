@@ -20,87 +20,207 @@
 <main>
   <section class="content"> 
 
- 
- <div *ngIf="seccionActiva === 'usuariosRegistrados'">
-      <h2>Usuarios Registrados</h2>
-
-      <div class="filtros-container">
-        <h4>Filtros de Búsqueda</h4>
-        
-        <div class="filtros-row">
-          <!-- Búsqueda por nombre -->
-          <div class="filtro-group">
-            <label>Buscar por Nombre:</label>
-            <input type="text" [(ngModel)]="terminoBusquedaNombre" 
-                   placeholder="Ingrese nombre..." 
-                   (keyup.enter)="buscarPorNombre()">
-            <button (click)="buscarPorNombre()">Buscar</button>
-          </div>
-
-          <!-- Búsqueda por cédula -->
-          <div class="filtro-group">
-            <label>Buscar por Cédula:</label>
-            <input type="text" [(ngModel)]="terminoBusquedaCedula" 
-                   placeholder="Ingrese cédula..." 
-                   (keyup.enter)="buscarPorCedula()">
-            <button (click)="buscarPorCedula()">Buscar</button>
-          </div>
-
-          <!-- Filtro por tipo de usuario -->
-          <div class="filtro-group">
-            <label>Filtrar por Tipo:</label>
-            <select [(ngModel)]="tipoUsuarioFiltro" (change)="filtrarPorTipo()">
-              <option *ngFor="let tipo of tiposUsuario" [value]="tipo.value">
-                {{ tipo.label }}
-              </option>
-            </select>
-          </div>
+    <div *ngIf="seccionActiva === 'usuariosRegistrados'">
+      
+      <!-- HEADER PRINCIPAL -->
+      <div class="page-header">
+        <div class="header-content">
+          <h1 class="page-title">
+            <i class="fas fa-users"></i>
+            Usuarios Registrados
+          </h1>
+          <p class="page-subtitle">
+            Gestiona y administra todos los usuarios del sistema de forma centralizada
+          </p>
         </div>
-
-        <div class="filtros-row">
-          <!-- Filtro por fecha -->
-          <div class="filtro-group">
-            <label>Filtrar por Fecha:</label>
-            <select [(ngModel)]="tipoFiltroFecha">
-              <option value="">Seleccione tipo</option>
-              <option value="rango">Por rango de fechas</option>
-              <option value="despues">Creados después de</option>
-              <option value="antes">Creados antes de</option>
-            </select>
+        
+        <!-- ESTADÍSTICAS -->
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-icon total">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-number">{{ totalUsuarios }}</div>
+              <div class="stat-label">Total Usuarios</div>
+              
+            </div>
           </div>
-
-          <div class="filtro-group fecha-group" *ngIf="tipoFiltroFecha === 'rango'">
-            <label>Desde:</label>
-            <input type="date" [(ngModel)]="fechaInicioFiltro">
-            <label>Hasta:</label>
-            <input type="date" [(ngModel)]="fechaFinFiltro">
-            <button (click)="filtrarPorFecha()">Aplicar</button>
+          
+          <div class="stat-card">
+            <div class="stat-icon activos">
+              <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-number">{{ usuariosActivos }}</div>
+              <div class="stat-label">Usuarios Activos</div>
+            
+            </div>
           </div>
-
-          <div class="filtro-group fecha-group" *ngIf="tipoFiltroFecha === 'despues' || tipoFiltroFecha === 'antes'">
-            <label>{{ tipoFiltroFecha === 'despues' ? 'Después de:' : 'Antes de:' }}</label>
-            <input type="date" [(ngModel)]="fechaEspecificaFiltro">
-            <button (click)="filtrarPorFecha()">Aplicar</button>
+          
+          <div class="stat-card">
+            <div class="stat-icon administradores">
+              <i class="fas fa-user-shield"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-number">{{ totalAdministradores }}</div>
+              <div class="stat-label">Administradores</div>
+            </div>
           </div>
-
-          <!-- Botón para limpiar filtros -->
-          <div class="filtro-group">
-            <button (click)="limpiarFiltros()" class="btn-limpiar">Limpiar Filtros</button>
+          
+          <div class="stat-card">
+            <div class="stat-icon inactivos">
+              <i class="fas fa-user-slash"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-number">{{ usuariosInactivos }}</div>
+              <div class="stat-label">Usuarios Inactivos</div>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- PANEL DE FILTROS -->
+      <div class="filtros-section">
+        <div class="section-header">
+          <h3 class="section-title">
+            <i class="fas fa-filter"></i>
+            Filtros de Búsqueda
+          </h3>
+          <p class="section-subtitle">Filtra los usuarios según diferentes criterios de búsqueda</p>
+        </div>
+        
+        <div class="filtros-container">
+          <div class="filtros-row">
+            <!-- Búsqueda por nombre -->
+            <div class="filtro-group">
+              <label>
+                <i class="fas fa-user"></i>
+                Buscar por Nombre:
+              </label>
+              <input type="text" class="filtro-input" 
+                     [(ngModel)]="terminoBusquedaNombre" 
+                     placeholder="Ingrese nombre completo..." 
+                     (keyup.enter)="buscarPorNombre()">
+              <button (click)="buscarPorNombre()">
+                <i class="fas fa-search"></i> Buscar
+              </button>
+            </div>
+
+            <!-- Búsqueda por cédula -->
+            <div class="filtro-group">
+              <label>
+                <i class="fas fa-id-card"></i>
+                Buscar por Cédula:
+              </label>
+              <input type="text" class="filtro-input"
+                     [(ngModel)]="terminoBusquedaCedula" 
+                     placeholder="Ingrese número de cédula..." 
+                     (keyup.enter)="buscarPorCedula()">
+              <button (click)="buscarPorCedula()">
+                <i class="fas fa-search"></i> Buscar
+              </button>
+            </div>
+
+            <!-- Filtro por tipo de usuario -->
+            <div class="filtro-group">
+              <label>
+                <i class="fas fa-tag"></i>
+                Filtrar por Tipo:
+              </label>
+              <select class="filtro-select" [(ngModel)]="tipoUsuarioFiltro" (change)="filtrarPorTipo()">
+                <option value="">Todos los tipos</option>
+                <option *ngFor="let tipo of tiposUsuario" [value]="tipo.value">
+                  {{ tipo.label }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filtros-row">
+            <!-- Filtro por fecha -->
+            <div class="filtro-group">
+              <label>
+                <i class="fas fa-calendar-alt"></i>
+                Filtrar por Fecha:
+              </label>
+              <select class="filtro-select" [(ngModel)]="tipoFiltroFecha">
+                <option value="">Seleccione tipo de filtro</option>
+                <option value="rango">Por rango de fechas</option>
+                <option value="despues">Creados después de</option>
+                <option value="antes">Creados antes de</option>
+              </select>
+            </div>
+
+            <div class="fecha-group" *ngIf="tipoFiltroFecha === 'rango'">
+              <div class="filtro-group">
+                <label>Fecha Desde:</label>
+                <input type="date" class="filtro-input" [(ngModel)]="fechaInicioFiltro">
+              </div>
+              <div class="filtro-group">
+                <label>Fecha Hasta:</label>
+                <input type="date" class="filtro-input" [(ngModel)]="fechaFinFiltro">
+              </div>
+              <button (click)="filtrarPorFecha()">
+                <i class="fas fa-filter"></i> Aplicar Filtro
+              </button>
+            </div>
+
+            <div class="fecha-group" *ngIf="tipoFiltroFecha === 'despues' || tipoFiltroFecha === 'antes'">
+              <div class="filtro-group">
+                <label>{{ tipoFiltroFecha === 'despues' ? 'Fecha Desde:' : 'Fecha Hasta:' }}</label>
+                <input type="date" class="filtro-input" [(ngModel)]="fechaEspecificaFiltro">
+              </div>
+              <button (click)="filtrarPorFecha()">
+                <i class="fas fa-filter"></i> Aplicar Filtro
+              </button>
+            </div>
+
+            <!-- Botón para limpiar filtros -->
+            <div class="filtro-group">
+              <button (click)="limpiarFiltros()" class="btn-limpiar">
+                <i class="fas fa-broom"></i> Limpiar Todos los Filtros
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- INFORMACIÓN DE RESULTADOS -->
+        <div class="resultados-info" *ngIf="usuarios.length > 0">
+          <p class="resultados-text">
+            <i class="fas fa-info-circle"></i>
+            Mostrando <strong>{{ usuarios.length }}</strong> usuarios 
+            <span *ngIf="filtrosActivos" class="filtros-activos">
+              (con filtros aplicados)
+            </span>
+          </p>
+        </div>
+      </div>
       
-      <div class="tabla-container">
-        <h3>Lista de Usuarios</h3>
+      <!-- TABLA DE USUARIOS -->
+      <div class="tabla-section">
+        <div class="tabla-header">
+          <div>
+            <h3 class="tabla-title">
+              <i class="fas fa-list"></i>
+              Lista de Usuarios
+            </h3>
+            <p class="tabla-subtitle">Gestiona los usuarios del sistema con las acciones disponibles</p>
+          </div>
+          <button class="btn-exportar" (click)="exportarUsuarios()">
+            <i class="fas fa-file-export"></i> Exportar
+          </button>
+        </div>
+        
         <div class="tabla-scroll">
           <table class="tabla-usuarios">
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Cédula</th>
-                <th>Nombre</th>
+                <th>Nombre Completo</th>
                 <th>Usuario</th>
-                <th>Correo</th>
+                <th>Correo Electrónico</th>
                 <th>Tipo</th>
                 <th>Estado</th>
                 <th>Fecha Creación</th>
@@ -109,28 +229,36 @@
             </thead>
             <tbody>
               <tr *ngFor="let u of usuarios">
-                <td>{{ u.id }}</td>
-                <td>{{ u.cedula }}</td>
-                <td>{{ u.nombre }}</td>
-                <td>{{ u.nombreUsuario }}</td>
-                <td>{{ u.correo }}</td>
-                <td><span class="badge-tipo">{{ u.tipoUsuario }}</span></td>
+                <td class="usuario-id">{{ u.id }}</td>
+                <td class="usuario-cedula">{{ u.cedula }}</td>
+                <td class="usuario-nombre">{{ u.nombre }}</td>
+                <td class="usuario-username">
+                  <span class="username-badge">{{ u.nombreUsuario }}</span>
+                </td>
+                <td class="usuario-correo">{{ u.correo }}</td>
+                <td>
+                  <span class="badge-tipo" [class]="'badge-' + u.tipoUsuario.toLowerCase()">
+                    {{ u.tipoUsuario }}
+                  </span>
+                </td>
                 <td>
                   <span [class.estado-activo]="u.estado" [class.estado-inactivo]="!u.estado">
                     {{ u.estado ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
-                <td>{{ u.fechaCreacion | date:'short' }}</td>
+                <td class="usuario-fecha">{{ u.fechaCreacion | date:'medium' }}</td>
                 <td>
                   <div class="acciones-usuario">
                     <button (click)="editarUsuario(u)" title="Editar usuario">
                       <i class="fas fa-edit"></i>
                     </button>
-                    <button (click)="cambiarEstadoUsuario(u)" [class]="u.estado ? 'btn-desactivar' : 'btn-activar'" 
+                    <button (click)="cambiarEstadoUsuario(u)" 
+                            [class]="u.estado ? 'btn-desactivar' : 'btn-activar'" 
                             [title]="u.estado ? 'Desactivar usuario' : 'Activar usuario'">
                       <i [class]="u.estado ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
                     </button>
-                    <button (click)="eliminarUsuario(u)" class="btn-eliminar" title="Eliminar usuario permanentemente">
+                    <button (click)="eliminarUsuario(u)" class="btn-eliminar" 
+                            title="Eliminar usuario permanentemente">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </div>
@@ -139,11 +267,39 @@
             </tbody>
           </table>
         </div>
-        <p *ngIf="usuarios.length === 0" class="sin-registros">No hay usuarios registrados</p>
+        
+        <p *ngIf="usuarios.length === 0" class="sin-registros">
+          <i class="fas fa-users"></i>
+          No hay usuarios registrados con los filtros aplicados
+        </p>
+
+        <!-- PAGINACIÓN -->
+        <div class="paginacion" *ngIf="usuarios.length > 0">
+          <div class="paginacion-info">
+            <i class="fas fa-info-circle"></i>
+            Mostrando página {{ paginaActual }} de {{ totalPaginas }}
+          </div>
+          <div class="paginacion-controls">
+            <button class="btn-pagina" (click)="paginaAnterior()" [disabled]="paginaActual === 1">
+              <i class="fas fa-chevron-left"></i> Anterior
+            </button>
+            <div class="paginas-numeros">
+              <span *ngFor="let pagina of paginas" 
+                    class="numero-pagina" 
+                    [class.active]="pagina === paginaActual"
+                    (click)="irAPagina(pagina)">
+                {{ pagina }}
+              </span>
+            </div>
+            <button class="btn-pagina" (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">
+              Siguiente <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    </section>
+  </section>
 </main>
 </body>
 </html>

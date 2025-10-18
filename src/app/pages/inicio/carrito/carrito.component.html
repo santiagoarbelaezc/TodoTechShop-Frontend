@@ -1,0 +1,142 @@
+<!-- carrito.component.html -->
+<div class="cart-wrapper slide-right-entrance" *ngIf="mostrarCarrito">
+  <!-- Botón para abrir/cerrar el carrito -->
+  <button class="cart-button bounce-entrance" [class.hidden]="carritoVisible" (click)="toggleCarrito()">
+    🛒 <span>Carrito ({{ obtenerCantidadTotal() }})</span>
+  </button>
+
+  <!-- Contenedor del carrito -->
+  <div class="cart-panel" [ngClass]="{ 'open': carritoVisible }">
+    <div class="cart-header">
+      <h3 class="text-reveal">🛍 Mi Carrito ({{ obtenerCantidadTotal() }})</h3>
+      <button class="close-btn fade-in-entrance" (click)="cerrarCarrito()">
+        <span class="close-icon">✖</span>
+      </button>
+    </div>
+
+    <div class="cart-body">
+      <!-- Encabezados de la tabla -->
+      <div class="cart-row cart-header-row fade-in-entrance">
+        <span class="cart-col">Producto</span>
+        <span class="cart-col">Cantidad</span>
+        <span class="cart-col">Subtotal</span>
+        <span class="cart-col">Acciones</span>
+      </div>
+
+      <!-- Detalles del carrito -->
+      <div *ngFor="let item of carrito; let i = index" class="cart-row slide-up-entrance" [ngClass]="'entrance-delay-' + (i + 1)">
+        <span class="cart-col product-name">{{ item.producto.nombre }}</span>
+        <span class="cart-col">
+          <div class="quantity-controls">
+            <button 
+              class="quantity-btn bounce-entrance" 
+              (click)="ajustarCantidad(item.producto.id, -1)"
+              [disabled]="estaAjustandoCantidad(item.producto.id)"
+            >
+              {{ estaAjustandoCantidad(item.producto.id) ? '⏳' : '−' }}
+            </button>
+            <span class="quantity-number fade-in-entrance">{{ item.cantidad }}</span>
+            <button 
+              class="quantity-btn bounce-entrance" 
+              (click)="ajustarCantidad(item.producto.id, 1)"
+              [disabled]="estaAjustandoCantidad(item.producto.id)"
+            >
+              {{ estaAjustandoCantidad(item.producto.id) ? '⏳' : '+' }}
+            </button>
+          </div>
+        </span>
+        <span class="cart-col price zoom-entrance">{{ formatearPrecio(item.subtotal) }}</span>
+        <span class="cart-col">
+          <button 
+            class="remove-btn bounce-entrance" 
+            (click)="eliminarProducto(item.producto.id)"
+            [disabled]="estaEliminando(item.producto.id)"
+          >
+            <span class="remove-icon">
+              {{ estaEliminando(item.producto.id) ? '⏳' : '🗑️' }}
+            </span>
+          </button>
+        </span>
+      </div>
+
+      <!-- Mensaje cuando el carrito está vacío -->
+      <div *ngIf="carrito.length === 0" class="empty-cart fade-in-entrance">
+        <div class="empty-cart-icon">🛒</div>
+        <p class="empty-title">Tu carrito está vacío</p>
+        <p class="empty-subtitle">Agrega algunos productos para continuar</p>
+      </div>
+
+      <!-- Total -->
+      <div *ngIf="carrito.length > 0" class="cart-total fade-in-entrance">
+        <div class="total-content">
+          <span class="total-label">Total:</span>
+          <span class="total-amount">{{ formatearPrecio(obtenerTotal()) }}</span>
+        </div>
+      </div>
+
+      <div class="cart-footer-actions" *ngIf="carrito.length > 0">
+        <button class="btn-cart btn-checkout component-entrance" (click)="pagarCarrito()">
+          <span class="checkout-icon">💳</span>
+          <span class="checkout-text">Pagar Carrito</span>
+        </button>
+
+        <div class="action-buttons">
+          <div *ngIf="mostrarInputDescuento" class="discount-input-container fade-in-entrance">
+            <input 
+              type="text" 
+              [(ngModel)]="codigoDescuento"
+              placeholder="Ingresa código de descuento"
+              class="discount-input"
+              (keyup.enter)="validarDescuento()"
+              [disabled]="aplicandoDescuento"
+            >
+            <button 
+              class="btn-cart btn-apply bounce-entrance" 
+              (click)="validarDescuento()"
+              [disabled]="aplicandoDescuento || !codigoDescuento.trim()"
+            >
+              <span class="apply-text">
+                {{ aplicandoDescuento ? '⏳ Aplicando...' : '✅ Aplicar' }}
+              </span>
+            </button>
+            <button 
+              class="btn-cart btn-cancel-input bounce-entrance" 
+              (click)="cancelarInputDescuento()"
+              [disabled]="aplicandoDescuento"
+            >
+              <span class="cancel-input-icon">×</span>
+            </button>
+          </div>
+          
+          <button 
+            class="btn-cart btn-discount fade-in-entrance" 
+            (click)="aplicarDescuento()"
+            *ngIf="!mostrarInputDescuento"
+          >
+            <span class="discount-icon">🎟️</span>
+            <span class="discount-text">Aplicar Descuento</span>
+          </button>
+          
+          <button 
+            class="btn-cart btn-cancel fade-in-entrance" 
+            (click)="cancelarOrden()"
+            [disabled]="cancelandoOrden"
+          >
+            <span class="cancel-icon">
+              {{ cancelandoOrden ? '⏳' : '🗑️' }}
+            </span>
+            <span class="cancel-text">
+              {{ cancelandoOrden ? 'Cancelando...' : 'Cancelar Orden' }}
+            </span>
+          </button>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div *ngIf="errorDescuento" class="error-message fade-in-entrance">
+          <span class="error-icon">⚠️</span>
+          <span class="error-text">{{ errorDescuento }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

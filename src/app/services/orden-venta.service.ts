@@ -11,6 +11,8 @@ import { MensajeDto } from '../models/mensaje.dto';
 
 export enum EstadoOrden {
   PENDIENTE = 'PENDIENTE',
+  AGREGANDOPRODUCTOS = 'AGREGANDOPRODUCTOS',
+  DISPONIBLEPARAPAGO = 'DISPONIBLEPARAPAGO',
   PAGADA = 'PAGADA',
   ENTREGADA = 'ENTREGADA',
   CERRADA = 'CERRADA'
@@ -25,7 +27,75 @@ export class OrdenVentaService {
 
   constructor(private http: HttpClient) { }
 
-  // Métodos para manejar la orden actual en memoria
+  // ========== MÉTODOS SIMPLIFICADOS PARA GUARDAR LA ORDEN ACTUAL ==========
+
+  /**
+   * Guarda la orden actual completa en memoria y localStorage
+   */
+  guardarOrdenActual(orden: OrdenDto): void {
+    console.log('💾 Guardando orden actual en servicio:', orden);
+    
+    // Guardar en memoria
+    this.ordenActual = orden;
+    
+    // Guardar en localStorage como string
+    localStorage.setItem('ordenActual', JSON.stringify(orden));
+    
+    console.log('✅ Orden guardada correctamente en servicio');
+  }
+
+  /**
+   * Obtiene la orden actual guardada
+   */
+  obtenerOrdenActual(): OrdenDto | null {
+    // Primero intentar obtener de memoria
+    if (this.ordenActual) {
+      console.log('📂 Orden actual obtenida de memoria:', this.ordenActual);
+      return this.ordenActual;
+    }
+    
+    // Si no hay en memoria, intentar obtener de localStorage
+    const ordenGuardada = localStorage.getItem('ordenActual');
+    if (ordenGuardada) {
+      const orden = JSON.parse(ordenGuardada);
+      this.ordenActual = orden; // Guardar en memoria para próximas consultas
+      console.log('📂 Orden actual obtenida de localStorage:', orden);
+      return orden;
+    }
+    
+    console.log('ℹ️ No hay orden actual guardada');
+    return null;
+  }
+
+  /**
+   * Verifica si hay una orden actual guardada
+   */
+  tieneOrdenActual(): boolean {
+    const tieneOrden = this.ordenActual !== null || localStorage.getItem('ordenActual') !== null;
+    console.log('🔍 ¿Tiene orden actual?', tieneOrden);
+    return tieneOrden;
+  }
+
+  /**
+   * Obtiene el ID de la orden actual guardada
+   */
+  obtenerOrdenActualId(): number | null {
+    const orden = this.obtenerOrdenActual();
+    return orden?.id || null;
+  }
+
+  /**
+   * Limpia la orden actual de memoria y localStorage
+   */
+  limpiarOrdenActual(): void {
+    console.log('🗑️ Limpiando orden actual del servicio');
+    this.ordenActual = null;
+    localStorage.removeItem('ordenActual');
+  }
+
+  // ========== MÉTODOS EXISTENTES (se mantienen igual) ==========
+
+  // Métodos para manejar la orden actual en memoria (mantener por compatibilidad)
   setOrden(orden: OrdenDto): void {
     this.ordenActual = orden;
   }
@@ -52,7 +122,7 @@ export class OrdenVentaService {
     localStorage.removeItem('ordenId');
   }
 
-  // Métodos principales del servicio
+  // Métodos principales del servicio (se mantienen igual)
   crearOrden(createOrdenDto: CreateOrdenDto): Observable<OrdenDto> {
     return this.http.post<MensajeDto<OrdenDto>>(this.apiUrl, createOrdenDto).pipe(
       map(response => response.data!)
@@ -104,6 +174,29 @@ export class OrdenVentaService {
     );
   }
 
+  // ========== MÉTODOS CORREGIDOS PARA LOS NUEVOS ESTADOS ==========
+
+  // ✅ CORREGIDO: Usa el endpoint específico en lugar del genérico
+  marcarComoAgregandoProductos(id: number): Observable<OrdenDto> {
+    return this.http.patch<MensajeDto<OrdenDto>>(
+      `${this.apiUrl}/${id}/agregando-productos`, 
+      {}
+    ).pipe(
+      map(response => response.data!)
+    );
+  }
+
+  // ✅ CORREGIDO: Usa el endpoint específico en lugar del genérico
+  marcarComoDisponibleParaPago(id: number): Observable<OrdenDto> {
+    return this.http.patch<MensajeDto<OrdenDto>>(
+      `${this.apiUrl}/${id}/disponible-pago`, 
+      {}
+    ).pipe(
+      map(response => response.data!)
+    );
+  }
+
+  // ✅ MÉTODOS QUE YA ESTÁN CORRECTOS (se mantienen igual)
   marcarComoPagada(id: number): Observable<OrdenDto> {
     return this.http.patch<MensajeDto<OrdenDto>>(`${this.apiUrl}/${id}/pagada`, {}).pipe(
       map(response => response.data!)
@@ -137,9 +230,18 @@ export class OrdenVentaService {
     );
   }
 
-  // Métodos específicos para los estados comunes (conveniencia)
+  // ========== MÉTODOS ESPECÍFICOS PARA LOS ESTADOS (CONVENIENCIA) ==========
+
   obtenerOrdenesPendientes(): Observable<OrdenDto[]> {
     return this.obtenerOrdenesPorEstado(EstadoOrden.PENDIENTE);
+  }
+
+  obtenerOrdenesAgregandoProductos(): Observable<OrdenDto[]> {
+    return this.obtenerOrdenesPorEstado(EstadoOrden.AGREGANDOPRODUCTOS);
+  }
+
+  obtenerOrdenesDisponiblesParaPago(): Observable<OrdenDto[]> {
+    return this.obtenerOrdenesPorEstado(EstadoOrden.DISPONIBLEPARAPAGO);
   }
 
   obtenerOrdenesPagadas(): Observable<OrdenDto[]> {
@@ -152,5 +254,42 @@ export class OrdenVentaService {
 
   obtenerOrdenesCerradas(): Observable<OrdenDto[]> {
     return this.obtenerOrdenesPorEstado(EstadoOrden.CERRADA);
+  }
+
+  // ========== MÉTODOS ADICIONALES PARA FLUJO DE TRABAJO ==========
+
+  /**
+   * Obtiene órdenes que están en estado activo (no cerradas ni entregadas)
+   */
+  obtenerOrdenesActivas(): Observable<OrdenDto[]> {
+    return this.obtenerTodasLasOrdenes().pipe(
+      map(ordenes => ordenes.filter(orden => 
+        orden.estado !== EstadoOrden.CERRADA && 
+        orden.estado !== EstadoOrden.ENTREGADA
+      ))
+    );
+  }
+
+  /**
+   * Obtiene órdenes que están listas para procesar pago
+   */
+  obtenerOrdenesListasParaPago(): Observable<OrdenDto[]> {
+    return this.obtenerOrdenesPorEstado(EstadoOrden.DISPONIBLEPARAPAGO);
+  }
+
+  /**
+   * Obtiene órdenes que están en proceso (agregando productos)
+   */
+  obtenerOrdenesEnProceso(): Observable<OrdenDto[]> {
+    return this.obtenerOrdenesPorEstado(EstadoOrden.AGREGANDOPRODUCTOS);
+  }
+
+  /**
+   * Obtiene todas las órdenes de un vendedor específico
+   */
+  obtenerOrdenesPorVendedor(vendedorId: number): Observable<OrdenDto[]> {
+    return this.http.get<MensajeDto<OrdenDto[]>>(`${this.apiUrl}/vendedor/${vendedorId}`).pipe(
+      map(response => response.data!)
+    );
   }
 }

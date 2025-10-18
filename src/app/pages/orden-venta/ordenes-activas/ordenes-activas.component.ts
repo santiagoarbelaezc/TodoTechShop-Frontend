@@ -2,6 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { 
   EstadoOrden, 
   OrdenConDetallesDto, 
@@ -17,6 +18,7 @@ import { ProductoDto } from '../../../models/producto/producto.dto';
 import { OrdenVentaService } from '../../../services/orden-venta.service';
 import { ClienteService } from '../../../services/cliente.service';
 import { CategoriaService } from '../../../services/categoria.service';
+import { AuthService } from '../../../services/auth.service'; // Importar AuthService
 import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 
@@ -43,6 +45,8 @@ export class OrdenesActivasComponent implements OnInit {
 
   estados: EstadoOrden[] = [
     EstadoOrden.PENDIENTE, 
+    EstadoOrden.AGREGANDOPRODUCTOS,
+    EstadoOrden.DISPONIBLEPARAPAGO,
     EstadoOrden.PAGADA, 
     EstadoOrden.ENTREGADA, 
     EstadoOrden.CERRADA
@@ -61,25 +65,65 @@ export class OrdenesActivasComponent implements OnInit {
   totalOrdenesPendientes: number = 0;
   isLoading: boolean = false;
   errorMessage: string = '';
+  successMessage: string = '';
+  cargando: boolean = false;
+
+  // Propiedades para la funcionalidad de continuar con orden
+  mostrarConfirmacionContinuar: boolean = false;
+  ordenSeleccionada: OrdenConDetallesDto | null = null;
+
+  // Propiedades para el vendedor actual
+  vendedorActualId: number | null = null;
+  vendedorActualNombre: string = '';
 
   constructor(
     private ordenVentaService: OrdenVentaService,
     private clienteService: ClienteService,
-    private categoriaService: CategoriaService
+    private categoriaService: CategoriaService,
+    private authService: AuthService, // Inyectar AuthService
+    private router: Router
   ) {}
 
   ngOnInit() {
-    this.cargarDatosReales();
+    this.obtenerVendedorActual();
   }
 
+  /**
+   * Obtiene el vendedor actual del servicio de autenticación
+   */
+  obtenerVendedorActual() {
+    // Obtener el usuario actual del servicio de autenticación
+    const usuarioActual = this.authService.getCurrentUser();
+    
+    if (usuarioActual && usuarioActual.userId) {
+      this.vendedorActualId = usuarioActual.userId;
+      this.vendedorActualNombre = usuarioActual.nombre || 'Vendedor';
+      console.log('👤 Vendedor actual:', this.vendedorActualId, this.vendedorActualNombre);
+      this.cargarDatosReales();
+    } else {
+      this.errorMessage = 'No se pudo obtener la información del vendedor actual.';
+      console.error('No se pudo obtener el usuario actual');
+    }
+  }
+
+  /**
+   * Carga las órdenes del vendedor actual
+   */
   cargarDatosReales() {
+    if (!this.vendedorActualId) {
+      this.errorMessage = 'No se pudo identificar al vendedor actual.';
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.ordenVentaService.obtenerTodasLasOrdenes()
+    console.log('📋 Cargando órdenes del vendedor:', this.vendedorActualId);
+
+    this.ordenVentaService.obtenerOrdenesPorVendedor(this.vendedorActualId)
       .pipe(
         catchError((error) => {
-          console.error('Error al cargar órdenes:', error);
+          console.error('Error al cargar órdenes del vendedor:', error);
           this.errorMessage = 'Error al cargar las órdenes. Por favor, intente nuevamente.';
           return of([]);
         }),
@@ -90,7 +134,6 @@ export class OrdenesActivasComponent implements OnInit {
       .subscribe({
         next: (ordenes) => {
           // Convertir OrdenDto[] a OrdenConDetallesDto[]
-          // Primero cargamos las órdenes básicas
           this.ordenes = [];
           this.ordenesFiltradas = [];
           
@@ -99,6 +142,8 @@ export class OrdenesActivasComponent implements OnInit {
             this.cargarDetallesOrdenes(ordenes);
           } else {
             this.actualizarDatosFiltros();
+            this.successMessage = 'No se encontraron órdenes para este vendedor.';
+            this.limpiarMensajes();
           }
         }
       });
@@ -150,15 +195,179 @@ export class OrdenesActivasComponent implements OnInit {
     this.aplicarFiltros();
   }
 
+  // ========== MÉTODOS PARA CONTINUAR CON ORDEN ==========
+
+  /**
+ * Método para continuar con una orden seleccionada
+ */
+/**
+ * ✅ MÉTODO ACTUALIZADO: Continuar con una orden seleccionada
+ */
+continuarConOrden(orden: OrdenConDetallesDto): void {
+  console.log('=== 🚀 CONTINUANDO CON ORDEN EXISTENTE ===');
+  console.log('📋 Orden seleccionada:', orden);
+  
+  // ✅ VALIDACIÓN PRINCIPAL: No permitir continuar con órdenes en estado DISPONIBLEPARAPAGO
+  if (orden.estado === EstadoOrden.DISPONIBLEPARAPAGO) {
+    this.errorMessage = 'No se puede continuar con una orden que ya está disponible para pago.';
+    this.limpiarMensajes();
+    return;
+  }
+
+  // Validar que la orden pertenece al vendedor actual
+  if (orden.vendedor.id !== this.vendedorActualId) {
+    this.errorMessage = 'No puedes continuar con una orden que no te pertenece.';
+    this.limpiarMensajes();
+    return;
+  }
+
+  this.cargando = true;
+  this.errorMessage = '';
+  
+  // 1. Actualizar el estado de la orden a AGREGANDOPRODUCTOS (si no lo está ya)
+  if (orden.estado !== EstadoOrden.AGREGANDOPRODUCTOS) {
+    this.ordenVentaService.marcarComoAgregandoProductos(orden.id)
+      .pipe(
+        catchError((error) => {
+          console.error('❌ Error al actualizar estado de la orden:', error);
+          this.errorMessage = 'Error al preparar la orden. Intente nuevamente.';
+          this.cargando = false;
+          return of(null);
+        })
+      )
+      .subscribe({
+        next: (ordenActualizada) => {
+          if (ordenActualizada) {
+            console.log('✅ Estado actualizado a AGREGANDOPRODUCTOS');
+            this.procesarOrdenParaContinuar(ordenActualizada);
+          } else {
+            this.cargando = false;
+          }
+        }
+      });
+  } else {
+    // Si ya está en AGREGANDOPRODUCTOS, continuar directamente
+    this.procesarOrdenParaContinuar(orden);
+  }
+}
+
+/**
+ * ✅ MÉTODO AUXILIAR: Procesar la orden para continuar
+ */
+private procesarOrdenParaContinuar(orden: OrdenConDetallesDto | any): void {
+  // 2. Guardar la orden actualizada en localStorage
+  localStorage.setItem('ordenActual', JSON.stringify(orden));
+  
+  // 3. También guardar en el servicio para consistencia
+  this.ordenVentaService.guardarOrdenActual(orden);
+  
+  console.log('💾 Orden guardada en localStorage y servicio');
+  console.log('🔄 Redirigiendo al inicio...');
+  
+  // 4. Mostrar mensaje de éxito breve
+  this.successMessage = `Orden ${orden.numeroOrden || 'sin número'} seleccionada correctamente`;
+  
+  // 5. Redirigir inmediatamente al inicio
+  setTimeout(() => {
+    this.router.navigate(['/inicio']);
+  }, 500);
+  
+  this.cargando = false;
+}
+
+  /**
+   * Método para procesar la orden seleccionada
+   */
+  procesarOrden(): void {
+    if (!this.ordenSeleccionada) {
+      this.errorMessage = 'No hay orden seleccionada para procesar.';
+      return;
+    }
+
+    // Validar que la orden pertenece al vendedor actual
+    if (this.ordenSeleccionada.vendedor.id !== this.vendedorActualId) {
+      this.errorMessage = 'No puedes procesar una orden que no te pertenece.';
+      this.limpiarMensajes();
+      return;
+    }
+
+    this.cargando = true;
+    this.errorMessage = '';
+
+    console.log('🚀 Procesando orden:', this.ordenSeleccionada);
+
+    // Obtener la orden completa del backend
+    this.ordenVentaService.obtenerOrdenPorId(this.ordenSeleccionada.id)
+      .pipe(
+        catchError((error) => {
+          console.error('Error al obtener orden completa:', error);
+          this.errorMessage = 'Error al cargar la orden seleccionada.';
+          this.cargando = false;
+          return of(null);
+        })
+      )
+      .subscribe({
+        next: (ordenCompleta) => {
+          if (ordenCompleta) {
+            // Guardar la orden actual en el servicio
+            this.ordenVentaService.guardarOrdenActual(ordenCompleta);
+            
+            // Mostrar mensaje de éxito
+            this.successMessage = `Orden ${this.ordenSeleccionada?.numeroOrden} seleccionada correctamente. Redirigiendo...`;
+            
+            // Cerrar modal después de un breve delay
+            setTimeout(() => {
+              this.mostrarConfirmacionContinuar = false;
+              this.ordenSeleccionada = null;
+              
+              // Redirigir al inicio después de otro breve delay
+              setTimeout(() => {
+                this.router.navigate(['/']);
+              }, 1000);
+              
+            }, 1500);
+          } else {
+            this.errorMessage = 'No se pudo cargar la orden seleccionada.';
+          }
+          this.cargando = false;
+        }
+      });
+  }
+
+  /**
+   * Método para cancelar la acción de continuar
+   */
+  cancelarContinuar(): void {
+    console.log('❌ Cancelando continuar con orden');
+    this.mostrarConfirmacionContinuar = false;
+    this.ordenSeleccionada = null;
+    this.cargando = false;
+  }
+
+  /**
+   * Método para limpiar mensajes después de un tiempo
+   */
+  limpiarMensajes(): void {
+    setTimeout(() => {
+      this.successMessage = '';
+      this.errorMessage = '';
+    }, 5000);
+  }
+
+  // ========== MÉTODOS EXISTENTES (se mantienen igual) ==========
+
   cargarOrdenesPorEstado(estado: EstadoOrden) {
+    if (!this.vendedorActualId) return;
+
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.ordenVentaService.obtenerOrdenesPorEstado(estado)
+    // Primero obtener todas las órdenes del vendedor y luego filtrar por estado
+    this.ordenVentaService.obtenerOrdenesPorVendedor(this.vendedorActualId)
       .pipe(
         catchError((error) => {
-          console.error(`Error al cargar órdenes ${estado}:`, error);
-          this.errorMessage = `Error al cargar órdenes ${estado.toLowerCase()}.`;
+          console.error(`Error al cargar órdenes del vendedor:`, error);
+          this.errorMessage = `Error al cargar órdenes.`;
           return of([]);
         }),
         finalize(() => {
@@ -167,13 +376,18 @@ export class OrdenesActivasComponent implements OnInit {
       )
       .subscribe({
         next: (ordenes) => {
+          // Filtrar por estado
+          const ordenesFiltradas = ordenes.filter(orden => orden.estado === estado);
+          
           this.ordenes = [];
           this.ordenesFiltradas = [];
           
-          if (ordenes.length > 0) {
-            this.cargarDetallesOrdenes(ordenes);
+          if (ordenesFiltradas.length > 0) {
+            this.cargarDetallesOrdenes(ordenesFiltradas);
           } else {
             this.actualizarDatosFiltros();
+            this.successMessage = `No se encontraron órdenes en estado ${estado.toLowerCase()}.`;
+            this.limpiarMensajes();
           }
         }
       });
@@ -181,6 +395,14 @@ export class OrdenesActivasComponent implements OnInit {
 
   cargarOrdenesPendientes() {
     this.cargarOrdenesPorEstado(EstadoOrden.PENDIENTE);
+  }
+
+  cargarOrdenesAgregandoProductos() {
+    this.cargarOrdenesPorEstado(EstadoOrden.AGREGANDOPRODUCTOS);
+  }
+
+  cargarOrdenesDisponiblesParaPago() {
+    this.cargarOrdenesPorEstado(EstadoOrden.DISPONIBLEPARAPAGO);
   }
 
   cargarOrdenesPagadas() {
@@ -212,6 +434,8 @@ export class OrdenesActivasComponent implements OnInit {
             if (index !== -1) {
               this.ordenes[index].estado = nuevoEstado;
               this.actualizarDatosFiltros();
+              this.successMessage = `Orden actualizada a estado: ${nuevoEstado}`;
+              this.limpiarMensajes();
             }
           }
         }
@@ -233,6 +457,7 @@ export class OrdenesActivasComponent implements OnInit {
   aplicarDescuento(ordenId: number, porcentajeDescuento: number) {
     if (porcentajeDescuento < 0 || porcentajeDescuento > 100) {
       this.errorMessage = 'El descuento debe estar entre 0% y 100%';
+      this.limpiarMensajes();
       return;
     }
 
@@ -241,6 +466,7 @@ export class OrdenesActivasComponent implements OnInit {
         catchError((error) => {
           console.error('Error al aplicar descuento:', error);
           this.errorMessage = 'Error al aplicar el descuento.';
+          this.limpiarMensajes();
           return of(null);
         })
       )
@@ -256,6 +482,8 @@ export class OrdenesActivasComponent implements OnInit {
                 total: ordenActualizada.total
               };
               this.actualizarDatosFiltros();
+              this.successMessage = `Descuento del ${porcentajeDescuento}% aplicado correctamente`;
+              this.limpiarMensajes();
             }
           }
         }
@@ -264,7 +492,11 @@ export class OrdenesActivasComponent implements OnInit {
 
   // Los métodos de filtrado, ordenamiento y utilidades se mantienen igual
   calcularEstadisticas() {
-    this.totalOrdenesPendientes = this.ordenes.filter(o => o.estado === EstadoOrden.PENDIENTE).length;
+    this.totalOrdenesPendientes = this.ordenes.filter(o => 
+      o.estado === EstadoOrden.PENDIENTE || 
+      o.estado === EstadoOrden.AGREGANDOPRODUCTOS ||
+      o.estado === EstadoOrden.DISPONIBLEPARAPAGO
+    ).length;
   }
 
   aplicarFiltros() {
@@ -420,7 +652,9 @@ export class OrdenesActivasComponent implements OnInit {
   getBadgeClass(estado: EstadoOrden): string {
     switch (estado) {
       case EstadoOrden.PENDIENTE: return 'badge-warning';
-      case EstadoOrden.PAGADA: return 'badge-info';
+      case EstadoOrden.AGREGANDOPRODUCTOS: return 'badge-primary';
+      case EstadoOrden.DISPONIBLEPARAPAGO: return 'badge-info';
+      case EstadoOrden.PAGADA: return 'badge-success';
       case EstadoOrden.ENTREGADA: return 'badge-success';
       case EstadoOrden.CERRADA: return 'badge-secondary';
       default: return 'badge-light';
@@ -484,5 +718,10 @@ export class OrdenesActivasComponent implements OnInit {
   // Método para recargar datos
   recargarDatos() {
     this.cargarDatosReales();
+  }
+
+  // Método para obtener el título de la página
+  getTituloPagina(): string {
+    return `Mis Órdenes ${this.vendedorActualNombre ? `- ${this.vendedorActualNombre}` : ''}`;
   }
 }

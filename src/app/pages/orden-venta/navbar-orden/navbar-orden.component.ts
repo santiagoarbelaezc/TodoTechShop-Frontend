@@ -2,6 +2,7 @@ import { Component, Output, EventEmitter, Input, OnInit, OnDestroy } from '@angu
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
+import { OrdenVentaService } from '../../../services/orden-venta.service'; // ✅ Importar el servicio
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -36,7 +37,8 @@ export class NavbarOrdenComponent implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private ordenVentaService: OrdenVentaService // ✅ Inyectar el servicio
   ) {}
 
   ngOnInit() {
@@ -162,7 +164,16 @@ export class NavbarOrdenComponent implements OnInit, OnDestroy {
   salir() {
     const confirmacion = confirm('¿Estás seguro de que deseas cerrar sesión?');
     if (confirmacion) {
+      console.log('🚪 Cerrando sesión y limpiando orden actual...');
+      
+      // ✅ LIMPIAR LA ORDEN ACTUAL ANTES DE CERRAR SESIÓN
+      this.ordenVentaService.limpiarOrdenActual();
+      console.log('🗑️ Orden actual limpiada correctamente');
+      
+      // Cerrar sesión
       this.authService.logout();
+      
+      // Navegar al login
       this.router.navigate(['/login']);
     }
   }

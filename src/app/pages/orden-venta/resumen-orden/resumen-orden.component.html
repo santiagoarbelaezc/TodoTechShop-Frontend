@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resumen de Orden - TodoTech Shop</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+  <div class="resumen-orden-container">
+    
+    <!-- Header -->
+    <header class="resumen-header">
+      <div class="header-content">
+        <button (click)="volverAInicio()" class="btn-volver">
+          <i class="fas fa-arrow-left"></i>
+          Volver al Inicio
+        </button>
+        <h1 class="page-title">
+          <i class="fas fa-file-invoice-dollar"></i>
+          Resumen de Orden Actual
+        </h1>
+        <button (click)="recargarOrden()" class="btn-recargar" [disabled]="loading">
+          <i class="fas fa-sync-alt" [class.fa-spin]="loading"></i>
+          Actualizar
+        </button>
+      </div>
+    </header>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Cargando resumen de orden...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="error-container">
+      <div class="error-message">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3>No se puede mostrar el resumen</h3>
+        <p>{{ error }}</p>
+        <button (click)="volverAInicio()" class="btn-primary">
+          <i class="fas fa-home"></i>
+          Ir al Inicio
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div *ngIf="ordenActual && !loading" class="resumen-content">
+      
+      <!-- Información General de la Orden -->
+      <section class="orden-info-section">
+        <div class="info-card">
+          <h3 class="section-title">
+            <i class="fas fa-info-circle"></i>
+            Información de la Orden
+          </h3>
+          
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Número de Orden:</span>
+              <span class="info-value">{{ ordenActual.numeroOrden }}</span>
+            </div>
+            
+            <div class="info-item">
+              <span class="info-label">Fecha:</span>
+              <span class="info-value">{{ formatearFecha(ordenActual.fecha) }}</span>
+            </div>
+            
+            <div class="info-item">
+              <span class="info-label">Estado:</span>
+              <span [class]="'estado-badge ' + getBadgeClass(ordenActual.estado)">
+                {{ ordenActual.estado }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Información del Cliente y Vendedor -->
+          <div class="personas-grid">
+            <div class="persona-card">
+              <h4 class="persona-title">
+                <i class="fas fa-user"></i>
+                Cliente
+              </h4>
+              <div class="persona-info">
+                <strong class="persona-nombre">{{ ordenActual.cliente.nombre }}</strong>
+                <div class="persona-detalles">
+                  <span class="persona-cedula">
+                    <i class="fas fa-id-card"></i>
+                    {{ ordenActual.cliente.cedula }}
+                  </span>
+                  <span class="persona-tipo" [class.tipo-juridico]="ordenActual.cliente.tipoCliente === 'JURIDICO'">
+                    {{ ordenActual.cliente.tipoCliente }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="persona-card">
+              <h4 class="persona-title">
+                <i class="fas fa-user-tie"></i>
+                Vendedor
+              </h4>
+              <div class="persona-info">
+                <strong class="persona-nombre">{{ ordenActual.vendedor.nombre }}</strong>
+                <div class="persona-detalles">
+                  <span class="persona-email">
+                    <i class="fas fa-envelope"></i>
+                    {{ ordenActual.vendedor.nombre }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Observaciones -->
+          <div *ngIf="ordenActual.observaciones" class="observaciones-card">
+            <h4 class="observaciones-title">
+              <i class="fas fa-sticky-note"></i>
+              Observaciones
+            </h4>
+            <p class="observaciones-text">{{ ordenActual.observaciones }}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Productos de la Orden -->
+      <section class="productos-section">
+        <div class="productos-card">
+          <h3 class="section-title">
+            <i class="fas fa-boxes"></i>
+            Productos en la Orden
+            <span class="productos-count">({{ ordenActual.productos.length }} productos)</span>
+          </h3>
+
+          <div class="productos-table-container">
+            <table class="productos-table">
+              <thead>
+                <tr>
+                  <th class="col-producto">Producto</th>
+                  <th class="col-precio">Precio Unitario</th>
+                  <th class="col-cantidad">Cantidad</th>
+                  <th class="col-subtotal">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let detalle of ordenActual.productos" class="producto-row">
+                  <td class="producto-info">
+                    <div class="producto-imagen">
+                      <img [src]="obtenerImagenProducto(detalle.producto.imagenUrl)" 
+                           [alt]="detalle.producto.nombre"
+                           class="producto-img">
+                    </div>
+                    <div class="producto-datos">
+                      <strong class="producto-nombre">{{ detalle.producto.nombre }}</strong>
+                      <div class="producto-detalles">
+                        <span class="producto-marca">{{ detalle.producto.marca }}</span>
+                        <span class="producto-categoria">{{ detalle.producto.categoria.nombre }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="producto-precio">
+                    {{ formatearMoneda(detalle.precioUnitario) }}
+                  </td>
+                  <td class="producto-cantidad">
+                    <span class="cantidad-badge">{{ detalle.cantidad }}</span>
+                  </td>
+                  <td class="producto-subtotal">
+                    <strong>{{ formatearMoneda(detalle.subtotal) }}</strong>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Resumen Financiero -->
+      <section class="resumen-financiero-section">
+        <div class="resumen-card">
+          <h3 class="section-title">
+            <i class="fas fa-calculator"></i>
+            Resumen Financiero
+          </h3>
+
+          <div class="resumen-grid">
+            <div class="totales-card">
+              <h4 class="totales-title">Desglose de Totales</h4>
+              
+              <div class="total-item">
+                <span class="total-label">Subtotal Productos:</span>
+                <span class="total-value">{{ formatearMoneda(calcularSubtotal()) }}</span>
+              </div>
+
+              <div *ngIf="ordenActual.descuento > 0" class="total-item descuento">
+                <span class="total-label">
+                  Descuento Aplicado:
+                  <span class="descuento-porcentaje">({{ getPorcentajeDescuento().toFixed(1) }}%)</span>
+                </span>
+                <span class="total-value descuento-valor">
+                  -{{ formatearMoneda(ordenActual.descuento) }}
+                </span>
+              </div>
+
+              <div class="total-item base-imponible">
+                <span class="total-label">Base Imponible:</span>
+                <span class="total-value">{{ formatearMoneda(calcularBaseImponible()) }}</span>
+              </div>
+
+              <div class="total-item impuestos">
+                <span class="total-label">Impuestos (3%):</span>
+                <span class="total-value">{{ formatearMoneda(calcularImpuestos()) }}</span>
+              </div>
+
+              <div class="total-item total-final">
+                <span class="total-label">Total General:</span>
+                <span class="total-value">{{ formatearMoneda(calcularTotal()) }}</span>
+              </div>
+            </div>
+
+            <div class="comparacion-card">
+              <h4 class="comparacion-title">Comparación con Valores Guardados</h4>
+              
+              <div class="comparacion-item">
+                <span class="comparacion-label">Subtotal (Calculado/Guardado):</span>
+                <div class="comparacion-valores">
+                  <span class="valor-calculado">{{ formatearMoneda(calcularSubtotal()) }}</span>
+                  <span class="separador">/</span>
+                  <span class="valor-guardado">{{ formatearMoneda(ordenActual.subtotal) }}</span>
+                </div>
+              </div>
+
+              <div class="comparacion-item">
+                <span class="comparacion-label">Impuestos (Calculado/Guardado):</span>
+                <div class="comparacion-valores">
+                  <span class="valor-calculado">{{ formatearMoneda(calcularImpuestos()) }}</span>
+                  <span class="separador">/</span>
+                  <span class="valor-guardado">{{ formatearMoneda(ordenActual.impuestos) }}</span>
+                </div>
+              </div>
+
+              <div class="comparacion-item">
+                <span class="comparacion-label">Total (Calculado/Guardado):</span>
+                <div class="comparacion-valores">
+                  <span class="valor-calculado">{{ formatearMoneda(calcularTotal()) }}</span>
+                  <span class="separador">/</span>
+                  <span class="valor-guardado">{{ formatearMoneda(ordenActual.total) }}</span>
+                </div>
+              </div>
+
+              <div class="comparacion-nota">
+                <i class="fas fa-info-circle"></i>
+                Los valores calculados se basan en los productos actuales. Los valores guardados pueden diferir si la orden fue modificada.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Acciones -->
+      <section class="acciones-section">
+        <div class="acciones-card">
+          <h3 class="section-title">
+            <i class="fas fa-cogs"></i>
+            Acciones
+          </h3>
+          
+          <div class="acciones-buttons">
+            <button (click)="generarNumero()" class="btn-action btn-primary" [disabled]="!puedeGenerarNumero()">
+              <i class="fas fa-shopping-cart"></i>
+              Generar Número de Orden
+            </button>
+            
+            <button (click)="volverAInicio()" class="btn-action btn-secondary">
+              <i class="fas fa-home"></i>
+              Volver al Inicio
+            </button>
+
+            <button (click)="recargarOrden()" class="btn-action btn-outline">
+              <i class="fas fa-sync-alt"></i>
+              Actualizar Resumen
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Modal para Generar Número de Orden -->
+    <div *ngIf="mostrarModal" class="modal-overlay" (click)="cerrarModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            <i class="fas fa-receipt"></i>
+            Número de Orden Generado
+          </h2>
+          <button class="modal-close" (click)="cerrarModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="numero-orden-display">
+            <div class="numero-orden-label">Número de Orden:</div>
+            <div class="numero-orden-value">{{ ordenActual?.numeroOrden }}</div>
+          </div>
+
+          <!-- ⚠️ MENSAJE DESTACADO SOBRE RESTRICCIONES -->
+          <div class="alerta-importante">
+            <div class="alerta-header">
+              <i class="fas fa-exclamation-triangle"></i>
+              <h4>¡ATENCIÓN IMPORTANTE!</h4>
+            </div>
+            <div class="alerta-contenido">
+              <p><strong>Una vez generado e impreso el número de orden:</strong></p>
+              <ul class="alerta-lista">
+                <li>
+                  <i class="fas fa-ban"></i>
+                  <strong>NO se pueden agregar más productos</strong> a esta orden
+                </li>
+                <li>
+                  <i class="fas fa-ban"></i>
+                  <strong>NO se pueden modificar</strong> las cantidades de productos existentes
+                </li>
+                <li>
+                  <i class="fas fa-ban"></i>
+                  <strong>NO se pueden eliminar</strong> productos de la orden
+                </li>
+                <li>
+                  <i class="fas fa-check-circle"></i>
+                  Solo se permite proceder con el <strong>proceso de pago</strong>
+                </li>
+              </ul>
+              <p class="alerta-advertencia">
+                <i class="fas fa-lightbulb"></i>
+                <strong>Consejo:</strong> Asegúrate de que todos los productos estén correctos antes de imprimir.
+              </p>
+            </div>
+          </div>
+
+          <div class="modal-info">
+            <div class="info-item">
+              <i class="fas fa-check-circle"></i>
+              <span>La orden ha sido marcada como <strong>DISPONIBLE PARA PAGO</strong></span>
+            </div>
+            <div class="info-item">
+              <i class="fas fa-info-circle"></i>
+              <span>Puedes imprimir este número para procesar el pago</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button (click)="imprimirNumeroOrden()" class="btn-modal btn-primary">
+            <i class="fas fa-print"></i>
+            Imprimir Número de Orden
+          </button>
+          <button (click)="cerrarModal()" class="btn-modal btn-secondary">
+            <i class="fas fa-times"></i>
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

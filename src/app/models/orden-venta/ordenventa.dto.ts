@@ -5,6 +5,8 @@ import { UsuarioDto } from "../usuario/usuario.dto";
 
 export enum EstadoOrden {
   PENDIENTE = 'PENDIENTE',
+  AGREGANDOPRODUCTOS = 'AGREGANDOPRODUCTOS',
+  DISPONIBLEPARAPAGO = 'DISPONIBLEPARAPAGO',
   PAGADA = 'PAGADA',
   ENTREGADA = 'ENTREGADA',
   CERRADA = 'CERRADA'

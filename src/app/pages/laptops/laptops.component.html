@@ -1,255 +1,166 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TodoTech Shop</title>
-    <link rel="stylesheet" href="laptops.component.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laptops - TodoTech Shop</title>
+  <link rel="stylesheet" href="laptops.component.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <img src="assets/logoTech.png" alt="TodoTech Shop">
-        </div>
-        <nav>
-            <ul class="menu">
-                <button class="boton-menu" (click)="irAInicio()">Inicio</button>
-                <button class="boton-menu" (click)="irALaptops()">Laptops & PCs</button>
-                <button class="boton-menu" (click)="irAPhone()">Smartphones</button>
-                <button class="boton-menu" (click)="irAGaming()">Gaming</button>
-                <button class="boton-menu" (click)="irAAccesorios()">Accesorios</button>
-            </ul>
-        </nav>
-        <div class="icons">
-            <i class="fas fa-search"></i>
-            <i class="fas fa-shopping-cart"></i>
-            
-        </div>
-    </header>
-    
-    <section class="banner">
-        <div class="banner-content">
-            <h2>
-                <span class="reveal-text delay-1">¡ Bienvenido   a   TodoTech   Laptops !</span>
-                <span class="reveal-text delay-2">Encuentra  las  mejores  ofertas  en  tus  marcas  favoritas</span>
-                <span class="reveal-text delay-3">                                                                                            </span>
-                <span class="reveal-text delay-4"> HP          LENOVO          ACER          ASUS           MAC </span>
-            </h2>
-        </div>
-    </section>
+  <!-- ✅ NAVBAR -->
+  <app-navbar-inicio></app-navbar-inicio>
 
+  <!-- ✅ CARRITO -->
+  <app-carrito
+    [mostrarCarrito]="mostrarCarrito"
+    [carritoVisible]="carritoVisible"
+    (carritoVisibleChange)="onCarritoVisibleChange($event)">
+  </app-carrito>
 
+  <!-- ✅ LOADING STATE -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Cargando laptops...</p>
+  </div>
 
-    <!-- Carrito (solo aparece al bajar el scroll) -->
-    <div class="cart-wrapper" *ngIf="mostrarCarrito">
-        <!-- Botón para abrir/cerrar el carrito -->
-        <button class="cart-button" (click)="toggleCarrito()">
-        🛒 <span>Carrito</span>
-        </button>
-  
-    <!-- Contenedor del carrito -->
-    <div class="cart-panel" [ngClass]="{ 'open': carritoVisible }">
-      <div class="cart-header">
-        <h3>🛍 Mi Carrito</h3>
-        <button class="close-btn" (click)="toggleCarrito()">✖</button>
-      </div>
-      <div class="cart-body">
-        <p class="empty-text">Tu carrito está vacío</p>
-      </div>
+  <!-- ✅ ERROR STATE -->
+  <div *ngIf="error && !loading" class="error-container">
+    <div class="error-message">
+      <h3>😕 Ocurrió un error</h3>
+      <p>{{ error }}</p>
+      <button (click)="recargarProductos()" class="btn-retry">Reintentar</button>
     </div>
   </div>
 
-
-    <section class="products-section">
-        <div class="carousel-container">
-            <button id="prevBtn" class="carousel-btn">❮</button>
-            <div class="carousel">
-                <div class="carousel-item">
-                    <img src="assets/laptop1.png" alt="Laptop 1">
-                    <h3>MacBook Air M2</h3>
-                    <p>Chip M2, 256GB SSD, 8GB RAM</p>
-                    <span class="price">$6.899.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/laptop2.png" alt="Laptop 2">
-                    <h3>Dell XPS 15</h3>
-                    <p>Intel i7 13th, 16GB RAM, 512GB SSD</p>
-                    <span class="price">$8.899.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/laptop3.png" alt="Laptop 3">
-                    <h3>Asus ROG Strix G16</h3>
-                    <p>RTX 4060, Intel i9, 32GB RAM</p>
-                    <span class="price">$9.499.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/laptop4.png" alt="Laptop 4">
-                    <h3>HP Spectre x360</h3>
-                    <p>Intel i7 12th, 16GB RAM, OLED</p>
-                    <span class="price">$7.799.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/laptop5.png" alt="Laptop 5">
-                    <h3>Lenovo ThinkPad X1</h3>
-                    <p>Intel i7, 16GB RAM, 1TB SSD</p>
-                    <span class="price">$8.299.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/laptop6.png" alt="Laptop 6">
-                    <h3>MSI Katana GF66</h3>
-                    <p>RTX 3050, Intel i5, 16GB RAM</p>
-                    <span class="price">$6.299.900</span>
-                </div>
-            </div>
-            <button id="nextBtn" class="carousel-btn">❯</button>
-        </div>
+  <!-- ✅ CONTENIDO PRINCIPAL -->
+  <div *ngIf="!loading && !error">
+    <!-- 🔹 BANNER PRINCIPAL PARA LAPTOPS -->
+    <section class="banner">
+      <div class="banner-content">
+        <h2>
+          <span class="reveal-text">Laptops de Última Generación</span>
+          <span class="reveal-text">Encuentra el equipo perfecto para trabajo, estudio y gaming</span>       
+        </h2>
+      </div>
     </section>
 
+    <!-- 🔹 CARRUSELES DE LAPTOPS POR MARCA -->
+    <app-carrusel-productos
+      *ngIf="productosAsus.length > 0"
+      [productos]="productosAsus"
+      titulo="🖥️ Laptops Asus"
+      carouselId="asus-laptops">
+    </app-carrusel-productos>
 
-    <section class="products-section">
-        <div class="carousel-container">
-            <button id="prevBtnHP" class="carousel-btn">❮</button>
-            <div class="carouselHP">
-                <div class="carousel-item">
-                    <img src="assets/hp1.png" alt="Laptop HP">
-                    <h3>HP Pavilion 15</h3>
-                    <p>Intel Core i5, 8GB RAM, 512GB SSD</p>
-                    <span class="price">$3.299.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/hp2.png" alt="Laptop HP">
-                    <h3>HP Envy x360</h3>
-                    <p>AMD Ryzen 7, 16GB RAM, 1TB SSD</p>
-                    <span class="price">$4.499.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/hp3.png" alt="Laptop HP">
-                    <h3>HP Omen 16</h3>
-                    <p>RTX 3060, Intel i7, 16GB RAM</p>
-                    <span class="price">$6.899.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/hp4.png" alt="Laptop HP">
-                    <h3>HP Spectre x360</h3>
-                    <p>Intel i7 12th, 16GB RAM, OLED</p>
-                    <span class="price">$7.799.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/hp5.png" alt="Laptop HP">
-                    <h3>HP EliteBook 840 G9</h3>
-                    <p>Intel i5, 16GB RAM, 256GB SSD</p>
-                    <span class="price">$5.199.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/hp6.png" alt="Laptop HP">
-                    <h3>HP Victus 16</h3>
-                    <p>RTX 3050, Intel i5, 8GB RAM</p>
-                    <span class="price">$4.799.900</span>
-                </div>
-            </div>
-            <button id="nextBtnHP" class="carousel-btn">❯</button>
-        </div>
-    </section>
-    
-    <section class="products-section">
-        <div class="carousel-container">
-            <button id="prevBtnAsus" class="carousel-btn">❮</button>
-            <div class="carouselAsus">
-                <div class="carousel-item">
-                    <img src="assets/asus1.png" alt="Laptop Asus 1">
-                    <h3>Asus ZenBook Pro 14</h3>
-                    <p>Ryzen 9, Zen 3060, 64GB RAM, 1TB SSD</p>
-                    <span class="price">$7.499.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/asus2.png" alt="Laptop Asus 2">
-                    <h3>Asus VivoBook S15</h3>
-                    <p>Intel i5 11th, 8GB RAM, 512GB SSD</p>
-                    <span class="price">$4.299.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/asus3.png" alt="Laptop Asus 3">
-                    <h3>Asus ROG Zephyrus G14</h3>
-                    <p>Ryzen 9, RTX 3060, 16GB RAM, 1TB SSD</p>
-                    <span class="price">$8.999.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/asus4.png" alt="Laptop Asus 4">
-                    <h3>Asus TUF Gaming F15</h3>
-                    <p>Intel i5 13th, RTX 4050, 16GB RAM</p>
-                    <span class="price">$6.599.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/asus5.png" alt="Laptop Asus 5">
-                    <h3>Asus ExpertBook B9</h3>
-                    <p>Intel i7, 16GB RAM, 512GB SSD, Ultra-Portable</p>
-                    <span class="price">$6.799.900</span>
-                </div>
-                <div class="carousel-item">
-                    <img src="assets/asus6.png" alt="Laptop Asus 6">
-                    <h3>Asus ROG Strix Scar 15</h3>
-                    <p>Intel i9, RTX 4080, 32GB RAM, 1TB SSD</p>
-                    <span class="price">$11.299.900</span>
-                </div>
-            </div>
-            <button id="nextBtnAsus" class="carousel-btn">❯</button>
-        </div>
-    </section>
-    
-    
+    <app-carrusel-productos
+      *ngIf="productosLenovo.length > 0"
+      [productos]="productosLenovo"
+      titulo="💼 Laptops Lenovo"
+      carouselId="lenovo-laptops">
+    </app-carrusel-productos>
 
-    <div class="cart-container" id="cart-container">
-        <h3>Carrito de Compras</h3>
-        <ul id="cart-items">
-            <li>Código: 101 - MacBook Air M2 - Cantidad: 1</li>
-            <li>Código: 202 - iPhone 14 Pro - Cantidad: 2</li>
-        </ul>
-        <button id="close-cart">Cerrar</button>
+    <app-carrusel-productos
+      *ngIf="productosHp.length > 0"
+      [productos]="productosHp"
+      titulo="⚡ Laptops HP"
+      carouselId="hp-laptops">
+    </app-carrusel-productos>
+
+    <app-carrusel-productos
+      *ngIf="productosDell.length > 0"
+      [productos]="productosDell"
+      titulo="🔧 Laptops Dell"
+      carouselId="dell-laptops">
+    </app-carrusel-productos>
+
+    <app-carrusel-productos
+      *ngIf="productosApple.length > 0"
+      [productos]="productosApple"
+      titulo="🍎 MacBook Apple"
+      carouselId="apple-laptops">
+    </app-carrusel-productos>
+
+    <!-- 🔹 PROMOCIONES ESPECIALES PARA LAPTOPS -->
+    <div class="promos-container">
+      <div class="promo-box" id="promo1">
+        <img src="assets/laptop-gaming.jpg" alt="Laptops Gaming">
+        <div class="promo-text">
+          <h3>Laptops Gaming</h3>
+          <p>Máximo rendimiento para gamers</p>
+        </div>
+      </div>
+
+      <div class="promo-box" id="promo2">
+        <div class="promo-text">
+          <h3>Garantía Extendida</h3>
+          <p>Hasta 3 años de garantía en todas nuestras laptops</p>
+        </div>
+      </div>
+
+      <div class="promo-box" id="promo3">
+        <img src="assets/ultrabook.jpg" alt="Ultrabooks">
+        <div class="promo-text">
+          <h3>Ultrabooks</h3>
+          <p>Ligereza y potencia combinadas</p>
+        </div>
+      </div>
     </div>
-<footer>
-        <div class="footer-container">
-            <div class="footer-section about">
-                <h2>TodoTech Shop</h2>
-                <p>Tu destino para lo último en tecnología. Encuentra laptops, smartphones, gaming y más.</p>
-            </div>
-            
-            <div class="footer-section links">
-                <h3>Enlaces rápidos</h3>
-                <ul>
-                    <li><a href="#">Inicio</a></li>
-                    <li><a href="#">Ofertas</a></li>
-                    <li><a href="#">Política de privacidad</a></li>
-                    <li><a href="#">Términos y condiciones</a></li>
-                </ul>
-            </div>
-    
-            <div class="footer-section contact">
-                <h3>Contacto</h3>
-                <p>Teléfono: +57 320 123 4567</p>
-            </div>
-    
-            <div class="footer-section social">
-                <h3>Síguenos</h3>
-                <div class="social-icons">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-youtube"></i></a>
-                </div>
-            </div>
-        </div>
-    
-        <div class="footer-bottom">
-            <p>© 2025 TodoTech Shop. Todos los derechos reservados.</p>
-        </div>
-    </footer>
 
-    <script src="script.js"></script>
+    <!-- 🔹 CARRUSELES ESPECIALIZADOS -->
+    <app-carrusel-productos
+      *ngIf="productosGaming.length > 0"
+      [productos]="productosGaming"
+      titulo="🎮 Laptops Gaming"
+      carouselId="gaming-laptops">
+    </app-carrusel-productos>
+
+    <app-carrusel-productos
+      *ngIf="productosUltrabooks.length > 0"
+      [productos]="productosUltrabooks"
+      titulo="✨ Ultrabooks & Laptops Delgadas"
+      carouselId="ultrabooks">
+    </app-carrusel-productos>
+  </div>
+
+  <!-- ✅ FOOTER -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-section about">
+        <h2>TodoTech Shop</h2>
+        <p>Tu destino para lo último en tecnología. Encuentra las mejores laptops del mercado.</p>
+      </div>
+
+      <div class="footer-section links">
+        <h3>Enlaces rápidos</h3>
+        <ul>
+          <li><a href="/inicio">Inicio</a></li>
+          <li><a href="/laptops">Laptops</a></li>
+          <li><a href="/phone">Smartphones</a></li>
+          <li><a href="/gaming">Gaming</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section contact">
+        <h3>Contacto</h3>
+        <p>Teléfono: +57 305 407 8225</p>
+        <p>Email: soporte&#64;todotech.com</p>
+      </div>
+
+      <div class="footer-section social">
+        <h3>Síguenos</h3>
+        <div class="social-icons">
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2025 TodoTech Shop. Todos los derechos reservados.</p>
+    </div>
+  </footer>
 </body>
 </html>
-
-
-
-

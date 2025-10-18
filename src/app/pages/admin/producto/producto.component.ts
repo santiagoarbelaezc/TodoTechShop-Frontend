@@ -3,17 +3,35 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../../services/producto.service';
 
-
 import { MensajeDto } from '../../../models/mensaje.dto';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { CategoriaDto } from '../../../models/categoria.dto';
 import { EstadoProducto } from '../../../models/enums/estado-producto.enum';
 import { ProductoDto } from '../../../models/producto/producto.dto';
 
+// Pipe personalizado para truncar texto
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({
+  name: 'truncate',
+  standalone: true
+})
+export class TruncatePipe implements PipeTransform {
+  transform(value: string, limit: number = 50, completeWords: boolean = false, ellipsis: string = '...'): string {
+    if (!value) return '';
+    if (value.length <= limit) return value;
+
+    if (completeWords) {
+      limit = value.substr(0, limit).lastIndexOf(' ');
+    }
+    return value.substr(0, limit) + ellipsis;
+  }
+}
+
 @Component({
   selector: 'app-producto',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent, TruncatePipe],
   templateUrl: './producto.component.html',
   styleUrls: ['./producto.component.css']
 })
@@ -55,6 +73,7 @@ export class ProductoComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarProductos();
+    this.cargarCategoriasReales(); // Cargar categorías reales del servicio
   }
 
   // Inicialización
@@ -72,6 +91,13 @@ export class ProductoComponent implements OnInit {
       garantia: 0,
       estado: EstadoProducto.ACTIVO
     };
+  }
+
+  // Cargar categorías reales
+  private cargarCategoriasReales(): void {
+    // Si tienes un servicio para categorías, úsalo aquí
+    // this.categoriaService.obtenerTodasLasCategorias().subscribe(...)
+    // Por ahora mantenemos las categorías de ejemplo
   }
 
   // Navegación
@@ -96,6 +122,35 @@ export class ProductoComponent implements OnInit {
     });
   }
 
+  // Métodos para estadísticas
+  getProductosActivos(): number {
+    return this.productos.filter(p => p.estado === EstadoProducto.ACTIVO).length;
+  }
+
+  getProductosStockBajo(): number {
+    return this.productos.filter(p => p.stock <= 5 && p.stock > 0).length;
+  }
+
+  getProductosAgotados(): number {
+    return this.productos.filter(p => p.stock === 0).length;
+  }
+
+  // Método para recargar productos
+  recargarProductos(): void {
+    this.cargarProductos();
+  }
+
+  // Método para obtener clase CSS del stock
+  getStockClass(stock: number): string {
+    if (stock === 0) {
+      return 'stock-agotado';
+    } else if (stock <= 5) {
+      return 'stock-bajo';
+    } else {
+      return 'stock-normal';
+    }
+  }
+
   // Operaciones CRUD
   guardarProducto(): void {
     if (this.productoEditando && this.producto.id) {
@@ -106,6 +161,12 @@ export class ProductoComponent implements OnInit {
   }
 
   crearProducto(): void {
+    // Validar que la categoría esté seleccionada
+    if (!this.producto.categoria || !this.producto.categoria.id) {
+      alert('Por favor seleccione una categoría');
+      return;
+    }
+
     this.productoService.crearProducto(this.producto).subscribe({
       next: (response: MensajeDto<string>) => {
         if (response.error) {
@@ -125,6 +186,12 @@ export class ProductoComponent implements OnInit {
 
   actualizarProducto(): void {
     if (!this.producto.id) return;
+
+    // Validar que la categoría esté seleccionada
+    if (!this.producto.categoria || !this.producto.categoria.id) {
+      alert('Por favor seleccione una categoría');
+      return;
+    }
 
     this.productoService.actualizarProducto(this.producto.id, this.producto).subscribe({
       next: (response: MensajeDto<string>) => {
@@ -153,6 +220,7 @@ export class ProductoComponent implements OnInit {
   cambiarEstadoProducto(producto: ProductoDto): void {
     if (!producto.id) return;
 
+    const nuevoEstado = producto.estado === EstadoProducto.ACTIVO ? EstadoProducto.INACTIVO : EstadoProducto.ACTIVO;
     const confirmacion = confirm(
       `¿Está seguro de que desea ${producto.estado === EstadoProducto.ACTIVO ? 'desactivar' : 'activar'} el producto "${producto.nombre}"?`
     );
@@ -218,6 +286,7 @@ export class ProductoComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error en búsqueda por nombre:', error);
+        // Fallback: filtrar localmente
         this.productosFiltrados = this.productos.filter(p => 
           p.nombre.toLowerCase().includes(this.terminoBusquedaNombre.toLowerCase())
         );
@@ -237,6 +306,7 @@ export class ProductoComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error en búsqueda por código:', error);
+        // Fallback: filtrar localmente
         this.productosFiltrados = this.productos.filter(p => 
           p.codigo.toLowerCase().includes(this.terminoBusquedaCodigo.toLowerCase())
         );
@@ -256,6 +326,7 @@ export class ProductoComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al filtrar por categoría:', error);
+        // Fallback: filtrar localmente
         this.productosFiltrados = this.productos.filter(p => 
           p.categoria.id === this.categoriaFiltro?.id
         );
@@ -275,6 +346,7 @@ export class ProductoComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al filtrar por estado:', error);
+        // Fallback: filtrar localmente
         this.productosFiltrados = this.productos.filter(p => 
           p.estado === this.estadoFiltro
         );
@@ -307,8 +379,78 @@ export class ProductoComponent implements OnInit {
     this.productosFiltrados = [...this.productos];
   }
 
+  // Método para aplicar múltiples filtros simultáneamente
+  aplicarFiltrosCombinados(): void {
+    let productosFiltrados = [...this.productos];
+
+    // Filtrar por nombre
+    if (this.terminoBusquedaNombre.trim()) {
+      productosFiltrados = productosFiltrados.filter(p => 
+        p.nombre.toLowerCase().includes(this.terminoBusquedaNombre.toLowerCase())
+      );
+    }
+
+    // Filtrar por código
+    if (this.terminoBusquedaCodigo.trim()) {
+      productosFiltrados = productosFiltrados.filter(p => 
+        p.codigo.toLowerCase().includes(this.terminoBusquedaCodigo.toLowerCase())
+      );
+    }
+
+    // Filtrar por categoría
+    if (this.categoriaFiltro) {
+      productosFiltrados = productosFiltrados.filter(p => 
+        p.categoria.id === this.categoriaFiltro?.id
+      );
+    }
+
+    // Filtrar por estado
+    if (this.estadoFiltro) {
+      productosFiltrados = productosFiltrados.filter(p => 
+        p.estado === this.estadoFiltro
+      );
+    }
+
+    // Filtrar por stock
+    if (this.stockFiltro) {
+      switch (this.stockFiltro) {
+        case 'bajo':
+          productosFiltrados = productosFiltrados.filter(p => p.stock <= 5 && p.stock > 0);
+          break;
+        case 'normal':
+          productosFiltrados = productosFiltrados.filter(p => p.stock > 5);
+          break;
+        case 'agotado':
+          productosFiltrados = productosFiltrados.filter(p => p.stock === 0);
+          break;
+      }
+    }
+
+    this.productosFiltrados = productosFiltrados;
+  }
+
   // Utilidades
   manejarErrorImagen(event: any): void {
     event.target.style.display = 'none';
+  }
+
+  // Método para formatear moneda (opcional)
+  formatearMoneda(valor: number): string {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0
+    }).format(valor);
+  }
+
+  // Método para obtener el texto del estado del producto
+  getEstadoTexto(estado: EstadoProducto): string {
+    switch (estado) {
+      case EstadoProducto.ACTIVO: return 'Activo';
+      case EstadoProducto.INACTIVO: return 'Inactivo';
+      case EstadoProducto.DESCONTINUADO: return 'Descontinuado';
+      case EstadoProducto.AGOTADO: return 'Agotado';
+      default: return estado;
+    }
   }
 }

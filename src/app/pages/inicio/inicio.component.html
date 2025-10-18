@@ -1,461 +1,149 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TodoTech Shop</title>
-    <link rel="stylesheet" href="inicio.component.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TodoTech Shop</title>
+  <link rel="stylesheet" href="inicio.component.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-    <!-- Reemplaza todo el header con el nuevo navbar -->
-    <app-navbar-inicio></app-navbar-inicio>
-    
-    <!-- Loading State -->
-    <div *ngIf="loading" class="loading-container">
-        <div class="loading-spinner"></div>
-        <p>Cargando productos...</p>
+  <!-- ✅ NAVBAR -->
+  <app-navbar-inicio></app-navbar-inicio>
+
+  <!-- ✅ CARRITO -->
+  <app-carrito
+    [mostrarCarrito]="mostrarCarrito"
+    [carritoVisible]="carritoVisible"
+    (carritoVisibleChange)="onCarritoVisibleChange($event)">
+  </app-carrito>
+
+  <!-- ✅ LOADING STATE -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Cargando productos...</p>
+  </div>
+
+  <!-- ✅ ERROR STATE -->
+  <div *ngIf="error && !loading" class="error-container">
+    <div class="error-message">
+      <h3>😕 Ocurrió un error</h3>
+      <p>{{ error }}</p>
+      <button (click)="recargarProductos()" class="btn-retry">Reintentar</button>
+    </div>
+  </div>
+
+  <!-- ✅ CONTENIDO PRINCIPAL -->
+  <div *ngIf="!loading && !error">
+    <!-- 🔹 BANNER PRINCIPAL CON PARTÍCULAS -->
+    <section class="banner">
+      <!-- Partículas individuales -->
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      
+      <div class="banner-content">
+        <h2>
+          <span class="reveal-text">¡ Bienvenido a TodoTechShop Tecnología Sin Límites !</span>
+          <span class="reveal-text">Descubre innovación, calidad y asesoría experta en cada compra</span>       
+        </h2>
+      </div>
+    </section>
+
+    <!-- 🔹 CARRUSELES DE PRODUCTOS -->
+    <app-carrusel-productos
+      *ngIf="productosGaming.length > 0"
+      [productos]="productosGaming"
+      titulo="🎮 PC Gaming"
+      carouselId="gaming">
+    </app-carrusel-productos>
+
+    <app-carrusel-productos
+      *ngIf="productosIphone.length > 0"
+      [productos]="productosIphone"
+      titulo="📱 Smartphones iPhone"
+      carouselId="iphone">
+    </app-carrusel-productos>
+
+    <!-- 🔹 PROMOCIONES -->
+    <div class="promos-container">
+      <div class="promo-box" id="promo1">
+        <img src="assets/catalogo.jpg" alt="Escanea el código QR">
+        <div class="promo-text">
+          <h3>Escanea el código QR</h3>
+          <p>y mira el catálogo en tu celular</p>
+        </div>
+      </div>
+
+      <div class="promo-box" id="promo2">
+        <div class="promo-text">
+          <h3>Obtén descuentos especiales en nuestros productos</h3>
+        </div>
+      </div>
+
+      <div class="promo-box" id="promo3">
+        <img src="assets/tienda.png" alt="Conoce nuestros productos">
+        <div class="promo-text">
+          <h3>Conoce nuestros productos</h3>
+          <p>Tecnología sin límites</p>
+        </div>
+      </div>
     </div>
 
-    <!-- Error State -->
-    <div *ngIf="error && !loading" class="error-container">
-        <div class="error-message">
-            <h3>😕 Ocurrió un error</h3>
-            <p>{{ error }}</p>
-            <button (click)="recargarProductos()" class="btn-retry">Reintentar</button>
+    <app-carrusel-productos
+      *ngIf="productosAsus.length > 0"
+      [productos]="productosAsus"
+      titulo="💻 Laptops Asus"
+      carouselId="asus">
+    </app-carrusel-productos>
+
+    <app-carrusel-productos
+      *ngIf="productosSamsung.length > 0"
+      [productos]="productosSamsung"
+      titulo="📱 Smartphones Samsung"
+      carouselId="samsung">
+    </app-carrusel-productos>
+  </div>
+
+  <!-- ✅ FOOTER -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-section about">
+        <h2>TodoTech Shop</h2>
+        <p>Tu destino para lo último en tecnología. Encuentra laptops, smartphones, gaming y más.</p>
+      </div>
+
+      <div class="footer-section links">
+        <h3>Enlaces rápidos</h3>
+        <ul>
+          <li><a href="#">Inicio</a></li>
+          <li><a href="#">Ofertas</a></li>
+          <li><a href="#">Política de privacidad</a></li>
+          <li><a href="#">Términos y condiciones</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section contact">
+        <h3>Contacto</h3>
+        <p>Teléfono: +57 305 407 8225</p>
+      </div>
+
+      <div class="footer-section social">
+        <h3>Síguenos</h3>
+        <div class="social-icons">
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
         </div>
+      </div>
     </div>
 
-    <!-- Contenido principal cuando no hay error ni loading -->
-    <div *ngIf="!loading && !error">
-        <section class="banner">
-            <div class="banner-content">
-                <h2>
-                    <span class="reveal-text delay-1">¡ Bienvenido a TodoTechShop Tecnología Sin Límites !</span>
-                    <span class="reveal-text delay-2"></span>
-                    <span class="reveal-text delay-3">Descubre innovación, calidad y asesoría experta en cada compra</span>       
-                </h2>
-            </div>
-        </section>
-    
-        <!-- Carrito (solo aparece al bajar el scroll) - CON EFECTOS DE ENTRADA -->
-        <div class="cart-wrapper slide-right-entrance" *ngIf="mostrarCarrito">
-            <!-- Botón para abrir/cerrar el carrito -->
-            <button class="cart-button bounce-entrance" (click)="toggleCarrito()">
-                🛒 <span>Carrito</span>
-            </button>
-
-            <!-- Contenedor del carrito -->
-            <div class="cart-panel" [ngClass]="{ 'open': carritoVisible }">
-                <div class="cart-header">
-                    <h3 class="text-reveal">🛍 Mi Carrito</h3>
-                    <button class="close-btn fade-in-entrance" (click)="toggleCarrito()">✖</button>
-                </div>
-
-                <div class="cart-body">
-                    <!-- Encabezados de la tabla -->
-                    <div class="cart-row cart-header-row fade-in-entrance">
-                        <span class="cart-col">Producto</span>
-                        <span class="cart-col">Cantidad</span>
-                        <span class="cart-col">Subtotal</span>
-                        <span class="cart-col">Acciones</span>
-                    </div>
-
-                    <!-- Detalles del carrito -->
-                    <div *ngFor="let item of carrito; let i = index" class="cart-row slide-up-entrance" [ngClass]="'entrance-delay-' + (i + 1)">
-                        <span class="cart-col">{{ item.nombreProducto }}</span>
-                        <span class="cart-col">
-                            <div class="quantity-controls">
-                                <button class="quantity-btn bounce-entrance" (click)="ajustarCantidad(i, -1)">−</button>
-                                <span class="fade-in-entrance">{{ item.detalle.cantidad }}</span>
-                                <button class="quantity-btn bounce-entrance" (click)="ajustarCantidad(i, 1)">+</button>
-                            </div>
-                        </span>
-                        <span class="cart-col zoom-entrance">{{ formatearPrecio(item.detalle.subtotal) }}</span>
-                        <span class="cart-col">
-                            <button class="remove-btn bounce-entrance" (click)="eliminarProducto(i)">🗑️</button>
-                        </span>
-                    </div>
-
-                    <!-- Mensaje cuando el carrito está vacío -->
-                    <div *ngIf="carrito.length === 0" class="empty-cart fade-in-entrance">
-                        <p>🛒 Tu carrito está vacío</p>
-                        <p>Agrega algunos productos para continuar</p>
-                    </div>
-
-                    <div class="cart-footer-actions" *ngIf="carrito.length > 0">
-                        <button class="btn-cart btn-checkout component-entrance" (click)="pagarCarrito()">
-                            <i class="fas fa-shopping-cart"></i> Pagar Carrito
-                        </button>
-
-                        <div class="action-buttons">
-                            <div *ngIf="mostrarInputDescuento" class="discount-input-container fade-in-entrance">
-                                <input 
-                                    type="text" 
-                                    [(ngModel)]="codigoDescuento"
-                                    placeholder="Código de descuento"
-                                    class="discount-input"
-                                    (keyup.enter)="validarDescuento()"
-                                    [disabled]="aplicandoDescuento"
-                                >
-                                <button 
-                                    class="btn-cart btn-apply bounce-entrance" 
-                                    (click)="validarDescuento()"
-                                    [disabled]="aplicandoDescuento || !codigoDescuento.trim()"
-                                >
-                                    {{ aplicandoDescuento ? 'Aplicando...' : 'Aplicar' }}
-                                </button>
-                                <button 
-                                    class="btn-cart btn-cancel-input bounce-entrance" 
-                                    (click)="mostrarInputDescuento = false"
-                                    [disabled]="aplicandoDescuento"
-                                >×</button>
-                            </div>
-                            
-                            <button 
-                                class="btn-cart btn-discount fade-in-entrance" 
-                                (click)="aplicarDescuento()"
-                                *ngIf="!mostrarInputDescuento"
-                            >
-                                🎟 Aplicar Descuento
-                            </button>
-                            
-                            <button class="btn-cart btn-cancel fade-in-entrance" (click)="cancelarOrden()">🗑 Cancelar</button>
-                        </div>
-
-                        <!-- Mensaje de error -->
-                        <div *ngIf="errorDescuento" class="error-message fade-in-entrance">
-                            {{ errorDescuento }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Carrusel Iphone -->
-        <section class="products-section iphone-section" *ngIf="productosIphone.length > 0">
-            <div class="section-header">
-                <h2 class="section-title">📱 Smartphones iPhone</h2>
-                <p class="section-subtitle">Descubre la innovación y elegancia de Apple</p>
-            </div>
-            
-            <div class="carousel-container">
-                <button class="carousel-nav prev" (click)="scrollCarousel('prev', 'iphone')">‹</button>
-                
-                <div class="carousel-wrapper">
-                    <div class="carousel" id="carousel-iphone">
-                        <div class="carousel-item" *ngFor="let producto of productosIphone">
-                            <div class="product-card" (click)="verDetalleProducto(producto)">
-                                <div class="product-image-container">
-                                    <img [src]="obtenerImagenProducto(producto)" [alt]="producto.nombre" class="product-image" (error)="producto.imagenUrl = 'assets/images/default-product.png'">
-                                </div>
-                                
-                                <div class="product-content">
-                                    <div class="product-header">
-                                        <h3 class="product-title">{{ producto.nombre }}</h3>
-                                        <span class="category-badge">{{ producto.categoria.nombre }}</span>
-                                    </div>
-                                    
-                                    <div class="product-description">
-                                        <p>{{ producto.descripcion }}</p>
-                                    </div>
-                                    
-                                    <div class="product-price-container">
-                                        <span class="price price-subtle">
-                                            {{ formatearPrecio(producto.precio) }}
-                                            <div class="price-inner-glow"></div>
-                                        </span>
-                                    </div>
-                                    
-                                    <div class="product-actions">
-                                        <div class="carrito-container">
-                                            <button 
-                                                class="btn-carrito" 
-                                                (click)="agregarAlCarrito(producto); $event.stopPropagation()"
-                                                [disabled]="producto.stock === 0"
-                                                [ngClass]="{'btn-disabled': producto.stock === 0}"
-                                            >
-                                                <span class="btn-icon">🛒</span>
-                                                <span class="btn-text">
-                                                    {{ producto.stock === 0 ? 'Sin Stock' : 'Agregar al carrito' }}
-                                                </span>
-                                            </button>
-                                            <span class="stock-info" [ngClass]="obtenerClaseStock(producto)">
-                                                {{ obtenerTextoStock(producto) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <button class="carousel-nav next" (click)="scrollCarousel('next', 'iphone')">›</button>
-            </div>
-            
-            <div class="carousel-indicators">
-                <span class="indicator active"></span>
-                <span class="indicator"></span>
-                <span class="indicator"></span>
-            </div>
-        </section>
-
-        <div class="promos-container">
-            <div class="promo-box" id="promo1">
-                <img src="assets/catalogo.jpg" alt="Escanea el código QR">
-                <div class="promo-text">
-                    <h3>Escanea el código QR</h3>
-                    <p>y mira el catálogo en tu celular</p>
-                </div>
-            </div>
-            <div class="promo-box" id="promo2">
-                <div class="promo-text">
-                    <h3>Obtén descuentos especiales en nuestros productos</h3>
-                </div>
-            </div>
-            <div class="promo-box" id="promo3">
-                <img src="assets/tienda.png" alt="Conoce nuestros productos">
-                <div class="promo-text">
-                    <h3>Conoce nuestros productos</h3>
-                    <p>Tecnología sin límites</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Carrusel HP -->
-        <section class="products-section hp-section" *ngIf="productosHp.length > 0">
-            <div class="section-header">
-                <h2 class="section-title">💻 Laptops HP</h2>
-                <p class="section-subtitle">Potencia y rendimiento para trabajo y entretenimiento</p>
-            </div>
-            
-            <div class="carousel-container">
-                <button class="carousel-nav prev" (click)="scrollCarousel('prev', 'hp')">‹</button>
-                
-                <div class="carousel-wrapper">
-                    <div class="carousel" id="carousel-hp">
-                        <div class="carousel-item" *ngFor="let producto of productosHp">
-                            <div class="product-card" (click)="verDetalleProducto(producto)">
-                                <div class="product-image-container">
-                                    <img [src]="obtenerImagenProducto(producto)" [alt]="producto.nombre" class="product-image" (error)="producto.imagenUrl = 'assets/images/default-product.png'">
-                                </div>
-                                
-                                <div class="product-content">
-                                    <div class="product-header">
-                                        <h3 class="product-title">{{ producto.nombre }}</h3>
-                                        <span class="category-badge">{{ producto.categoria.nombre }}</span>
-                                    </div>
-                                    
-                                    <div class="product-description">
-                                        <p>{{ producto.descripcion }}</p>
-                                    </div>
-                                    
-                                    <div class="product-price-container">
-                                        <span class="price price-subtle">
-                                            {{ formatearPrecio(producto.precio) }}
-                                            <div class="price-inner-glow"></div>
-                                        </span>
-                                    </div>
-                                    
-                                    <div class="product-actions">
-                                        <div class="carrito-container">
-                                            <button 
-                                                class="btn-carrito" 
-                                                (click)="agregarAlCarrito(producto); $event.stopPropagation()"
-                                                [disabled]="producto.stock === 0"
-                                                [ngClass]="{'btn-disabled': producto.stock === 0}"
-                                            >
-                                                <span class="btn-icon">🛒</span>
-                                                <span class="btn-text">
-                                                    {{ producto.stock === 0 ? 'Sin Stock' : 'Agregar al carrito' }}
-                                                </span>
-                                            </button>
-                                            <span class="stock-info" [ngClass]="obtenerClaseStock(producto)">
-                                                {{ obtenerTextoStock(producto) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <button class="carousel-nav next" (click)="scrollCarousel('next', 'hp')">›</button>
-            </div>
-            
-            <div class="carousel-indicators">
-                <span class="indicator active"></span>
-                <span class="indicator"></span>
-                <span class="indicator"></span>
-            </div>
-        </section>
-
-        <!-- Carrusel Asus (si hay productos) -->
-        <section class="products-section asus-section" *ngIf="productosAsus.length > 0">
-            <div class="section-header">
-                <h2 class="section-title">💻 Laptops Asus</h2>
-                <p class="section-subtitle">Tecnología y diseño para gamers y profesionales</p>
-            </div>
-            
-            <div class="carousel-container">
-                <button class="carousel-nav prev" (click)="scrollCarousel('prev', 'asus')">‹</button>
-                
-                <div class="carousel-wrapper">
-                    <div class="carousel" id="carousel-asus">
-                        <div class="carousel-item" *ngFor="let producto of productosAsus">
-                            <div class="product-card" (click)="verDetalleProducto(producto)">
-                                <div class="product-image-container">
-                                    <img [src]="obtenerImagenProducto(producto)" [alt]="producto.nombre" class="product-image" (error)="producto.imagenUrl = 'assets/images/default-product.png'">
-                                </div>
-                                
-                                <div class="product-content">
-                                    <div class="product-header">
-                                        <h3 class="product-title">{{ producto.nombre }}</h3>
-                                        <span class="category-badge">{{ producto.categoria.nombre }}</span>
-                                    </div>
-                                    
-                                    <div class="product-description">
-                                        <p>{{ producto.descripcion }}</p>
-                                    </div>
-                                    
-                                    <div class="product-price-container">
-                                        <span class="price price-subtle">
-                                            {{ formatearPrecio(producto.precio) }}
-                                            <div class="price-inner-glow"></div>
-                                        </span>
-                                    </div>
-                                    
-                                    <div class="product-actions">
-                                        <div class="carrito-container">
-                                            <button 
-                                                class="btn-carrito" 
-                                                (click)="agregarAlCarrito(producto); $event.stopPropagation()"
-                                                [disabled]="producto.stock === 0"
-                                                [ngClass]="{'btn-disabled': producto.stock === 0}"
-                                            >
-                                                <span class="btn-icon">🛒</span>
-                                                <span class="btn-text">
-                                                    {{ producto.stock === 0 ? 'Sin Stock' : 'Agregar al carrito' }}
-                                                </span>
-                                            </button>
-                                            <span class="stock-info" [ngClass]="obtenerClaseStock(producto)">
-                                                {{ obtenerTextoStock(producto) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <button class="carousel-nav next" (click)="scrollCarousel('next', 'asus')">›</button>
-            </div>
-        </section>
-
-        <!-- Carrusel Samsung (si hay productos) -->
-        <section class="products-section samsung-section" *ngIf="productosSamsung.length > 0">
-            <div class="section-header">
-                <h2 class="section-title">📱 Smartphones Samsung</h2>
-                <p class="section-subtitle">Innovación y calidad en cada dispositivo</p>
-            </div>
-            
-            <div class="carousel-container">
-                <button class="carousel-nav prev" (click)="scrollCarousel('prev', 'samsung')">‹</button>
-                
-                <div class="carousel-wrapper">
-                    <div class="carousel" id="carousel-samsung">
-                        <div class="carousel-item" *ngFor="let producto of productosSamsung">
-                            <div class="product-card" (click)="verDetalleProducto(producto)">
-                                <div class="product-image-container">
-                                    <img [src]="obtenerImagenProducto(producto)" [alt]="producto.nombre" class="product-image" (error)="producto.imagenUrl = 'assets/images/default-product.png'">
-                                </div>
-                                
-                                <div class="product-content">
-                                    <div class="product-header">
-                                        <h3 class="product-title">{{ producto.nombre }}</h3>
-                                        <span class="category-badge">{{ producto.categoria.nombre }}</span>
-                                    </div>
-                                    
-                                    <div class="product-description">
-                                        <p>{{ producto.descripcion }}</p>
-                                    </div>
-                                    
-                                    <div class="product-price-container">
-                                        <span class="price price-subtle">
-                                            {{ formatearPrecio(producto.precio) }}
-                                            <div class="price-inner-glow"></div>
-                                        </span>
-                                    </div>
-                                    
-                                    <div class="product-actions">
-                                        <div class="carrito-container">
-                                            <button 
-                                                class="btn-carrito" 
-                                                (click)="agregarAlCarrito(producto); $event.stopPropagation()"
-                                                [disabled]="producto.stock === 0"
-                                                [ngClass]="{'btn-disabled': producto.stock === 0}"
-                                            >
-                                                <span class="btn-icon">🛒</span>
-                                                <span class="btn-text">
-                                                    {{ producto.stock === 0 ? 'Sin Stock' : 'Agregar al carrito' }}
-                                                </span>
-                                            </button>
-                                            <span class="stock-info" [ngClass]="obtenerClaseStock(producto)">
-                                                {{ obtenerTextoStock(producto) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <button class="carousel-nav next" (click)="scrollCarousel('next', 'samsung')">›</button>
-            </div>
-        </section>
+    <div class="footer-bottom">
+      <p>© 2025 TodoTech Shop. Todos los derechos reservados.</p>
     </div>
-
-    <footer>
-        <div class="footer-container">
-            <div class="footer-section about">
-                <h2>TodoTech Shop</h2>
-                <p>Tu destino para lo último en tecnología. Encuentra laptops, smartphones, gaming y más.</p>
-            </div>
-            
-            <div class="footer-section links">
-                <h3>Enlaces rápidos</h3>
-                <ul>
-                    <li><a href="#">Inicio</a></li>
-                    <li><a href="#">Ofertas</a></li>
-                    <li><a href="#">Política de privacidad</a></li>
-                    <li><a href="#">Términos y condiciones</a></li>
-                </ul>
-            </div>
-    
-            <div class="footer-section contact">
-                <h3>Contacto</h3>
-                <p>Teléfono: +57 305 407 8225</p>
-            </div>
-    
-            <div class="footer-section social">
-                <h3>Síguenos</h3>
-                <div class="social-icons">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-youtube"></i></a>
-                </div>
-            </div>
-        </div>
-    
-        <div class="footer-bottom">
-            <p>© 2025 TodoTech Shop. Todos los derechos reservados.</p>
-        </div>
-    </footer>
+  </footer>
 </body>
 </html>

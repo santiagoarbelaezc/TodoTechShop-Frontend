@@ -79,7 +79,7 @@ export class NavbarComponent implements OnInit {
       'usuarios': 'admin-creacion', // Sin la barra inicial
       'usuariosRegistrados': 'admin-tabla',
       'productos': 'admin-productos',
-      'ordenes': 'admin',
+      'ordenes': 'admin-ordenes',
       'reportes': 'admin', 
       'configuracion': 'admin'
     };

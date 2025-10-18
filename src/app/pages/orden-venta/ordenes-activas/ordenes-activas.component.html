@@ -12,6 +12,31 @@
   <!-- Navbar -->
   <app-navbar-orden></app-navbar-orden>
   
+  <!-- Sistema de Mensajes -->
+  <div *ngIf="successMessage" class="mensaje-exito">
+    <i class="fas fa-check-circle"></i>
+    <div class="mensaje-contenido">
+      <div class="mensaje-titulo">¡Éxito!</div>
+      <div class="mensaje-texto">{{ successMessage }}</div>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="mensaje-error">
+    <i class="fas fa-exclamation-circle"></i>
+    <div class="mensaje-contenido">
+      <div class="mensaje-titulo">Error</div>
+      <div class="mensaje-texto">{{ errorMessage }}</div>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="mensaje-carga">
+    <i class="fas fa-spinner"></i>
+    <div class="mensaje-contenido">
+      <div class="mensaje-titulo">Procesando</div>
+      <div class="mensaje-texto">Cargando órdenes de venta...</div>
+    </div>
+  </div>
+
   <!-- Contenido Principal -->
   <main class="ordenes-container">
     
@@ -239,6 +264,16 @@
                 </td>
                 <td class="orden-acciones">
                   <div class="acciones-buttons">
+                    <!-- Botón Continuar con Orden -->
+                    <button 
+                      (click)="continuarConOrden(orden)" 
+                      class="btn-action btn-continue"
+                      title="Continuar con esta orden">
+                      <i class="fas fa-arrow-right"></i>
+                      Continuar
+                    </button>
+                    
+                    <!-- Botones existentes -->
                     <button 
                       class="btn-action btn-view"
                       title="Ver detalles completos">
@@ -304,6 +339,74 @@
         </span>
       </div>
     </section>
+
+    <!-- Modal de Confirmación para Continuar con Orden -->
+    <div *ngIf="mostrarConfirmacionContinuar && ordenSeleccionada" class="modal-overlay">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3>Continuar con Orden</h3>
+          <button (click)="cancelarContinuar()" class="btn-close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="modal-confirmacion">
+            <div class="confirmacion-icono">
+              <i class="fas fa-shopping-cart"></i>
+            </div>
+            
+            <div class="confirmacion-mensaje">
+              <h4>¿Desea continuar con esta orden?</h4>
+              <p>Está a punto de procesar la siguiente orden de venta:</p>
+            </div>
+            
+            <div class="info-orden">
+              <h5>Información de la Orden</h5>
+              <div class="detalles-orden">
+                <div class="detalle-item">
+                  <span class="detalle-label">Número de Orden</span>
+                  <span class="detalle-valor">{{ ordenSeleccionada.numeroOrden }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-label">Cliente</span>
+                  <span class="detalle-valor">{{ ordenSeleccionada.cliente.nombre }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-label">Fecha</span>
+                  <span class="detalle-valor">{{ formatearFecha(ordenSeleccionada.fecha) }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-label">Total</span>
+                  <span class="detalle-valor">{{ formatearMoneda(ordenSeleccionada.total) }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-label">Estado Actual</span>
+                  <span [class]="'detalle-valor badge badge-' + ordenSeleccionada.estado.toLowerCase()">
+                    {{ ordenSeleccionada.estado }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-actions">
+              <button type="button" 
+                      (click)="cancelarContinuar()" 
+                      class="btn-secondary" 
+                      [disabled]="cargando">
+                Cancelar
+              </button>
+              <button (click)="procesarOrden()" 
+                      class="btn-procesar-orden" 
+                      [disabled]="cargando">
+                <i class="fas fa-cogs" [class.fa-spin]="cargando"></i>
+                {{ cargando ? 'Procesando...' : 'Procesar Orden' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 </body>
 </html>

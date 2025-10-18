@@ -8,7 +8,6 @@ import { NavbarInicioComponent } from '../navbar-inicio/navbar-inicio.component'
 import { ProductoService } from '../../../services/producto.service';
 import { ProductoDto } from '../../../models/producto/producto.dto';
 
-
 // Interfaz extendida para incluir la propiedad imagen
 interface ProductoConImagen extends ProductoDto {
   imagen: string;
@@ -157,10 +156,43 @@ export class DescripcionproductoComponent implements OnInit, OnDestroy, AfterVie
     this.subscriptions.add(activosSubscription);
   }
 
+  // MÉTODO PARA OBTENER LA IMAGEN CORRECTAMENTE
+  private obtenerImagenProducto(producto: ProductoDto): string {
+    // Si no hay imagenUrl, usar por defecto
+    if (!producto.imagenUrl) {
+      return 'assets/images/default-product.png';
+    }
+
+    // Si ya es una URL completa (http/https) o data URL, usarla directamente
+    if (producto.imagenUrl.startsWith('http') || producto.imagenUrl.startsWith('data:')) {
+      return producto.imagenUrl;
+    }
+
+    // Si ya empieza con assets/, usarla directamente
+    if (producto.imagenUrl.startsWith('assets/')) {
+      return producto.imagenUrl;
+    }
+
+    // Para cualquier otro caso, prefijar con assets/
+    return 'assets/' + producto.imagenUrl;
+  }
+
+  // MÉTODO PARA MANEJAR ERRORES DE IMAGEN
+  manejarErrorImagen(event: Event, producto: ProductoConImagen): void {
+    console.error(`❌ Error cargando imagen para: ${producto.nombre}`);
+    console.error(`📁 URL intentada: ${producto.imagen}`);
+    
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.src = 'assets/images/default-product.png';
+    
+    // Actualizar la imagen del producto para futuras referencias
+    producto.imagen = 'assets/images/default-product.png';
+  }
+
   private convertirProductoConImagen(producto: ProductoDto): ProductoConImagen {
     return {
       ...producto,
-      imagen: producto.imagenUrl || 'assets/images/default-product.png' // Imagen por defecto
+      imagen: this.obtenerImagenProducto(producto) // Usar el método para obtener la imagen correcta
     };
   }
 

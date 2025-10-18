@@ -9,6 +9,9 @@ import { ClienteService } from '../../../services/cliente.service';
 import { MensajeDto } from '../../../models/mensaje.dto';
 import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { CreateOrdenDto } from '../../../models/orden-venta/ordenventa.dto';
+import { OrdenVentaService } from '../../../services/orden-venta.service';
+import { UsuarioService } from '../../../services/usuario.service';
 
 @Component({
   selector: 'app-clientes',
@@ -45,7 +48,9 @@ export class ClientesComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private clienteService: ClienteService
+    private clienteService: ClienteService,
+    private ordenVentaService: OrdenVentaService,
+    private usuarioService: UsuarioService // ✅ Inyectar el servicio de usuario
   ) {}
 
   ngOnInit(): void {
@@ -395,36 +400,114 @@ export class ClientesComponent implements OnInit {
   }
 
   // ✅ NUEVO MÉTODO: Crear orden de venta
-  crearOrdenVenta(): void {
-    if (!this.clienteSeleccionado) {
-      this.errorMessage = 'No se ha seleccionado ningún cliente';
-      return;
-    }
-
-    console.log('=== 📋 CREANDO ORDEN DE VENTA ===');
-    console.log('👤 Cliente para orden:', this.clienteSeleccionado);
-    
-    // Aquí va tu lógica para crear la orden de venta
-    // Por ejemplo, navegar a la página de orden de venta
-    // this.router.navigate(['/orden-venta'], { 
-    //   state: { cliente: this.clienteSeleccionado } 
-    // });
-
-    // O abrir un modal de creación de orden
-    // this.abrirModalOrdenVenta();
-
-    // Por ahora, solo mostraremos un mensaje de éxito
-    this.successMessage = `✅ Orden de venta creada para: ${this.clienteSeleccionado.nombre}`;
-    
-    // Cerrar el modal después de crear la orden
-    this.mostrarConfirmacionContinuar = false;
-    this.clienteSeleccionado = null;
-
-    // Opcional: Limpiar el mensaje después de unos segundos
-    setTimeout(() => {
-      this.successMessage = '';
-    }, 5000);
+  // ✅ MÉTODO MODIFICADO: Crear orden de venta usando el servicio con UsuarioService
+crearOrdenVenta(): void {
+  if (!this.clienteSeleccionado || !this.clienteSeleccionado.id) {
+    this.errorMessage = 'No se ha seleccionado ningún cliente válido';
+    return;
   }
+
+  console.log('=== 📋 CREANDO ORDEN DE VENTA ===');
+  console.log('👤 Cliente seleccionado:', this.clienteSeleccionado);
+
+  // Resetear estados
+  this.cargando = true;
+  this.errorMessage = '';
+  this.successMessage = '';
+
+  // Obtener usuario actual usando UsuarioService
+  const usuarioActual = this.usuarioService.getUsuario();
+
+  if (!usuarioActual) {
+    this.errorMessage = 'No hay usuario autenticado. No se puede crear la orden.';
+    this.cargando = false;
+    return;
+  }
+
+  console.log('👤 Usuario autenticado:', usuarioActual);
+
+  // Preparar datos para crear la orden
+  const createOrdenDto: CreateOrdenDto = {
+    clienteId: this.clienteSeleccionado.id,
+    vendedorId: usuarioActual.userId // Usamos el userId del LoginResponse
+  };
+
+  console.log('📦 Datos para crear orden:', createOrdenDto);
+  console.log('🚀 Llamando servicio ordenVentaService.crearOrden...');
+
+  // Crear la orden usando el servicio
+  this.ordenVentaService.crearOrden(createOrdenDto)
+    .pipe(
+      catchError((error) => {
+        console.error('❌ Error al crear orden:', error);
+        console.error('🔍 Detalles del error:', {
+          message: error.message,
+          status: error.status,
+          url: error.url
+        });
+        
+        this.errorMessage = 'Error al crear la orden de venta. Por favor, intente nuevamente.';
+        this.cargando = false;
+        return of(null);
+      })
+    )
+    .subscribe({
+      next: (ordenCreada) => {
+        console.log('📨 Respuesta del servicio crearOrden:', ordenCreada);
+        this.cargando = false;
+        
+        if (ordenCreada) {
+          console.log('✅ ORDEN CREADA EXITOSAMENTE:', ordenCreada);
+          console.log('📋 Detalles de la orden creada:');
+          console.log('   🆔 ID:', ordenCreada.id);
+          console.log('   🔢 Número de Orden:', ordenCreada.numeroOrden);
+          console.log('   🏷️ Estado:', ordenCreada.estado);
+          console.log('   👤 Cliente:', ordenCreada.cliente);
+          console.log('   💰 Total:', ordenCreada.total);
+          console.log('   📅 Fecha:', ordenCreada.fecha);
+          
+          // ✅ GUARDAR LA ORDEN ACTUAL EN EL SERVICIO
+          console.log('💾 Guardando orden actual en el servicio...');
+          this.ordenVentaService.guardarOrdenActual(ordenCreada);
+          
+          // También mantener los métodos existentes por compatibilidad
+          this.ordenVentaService.setOrdenIdEnLocalStorage(ordenCreada.id);
+          this.ordenVentaService.setOrden(ordenCreada);
+          
+          // ✅ VERIFICACIÓN: Comprobar que se guardó correctamente
+          console.log('🔍 Verificando guardado en servicio:');
+          const ordenGuardada = this.ordenVentaService.obtenerOrdenActual();
+          console.log('   ¿Se guardó correctamente?', ordenGuardada !== null);
+          console.log('   Orden guardada:', ordenGuardada);
+          
+          // Mostrar mensaje de éxito
+          this.successMessage = `✅ Orden de venta #${ordenCreada.numeroOrden} creada exitosamente para: ${this.clienteSeleccionado!.nombre}`;
+          
+          // Cerrar el modal de confirmación
+          this.mostrarConfirmacionContinuar = false;
+          const clienteNombre = this.clienteSeleccionado!.nombre;
+          this.clienteSeleccionado = null;
+          
+          // ✅ REDIRIGIR A LA PÁGINA DE INICIO después de un breve delay
+          console.log('🔄 Redirigiendo a /inicio...');
+          
+          setTimeout(() => {
+            this.router.navigate(['/inicio']);
+            this.successMessage = '';
+          }, 2000); // 2 segundos para que el usuario vea el mensaje de éxito
+          
+        } else {
+          console.log('⚠️ Respuesta de orden creada es null o undefined');
+          this.errorMessage = 'No se pudo crear la orden. Por favor, intente nuevamente.';
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error completo en el subscribe:', error);
+        this.cargando = false;
+        this.errorMessage = 'Error de conexión. Por favor, verifique su conexión a internet.';
+      }
+    });
+}
 
   // ✅ MÉTODO AUXILIAR: Obtener información de contacto formateada
   obtenerInfoContacto(cliente: ClienteDto): string {
