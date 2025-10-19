@@ -60,7 +60,7 @@
           <div class="info-grid">
             <div class="info-item">
               <span class="info-label">Número de Orden:</span>
-              <span class="info-value">{{ ordenActual.numeroOrden }}</span>
+              <span class="info-value">{{ ordenActual.numeroOrden || 'Por generar' }}</span>
             </div>
             
             <div class="info-item">
@@ -186,20 +186,20 @@
 
           <div class="resumen-grid">
             <div class="totales-card">
-              <h4 class="totales-title">Desglose de Totales</h4>
+              <h4 class="totales-title">Totales de la Orden</h4>
               
               <div class="total-item">
                 <span class="total-label">Subtotal Productos:</span>
                 <span class="total-value">{{ formatearMoneda(calcularSubtotal()) }}</span>
               </div>
 
+              <!-- ✅ CORREGIDO: Solo mostrar el valor del descuento, sin porcentaje -->
               <div *ngIf="ordenActual.descuento > 0" class="total-item descuento">
                 <span class="total-label">
                   Descuento Aplicado:
-                  <span class="descuento-porcentaje">({{ getPorcentajeDescuento().toFixed(1) }}%)</span>
                 </span>
                 <span class="total-value descuento-valor">
-                  -{{ formatearMoneda(ordenActual.descuento) }}
+                  -{{ formatearMoneda(getDescuentoAplicado()) }}
                 </span>
               </div>
 
@@ -209,7 +209,7 @@
               </div>
 
               <div class="total-item impuestos">
-                <span class="total-label">Impuestos (3%):</span>
+                <span class="total-label">Impuestos ({{ getPorcentajeImpuestos() }}%):</span>
                 <span class="total-value">{{ formatearMoneda(calcularImpuestos()) }}</span>
               </div>
 
@@ -219,39 +219,37 @@
               </div>
             </div>
 
-            <div class="comparacion-card">
-              <h4 class="comparacion-title">Comparación con Valores Guardados</h4>
+            <div class="detalles-card">
+              <h4 class="detalles-title">Detalles del Cálculo</h4>
               
-              <div class="comparacion-item">
-                <span class="comparacion-label">Subtotal (Calculado/Guardado):</span>
-                <div class="comparacion-valores">
-                  <span class="valor-calculado">{{ formatearMoneda(calcularSubtotal()) }}</span>
-                  <span class="separador">/</span>
-                  <span class="valor-guardado">{{ formatearMoneda(ordenActual.subtotal) }}</span>
-                </div>
+              <div class="detalle-item">
+                <span class="detalle-label">Subtotal calculado:</span>
+                <span class="detalle-value">{{ formatearMoneda(ordenActual.subtotal) }}</span>
               </div>
 
-              <div class="comparacion-item">
-                <span class="comparacion-label">Impuestos (Calculado/Guardado):</span>
-                <div class="comparacion-valores">
-                  <span class="valor-calculado">{{ formatearMoneda(calcularImpuestos()) }}</span>
-                  <span class="separador">/</span>
-                  <span class="valor-guardado">{{ formatearMoneda(ordenActual.impuestos) }}</span>
-                </div>
+              <div class="detalle-item">
+                <span class="detalle-label">Descuento aplicado:</span>
+                <span class="detalle-value">{{ formatearMoneda(ordenActual.descuento || 0) }}</span>
               </div>
 
-              <div class="comparacion-item">
-                <span class="comparacion-label">Total (Calculado/Guardado):</span>
-                <div class="comparacion-valores">
-                  <span class="valor-calculado">{{ formatearMoneda(calcularTotal()) }}</span>
-                  <span class="separador">/</span>
-                  <span class="valor-guardado">{{ formatearMoneda(ordenActual.total) }}</span>
-                </div>
+              <div class="detalle-item">
+                <span class="detalle-label">Base para impuestos:</span>
+                <span class="detalle-value">{{ formatearMoneda(ordenActual.subtotal - (ordenActual.descuento || 0)) }}</span>
               </div>
 
-              <div class="comparacion-nota">
-                <i class="fas fa-info-circle"></i>
-                Los valores calculados se basan en los productos actuales. Los valores guardados pueden diferir si la orden fue modificada.
+              <div class="detalle-item">
+                <span class="detalle-label">Impuestos ({{ getPorcentajeImpuestos() }}%):</span>
+                <span class="detalle-value">{{ formatearMoneda(ordenActual.impuestos) }}</span>
+              </div>
+
+              <div class="detalle-item total-detalle">
+                <span class="detalle-label">Total orden:</span>
+                <span class="detalle-value">{{ formatearMoneda(ordenActual.total) }}</span>
+              </div>
+
+              <div class="info-note">
+                <i class="fas fa-database"></i>
+                <span>Valores calculados automáticamente por el sistema</span>
               </div>
             </div>
           </div>
@@ -268,7 +266,7 @@
           
           <div class="acciones-buttons">
             <button (click)="generarNumero()" class="btn-action btn-primary" [disabled]="!puedeGenerarNumero()">
-              <i class="fas fa-shopping-cart"></i>
+              <i class="fas fa-receipt"></i>
               Generar Número de Orden
             </button>
             
@@ -281,6 +279,18 @@
               <i class="fas fa-sync-alt"></i>
               Actualizar Resumen
             </button>
+          </div>
+
+          <!-- Información del Estado -->
+          <div *ngIf="!puedeGenerarNumero()" class="estado-info">
+            <div class="info-message" [class.info-warning]="ordenActual.estado !== 'PENDIENTE' && ordenActual.estado !== 'AGREGANDOPRODUCTOS'">
+              <i class="fas fa-info-circle"></i>
+              <span>
+                {{ ordenActual.estado === 'DISPONIBLEPARAPAGO' ? 
+                   'La orden ya tiene número generado y está disponible para pago' :
+                   'No se puede generar número de orden en el estado actual' }}
+              </span>
+            </div>
           </div>
         </div>
       </section>

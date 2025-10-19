@@ -58,8 +58,22 @@
               [class.invalid]="contrasena && !validatePassword()"
               [disabled]="isLoading">
             <label for="contrasena">Contraseña</label>
+            
+            <!-- Nuevo: Indicadores de requisitos de contraseña -->
+            <div *ngIf="contrasena" class="password-requirements">
+              <div class="requirement" [class.valid]="passwordRequirements.minLength">
+                ✓ Mínimo 8 caracteres
+              </div>
+              <div class="requirement" [class.valid]="passwordRequirements.hasUpperCase">
+                ✓ Al menos una mayúscula
+              </div>
+              <div class="requirement" [class.valid]="passwordRequirements.hasSpecialChar">
+                ✓ Al menos un carácter especial
+              </div>
+            </div>
+            
             <div *ngIf="contrasena && !validatePassword()" class="validation-hint">
-              Mínimo 4 caracteres
+              Requiere: {{ getPasswordValidationMessage() }}
             </div>
           </div>
   
@@ -129,8 +143,6 @@
       </div>
     </main>
     
-    <footer>
-      © 2025 TodoTech Shop - Todos los derechos reservados.
-    </footer>
+    
 </body>
 </html>

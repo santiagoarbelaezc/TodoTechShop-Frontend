@@ -723,3 +723,327 @@ footer {
     transform: none !important;
     box-shadow: none !important;
 }
+/* ===== ESTILOS PARA MENSAJES DE ESTADO ===== */
+.messages-container {
+    margin-bottom: 20px;
+    animation: slideInDown 0.3s ease-out;
+}
+
+.message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    animation: slideInDown 0.3s ease-out;
+    border-left: 4px solid transparent;
+    line-height: 1.4;
+}
+
+/* Mensaje de error */
+.error-message {
+       display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #fdf2f2 0%, #fce8e8 100%);
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    color: #721c24;
+    font-size: 13px;
+    font-weight: 500;
+    animation: slideInDown 0.3s ease-out;
+    border-left: 4px solid #e74c3c;
+}
+
+.error-message i {
+    color: #e74c3c;
+    font-size: 14px;
+    flex-shrink: 0;
+    animation: pulseWarning 2s infinite;
+}
+
+.error-message span {
+    flex: 1;
+    color: #721c24;
+}
+
+/* Mensaje de advertencia */
+.warning-message {
+        display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #fdf2f2 0%, #fce8e8 100%);
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    color: #b88a26;
+    font-size: 13px;
+    font-weight: 500;
+    animation: slideInDown 0.3s ease-out;
+    border-left: 4px solid #f5aa3a;
+}
+
+.warning-message i {
+    color: #856404;
+    font-size: 14px;
+    flex-shrink: 0;
+    animation: pulseWarning 2s infinite;
+}
+
+.warning-message span {
+    flex: 1;
+    color: #856404;
+}
+
+/* Mensaje de éxito */
+.success-message {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    border-left-color: #28a745;
+}
+
+.success-message i {
+    color: #155724;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.success-message span {
+    flex: 1;
+    color: #155724;
+}
+
+/* Mensaje de carga */
+.loading-message {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 1px solid #bbdefb;
+    color: #1565c0;
+    border-left-color: #2196f3;
+}
+
+.loading-message i {
+    color: #1565c0;
+    font-size: 14px;
+    flex-shrink: 0;
+    animation: spin 1s linear infinite;
+}
+
+.loading-message span {
+    flex: 1;
+    color: #1565c0;
+}
+
+/* Mensaje informativo */
+.info-message {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 1px solid #bbdefb;
+    color: #1565c0;
+    border-left-color: #2196f3;
+}
+
+.info-message i {
+    color: #1565c0;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.info-message span {
+    flex: 1;
+    color: #1565c0;
+}
+
+/* ===== ESTILOS PARA MENSAJES DE ERROR DE DESCUENTO ===== */
+.input-error {
+    border-color: #e74c3c !important;
+    background: #fdf2f2 !important;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1) !important;
+}
+
+.input-error:focus {
+    border-color: #c0392b !important;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2) !important;
+}
+
+.input-error + label {
+    color: #e74c3c !important;
+}
+
+
+
+
+
+.error-text {
+    flex: 1;
+    line-height: 1.4;
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulseWarning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Efecto de shake cuando hay error */
+@keyframes shakeError {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.input-error {
+    animation: shakeError 0.4s ease-in-out;
+}
+
+/* ===== ESTILOS ADICIONALES ===== */
+.input-group:has(.input-error) .input-hint {
+    color: #e74c3c;
+}
+
+.input-group:focus-within .input-hint {
+    color: #1421cf;
+}
+
+.input-group:has(.input-error):focus-within .input-hint {
+    color: #e74c3c;
+}
+
+/* Efecto de transición suave para los cambios de estado */
+.input-group input,
+.input-group textarea,
+.error-message-descuento,
+.message {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estilo para el botón deshabilitado cuando hay error */
+.btn-primary:disabled {
+    background: linear-gradient(135deg, #ccc 0%, #999 100%) !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.btn-primary:disabled:hover {
+    background: linear-gradient(135deg, #ccc 0%, #999 100%) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Múltiples mensajes con espaciado */
+.messages-container:has(.message + .message) {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ===== ESTILOS SUTILES PARA CONTADOR DE CARACTERES ===== */
+.character-counter {
+    margin-top: 4px;
+    text-align: right;
+    font-size: 11px;
+    color: #6b7280;
+    font-weight: 400;
+    transition: all 0.2s ease;
+}
+
+.character-counter.warning {
+    color: #d97706;
+}
+
+.character-counter.error {
+    color: #dc2626;
+}
+
+/* ===== BARRA DE PROGRESO SUTIL ===== */
+.progress-indicator {
+    margin-top: 16px;
+    text-align: center;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 2px;
+    background: #e5e7eb;
+    border-radius: 1px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 1px;
+    animation: gentleProgress 2s ease-in-out infinite;
+}
+
+@keyframes gentleProgress {
+    0% { width: 0%; opacity: 0.6; }
+    50% { width: 70%; opacity: 1; }
+    100% { width: 100%; opacity: 0.6; }
+}
+
+.progress-indicator small {
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 400;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .message,
+    .error-message-descuento {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    
+    .message i,
+    .error-message-descuento i {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .message,
+    .error-message-descuento {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+        text-align: left;
+    }
+    
+    .message span,
+    .error-text {
+        margin-left: 0;
+    }
+    
+    .character-counter {
+        font-size: 10px;
+    }
+    
+    .progress-indicator small {
+        font-size: 10px;
+    }
+}

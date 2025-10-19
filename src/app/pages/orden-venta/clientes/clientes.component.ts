@@ -50,7 +50,7 @@ export class ClientesComponent implements OnInit {
     private router: Router,
     private clienteService: ClienteService,
     private ordenVentaService: OrdenVentaService,
-    private usuarioService: UsuarioService // ✅ Inyectar el servicio de usuario
+    private usuarioService: UsuarioService
   ) {}
 
   ngOnInit(): void {
@@ -61,13 +61,11 @@ export class ClientesComponent implements OnInit {
     this.cargando = true;
     this.errorMessage = '';
     
-    // Usar el nuevo método para obtener todos los clientes
     this.clienteService.obtenerTodosLosClientes()
       .pipe(
         catchError((error) => {
           console.error('Error al cargar clientes:', error);
           this.errorMessage = 'Error al cargar los clientes. Por favor, intente nuevamente.';
-          // Para MensajeDto<ClienteDto[]>, data debe ser un array
           return of({ error: true, mensaje: 'Error al cargar clientes', data: [] } as MensajeDto<ClienteDto[]>);
         }),
         finalize(() => {
@@ -141,7 +139,6 @@ export class ClientesComponent implements OnInit {
         catchError((error) => {
           console.error('Error al buscar cliente por cédula:', error);
           this.errorMessage = 'No se encontró ningún cliente con esa cédula';
-          // Para MensajeDto<ClienteDto>, necesitamos proporcionar un ClienteDto por defecto o undefined
           const errorResponse: MensajeDto<ClienteDto> = {
             error: true,
             mensaje: 'No se encontró ningún cliente con esa cédula',
@@ -212,7 +209,6 @@ export class ClientesComponent implements OnInit {
           catchError((error) => {
             console.error('Error al actualizar cliente:', error);
             this.errorMessage = 'Error al actualizar el cliente. Por favor, intente nuevamente.';
-            // Para MensajeDto<ClienteDto>, necesitamos proporcionar un ClienteDto por defecto
             const errorResponse: MensajeDto<ClienteDto> = {
               error: true,
               mensaje: 'Error al actualizar el cliente',
@@ -307,7 +303,6 @@ export class ClientesComponent implements OnInit {
           catchError((error) => {
             console.error('Error al crear cliente:', error);
             this.errorMessage = 'Error al crear el cliente. Por favor, intente nuevamente.';
-            // Para MensajeDto<ClienteDto>, necesitamos proporcionar un ClienteDto por defecto
             const errorResponse: MensajeDto<ClienteDto> = {
               error: true,
               mensaje: 'Error al crear el cliente',
@@ -380,7 +375,7 @@ export class ClientesComponent implements OnInit {
     this.cargarClientes();
   }
 
-  // ✅ MÉTODO: Continuar con un cliente existente - MODIFICADO
+  // ✅ MÉTODO: Continuar con un cliente existente
   continuarConCliente(cliente: ClienteDto): void {
     console.log('=== 🚀 CONTINUANDO CON CLIENTE EXISTENTE ===');
     console.log('👤 Cliente seleccionado:', cliente);
@@ -391,7 +386,7 @@ export class ClientesComponent implements OnInit {
     this.successMessage = '';
   }
 
-  // ✅ NUEVO MÉTODO: Cancelar la acción de continuar
+  // ✅ MÉTODO: Cancelar la acción de continuar
   cancelarContinuar(): void {
     this.mostrarConfirmacionContinuar = false;
     this.clienteSeleccionado = null;
@@ -399,115 +394,149 @@ export class ClientesComponent implements OnInit {
     this.successMessage = '';
   }
 
-  // ✅ NUEVO MÉTODO: Crear orden de venta
-  // ✅ MÉTODO MODIFICADO: Crear orden de venta usando el servicio con UsuarioService
-crearOrdenVenta(): void {
-  if (!this.clienteSeleccionado || !this.clienteSeleccionado.id) {
-    this.errorMessage = 'No se ha seleccionado ningún cliente válido';
-    return;
-  }
+  // ✅ MÉTODO CORREGIDO: Crear orden de venta con el nuevo DTO que incluye descuento
+  crearOrdenVenta(): void {
+    if (!this.clienteSeleccionado || !this.clienteSeleccionado.id) {
+      this.errorMessage = 'No se ha seleccionado ningún cliente válido';
+      return;
+    }
 
-  console.log('=== 📋 CREANDO ORDEN DE VENTA ===');
-  console.log('👤 Cliente seleccionado:', this.clienteSeleccionado);
+    console.log('=== 📋 CREANDO ORDEN DE VENTA ===');
+    console.log('👤 Cliente seleccionado:', this.clienteSeleccionado);
 
-  // Resetear estados
-  this.cargando = true;
-  this.errorMessage = '';
-  this.successMessage = '';
+    // Resetear estados
+    this.cargando = true;
+    this.errorMessage = '';
+    this.successMessage = '';
 
-  // Obtener usuario actual usando UsuarioService
-  const usuarioActual = this.usuarioService.getUsuario();
+    // Obtener usuario actual usando UsuarioService
+    const usuarioActual = this.usuarioService.getUsuario();
 
-  if (!usuarioActual) {
-    this.errorMessage = 'No hay usuario autenticado. No se puede crear la orden.';
-    this.cargando = false;
-    return;
-  }
+    if (!usuarioActual) {
+      this.errorMessage = 'No hay usuario autenticado. No se puede crear la orden.';
+      this.cargando = false;
+      return;
+    }
 
-  console.log('👤 Usuario autenticado:', usuarioActual);
+    console.log('👤 Usuario autenticado:', usuarioActual);
 
-  // Preparar datos para crear la orden
-  const createOrdenDto: CreateOrdenDto = {
-    clienteId: this.clienteSeleccionado.id,
-    vendedorId: usuarioActual.userId // Usamos el userId del LoginResponse
-  };
+    // ✅ CORREGIDO: Determinar el descuento a aplicar
+    const descuentoAAplicar = this.clienteSeleccionado.descuentoAplicable !== undefined && 
+                              this.clienteSeleccionado.descuentoAplicable !== null && 
+                              this.clienteSeleccionado.descuentoAplicable > 0 
+                              ? this.clienteSeleccionado.descuentoAplicable 
+                              : this.getDescuentoPorDefecto(this.clienteSeleccionado.tipoCliente);
 
-  console.log('📦 Datos para crear orden:', createOrdenDto);
-  console.log('🚀 Llamando servicio ordenVentaService.crearOrden...');
+    console.log('💰 Descuento a aplicar:', descuentoAAplicar + '%');
 
-  // Crear la orden usando el servicio
-  this.ordenVentaService.crearOrden(createOrdenDto)
-    .pipe(
-      catchError((error) => {
-        console.error('❌ Error al crear orden:', error);
-        console.error('🔍 Detalles del error:', {
-          message: error.message,
-          status: error.status,
-          url: error.url
-        });
-        
-        this.errorMessage = 'Error al crear la orden de venta. Por favor, intente nuevamente.';
-        this.cargando = false;
-        return of(null);
-      })
-    )
-    .subscribe({
-      next: (ordenCreada) => {
-        console.log('📨 Respuesta del servicio crearOrden:', ordenCreada);
-        this.cargando = false;
-        
-        if (ordenCreada) {
-          console.log('✅ ORDEN CREADA EXITOSAMENTE:', ordenCreada);
-          console.log('📋 Detalles de la orden creada:');
-          console.log('   🆔 ID:', ordenCreada.id);
-          console.log('   🔢 Número de Orden:', ordenCreada.numeroOrden);
-          console.log('   🏷️ Estado:', ordenCreada.estado);
-          console.log('   👤 Cliente:', ordenCreada.cliente);
-          console.log('   💰 Total:', ordenCreada.total);
-          console.log('   📅 Fecha:', ordenCreada.fecha);
+    // ✅ CORREGIDO: Preparar datos para crear la orden con descuento incluido
+    const createOrdenDto: CreateOrdenDto = {
+      clienteId: this.clienteSeleccionado.id,
+      vendedorId: usuarioActual.userId,
+      descuento: descuentoAAplicar // ✅ NUEVO: Incluir el descuento en el DTO
+    };
+
+    console.log('📦 Datos para crear orden:', createOrdenDto);
+    console.log('🚀 Llamando servicio ordenVentaService.crearOrden...');
+
+    // Crear la orden usando el servicio
+    this.ordenVentaService.crearOrden(createOrdenDto)
+      .pipe(
+        catchError((error) => {
+          console.error('❌ Error al crear orden:', error);
+          console.error('🔍 Detalles del error:', {
+            message: error.message,
+            status: error.status,
+            url: error.url
+          });
           
-          // ✅ GUARDAR LA ORDEN ACTUAL EN EL SERVICIO
-          console.log('💾 Guardando orden actual en el servicio...');
-          this.ordenVentaService.guardarOrdenActual(ordenCreada);
+          this.errorMessage = 'Error al crear la orden de venta. Por favor, intente nuevamente.';
+          this.cargando = false;
+          return of(null);
+        })
+      )
+      .subscribe({
+        next: (ordenCreada) => {
+          console.log('📨 Respuesta del servicio crearOrden:', ordenCreada);
+          this.cargando = false;
           
-          // También mantener los métodos existentes por compatibilidad
-          this.ordenVentaService.setOrdenIdEnLocalStorage(ordenCreada.id);
-          this.ordenVentaService.setOrden(ordenCreada);
-          
-          // ✅ VERIFICACIÓN: Comprobar que se guardó correctamente
-          console.log('🔍 Verificando guardado en servicio:');
-          const ordenGuardada = this.ordenVentaService.obtenerOrdenActual();
-          console.log('   ¿Se guardó correctamente?', ordenGuardada !== null);
-          console.log('   Orden guardada:', ordenGuardada);
-          
-          // Mostrar mensaje de éxito
-          this.successMessage = `✅ Orden de venta #${ordenCreada.numeroOrden} creada exitosamente para: ${this.clienteSeleccionado!.nombre}`;
-          
-          // Cerrar el modal de confirmación
-          this.mostrarConfirmacionContinuar = false;
-          const clienteNombre = this.clienteSeleccionado!.nombre;
-          this.clienteSeleccionado = null;
-          
-          // ✅ REDIRIGIR A LA PÁGINA DE INICIO después de un breve delay
-          console.log('🔄 Redirigiendo a /inicio...');
-          
-          setTimeout(() => {
-            this.router.navigate(['/inicio']);
-            this.successMessage = '';
-          }, 2000); // 2 segundos para que el usuario vea el mensaje de éxito
-          
-        } else {
-          console.log('⚠️ Respuesta de orden creada es null o undefined');
-          this.errorMessage = 'No se pudo crear la orden. Por favor, intente nuevamente.';
+          if (ordenCreada) {
+            console.log('✅ ORDEN CREADA EXITOSAMENTE:', ordenCreada);
+            console.log('📋 Detalles de la orden creada:');
+            console.log('   🆔 ID:', ordenCreada.id);
+            console.log('   🔢 Número de Orden:', ordenCreada.numeroOrden);
+            console.log('   🏷️ Estado:', ordenCreada.estado);
+            console.log('   👤 Cliente:', ordenCreada.cliente);
+            console.log('   💰 Descuento aplicado:', ordenCreada.descuento);
+            console.log('   💰 Total:', ordenCreada.total);
+            console.log('   📅 Fecha:', ordenCreada.fecha);
+            
+            // ✅ GUARDAR LA ORDEN ACTUAL EN EL SERVICIO
+            console.log('💾 Guardando orden actual en el servicio...');
+            this.ordenVentaService.guardarOrdenActual(ordenCreada);
+            
+            // También mantener los métodos existentes por compatibilidad
+            this.ordenVentaService.setOrdenIdEnLocalStorage(ordenCreada.id);
+            this.ordenVentaService.setOrden(ordenCreada);
+            
+            // ✅ VERIFICACIÓN: Comprobar que se guardó correctamente
+            console.log('🔍 Verificando guardado en servicio:');
+            const ordenGuardada = this.ordenVentaService.obtenerOrdenActual();
+            console.log('   ¿Se guardó correctamente?', ordenGuardada !== null);
+            console.log('   Orden guardada:', ordenGuardada);
+            
+            // Mostrar mensaje de éxito
+            this.successMessage = `✅ Orden de venta #${ordenCreada.numeroOrden} creada exitosamente para: ${this.clienteSeleccionado!.nombre}`;
+            
+            // Cerrar el modal de confirmación
+            this.mostrarConfirmacionContinuar = false;
+            const clienteNombre = this.clienteSeleccionado!.nombre;
+            this.clienteSeleccionado = null;
+            
+            // ✅ ACTUALIZAR ESTADO DE LA ORDEN A AGREGANDOPRODUCTOS
+            console.log('🔄 Actualizando estado de la orden a AGREGANDOPRODUCTOS...');
+            this.ordenVentaService.marcarComoAgregandoProductos(ordenCreada.id)
+              .subscribe({
+                next: (ordenActualizada) => {
+                  console.log('✅ Estado actualizado a AGREGANDOPRODUCTOS:', ordenActualizada);
+                  
+                  // ✅ REDIRIGIR A LA PÁGINA DE INICIO después de un breve delay
+                  console.log('🔄 Redirigiendo a /inicio...');
+                  
+                  setTimeout(() => {
+                    this.router.navigate(['/inicio']);
+                    this.successMessage = '';
+                  }, 2000);
+                },
+                error: (error) => {
+                  console.error('❌ Error al actualizar estado:', error);
+                  // Si falla, redirigir de todas formas
+                  console.warn('⚠️ Redirigiendo sin actualizar estado...');
+                  
+                  setTimeout(() => {
+                    this.router.navigate(['/inicio']);
+                    this.successMessage = '';
+                  }, 2000);
+                }
+              });
+            
+          } else {
+            console.log('⚠️ Respuesta de orden creada es null o undefined');
+            this.errorMessage = 'No se pudo crear la orden. Por favor, intente nuevamente.';
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error completo en el subscribe:', error);
+          this.cargando = false;
+          this.errorMessage = 'Error de conexión. Por favor, verifique su conexión a internet.';
         }
-      },
-      error: (error) => {
-        console.error('❌ Error completo en el subscribe:', error);
-        this.cargando = false;
-        this.errorMessage = 'Error de conexión. Por favor, verifique su conexión a internet.';
-      }
-    });
-}
+      });
+  }
+
+  // ✅ NUEVO MÉTODO: Obtener el descuento por defecto según el tipo de cliente
+  private getDescuentoPorDefecto(tipoCliente: string): number {
+    return tipoCliente === 'JURIDICO' ? 10.0 : 5.0;
+  }
 
   // ✅ MÉTODO AUXILIAR: Obtener información de contacto formateada
   obtenerInfoContacto(cliente: ClienteDto): string {
@@ -515,5 +544,23 @@ crearOrdenVenta(): void {
     if (cliente.correo) contactos.push(cliente.correo);
     if (cliente.telefono) contactos.push(cliente.telefono);
     return contactos.join(' • ') || 'Sin información de contacto';
+  }
+
+  // ✅ NUEVO MÉTODO: Obtener descuento formateado para mostrar
+  obtenerDescuentoFormateado(cliente: ClienteDto): string {
+    const descuento = cliente.descuentoAplicable !== undefined && 
+                     cliente.descuentoAplicable !== null && 
+                     cliente.descuentoAplicable > 0 
+                     ? cliente.descuentoAplicable 
+                     : this.getDescuentoPorDefecto(cliente.tipoCliente);
+    
+    return `${descuento}%`;
+  }
+
+  // ✅ NUEVO MÉTODO: Verificar si el descuento es personalizado
+  esDescuentoPersonalizado(cliente: ClienteDto): boolean {
+    return cliente.descuentoAplicable !== undefined && 
+           cliente.descuentoAplicable !== null && 
+           cliente.descuentoAplicable > 0;
   }
 }

@@ -20,6 +20,13 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   errorMessage: string = '';
   showError: boolean = false;
   
+  // Nuevas propiedades para mostrar requisitos de contraseña
+  passwordRequirements = {
+    minLength: false,
+    hasUpperCase: false,
+    hasSpecialChar: false
+  };
+  
   private hasSwapped: boolean = false;
   private returnUrl: string = '';
   private routerSubscription: Subscription;
@@ -132,8 +139,9 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    if (this.contrasena.length < 4) {
-      this.showErrorAlert('La contraseña debe tener al menos 4 caracteres');
+    // Nueva validación mejorada de contraseña
+    if (!this.validatePassword()) {
+      this.showErrorAlert('La contraseña no cumple con los requisitos mínimos de seguridad');
       return;
     }
 
@@ -225,6 +233,11 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.showError) {
       this.clearError();
     }
+    
+    // Actualizar requisitos de contraseña en tiempo real
+    if (this.contrasena) {
+      this.updatePasswordRequirements(this.contrasena);
+    }
   }
 
   goToRecoverPassword(event: Event): void {
@@ -241,16 +254,18 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   // Método para simular diferentes tipos de usuarios (solo desarrollo)
   quickLogin(role: string): void {
     const users = {
-      'admin': { user: 'admin1', pass: 'tech123456' },
-      'vendedor': { user: 'vendedor1', pass: 'password123' },
-      'cajero': { user: 'cajero1', pass: 'password123' },
-      'despachador': { user: 'despachador1', pass: 'password123' }
+      'admin': { user: 'admin1', pass: 'Tech123!' },
+      'vendedor': { user: 'vendedor1', pass: 'Vende$456' },
+      'cajero': { user: 'cajero1', pass: 'Caja@789' },
+      'despachador': { user: 'despachador1', pass: 'Desp*101' }
     };
 
     const selectedUser = users[role as keyof typeof users];
     if (selectedUser) {
       this.nombreUsuario = selectedUser.user;
       this.contrasena = selectedUser.pass;
+      // Actualizar requisitos después de asignar la contraseña
+      this.updatePasswordRequirements(this.contrasena);
       // Auto-login después de un breve delay
       setTimeout(() => this.onLogin(), 100);
     }
@@ -270,9 +285,26 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.nombreUsuario.trim().length >= 3;
   }
 
-  // Validación en tiempo real de la contraseña
+  // Validación mejorada de la contraseña
   validatePassword(): boolean {
-    return this.contrasena.length >= 4;
+    const password = this.contrasena;
+    
+    // Actualizar los requisitos para mostrar en la UI
+    this.updatePasswordRequirements(password);
+    
+    // Verificar que cumpla todos los requisitos
+    return this.passwordRequirements.minLength && 
+           this.passwordRequirements.hasUpperCase && 
+           this.passwordRequirements.hasSpecialChar;
+  }
+
+  // Método para actualizar los requisitos de la contraseña
+  private updatePasswordRequirements(password: string): void {
+    this.passwordRequirements = {
+      minLength: password.length >= 8, // Aumenté a 8 caracteres mínimo
+      hasUpperCase: /[A-Z]/.test(password),
+      hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+    };
   }
 
   // Verificar si el formulario es válido
@@ -280,8 +312,19 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.validateUsername() && this.validatePassword() && !this.isLoading;
   }
 
+  // Método para obtener el mensaje de validación de contraseña
+  getPasswordValidationMessage(): string {
+    const req = this.passwordRequirements;
+    const messages = [];
+    
+    if (!req.minLength) messages.push('mínimo 8 caracteres');
+    if (!req.hasUpperCase) messages.push('una mayúscula');
+    if (!req.hasSpecialChar) messages.push('un carácter especial');
+    
+    return messages.join(', ');
+  }
 
-   openUserManual(): void {
+  openUserManual(): void {
     this.router.navigate(['/manual-usuario']);
   }
 }

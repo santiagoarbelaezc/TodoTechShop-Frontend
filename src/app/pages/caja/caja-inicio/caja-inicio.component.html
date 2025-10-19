@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cajero - TodoTech</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+
+<div class="overlay"></div>
+
+<!-- Navbar Component -->
+
+<main class="cajero-container">
+  <!-- SECCIÓN PRINCIPAL DE CAJERO -->
+  <section *ngIf="seccionActiva === 'caja'" class="seccion-activa">
+    <!-- Header de la página -->
+    <header class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <i class="fas fa-cash-register"></i>
+          Módulo de Cajero
+        </h1>
+        <p class="page-subtitle">Procesar pagos y gestionar transacciones</p>
+      </div>
+      
+      <!-- Estadísticas -->
+      <div class="stats-container">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-receipt"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ totalTransaccionesHoy }}</span>
+            <span class="stat-label">Transacciones Hoy</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon activos">
+            <i class="fas fa-money-bill-wave"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ totalRecaudadoHoy | currency:'COP':'$':'1.0-0' }}</span>
+            <span class="stat-label">Recaudado Hoy</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stock-bajo">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ ordenesPendientes }}</span>
+            <span class="stat-label">Órdenes Pendientes</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Búsqueda de Orden -->
+    <div class="busqueda-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-search"></i>
+          Buscar Orden para Pago
+        </h3>
+        <p class="section-subtitle">Ingrese el número de orden para procesar el pago</p>
+      </div>
+
+      <div class="busqueda-form">
+        <div class="input-group busqueda-input">
+          <input type="text" id="numeroOrden" name="numeroOrden" 
+                 [(ngModel)]="numeroOrdenBusqueda" 
+                 placeholder=" "
+                 (keyup.enter)="buscarOrden()"
+                 #numeroOrdenInput="ngModel"
+                 required pattern="[A-Za-z0-9\-]+" />
+          <label for="numeroOrden">Número de Orden *</label>
+          <div *ngIf="numeroOrdenInput.invalid && (numeroOrdenInput.dirty || numeroOrdenInput.touched)" class="error-message">
+            <div *ngIf="numeroOrdenInput.errors?.['required']">El número de orden es obligatorio</div>
+            <div *ngIf="numeroOrdenInput.errors?.['pattern']">Formato de orden inválido</div>
+          </div>
+        </div>
+
+        <button (click)="buscarOrden()" 
+                [disabled]="numeroOrdenInput.invalid || buscandoOrden" 
+                class="btn-buscar">
+          <i class="fas fa-search" [class.fa-spin]="buscandoOrden"></i>
+          {{ buscandoOrden ? 'Buscando...' : 'Buscar Orden' }}
+        </button>
+      </div>
+
+      <!-- Mensajes de estado -->
+      <div *ngIf="mensajeBusqueda" 
+           [class]="'busqueda-mensaje ' + (busquedaExito ? 'mensaje-exito' : 'mensaje-error')">
+        <i [class]="busquedaExito ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle'"></i>
+        {{ mensajeBusqueda }}
+      </div>
+    </div>
+
+    <!-- Detalles de la Orden Encontrada -->
+    <div *ngIf="ordenEncontrada" class="orden-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-file-invoice-dollar"></i>
+          Detalles de la Orden
+          <span class="orden-numero">{{ ordenEncontrada.numeroOrden }}</span>
+        </h3>
+        <div class="orden-estado">
+          <span [class]="'badge badge-' + ordenEncontrada.estado.toLowerCase()">
+            {{ ordenEncontrada.estado }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Información de la Orden -->
+      <div class="orden-info-grid">
+        <div class="info-card">
+          <h4 class="info-title">
+            <i class="fas fa-info-circle"></i>
+            Información General
+          </h4>
+          <div class="info-content">
+            <div class="info-item">
+              <span class="info-label">Fecha:</span>
+              <span class="info-value">{{ formatearFecha(ordenEncontrada.fecha) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Cliente:</span>
+              <span class="info-value">{{ ordenEncontrada.cliente.nombre }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Documento:</span>
+              <span class="info-value">{{ ordenEncontrada.cliente.cedula }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Vendedor:</span>
+              <span class="info-value">{{ ordenEncontrada.vendedor.nombre }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h4 class="info-title">
+            <i class="fas fa-calculator"></i>
+            Resumen Financiero
+          </h4>
+          <div class="info-content">
+            <div class="info-item">
+              <span class="info-label">Subtotal:</span>
+              <span class="info-value">{{ formatearMoneda(ordenEncontrada.subtotal) }}</span>
+            </div>
+            <div class="info-item" *ngIf="ordenEncontrada.descuento > 0">
+              <span class="info-label">Descuento:</span>
+              <span class="info-value descuento">-{{ formatearMoneda(ordenEncontrada.descuento) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Impuestos:</span>
+              <span class="info-value">{{ formatearMoneda(ordenEncontrada.impuestos) }}</span>
+            </div>
+            <div class="info-item total">
+              <span class="info-label">Total a Pagar:</span>
+              <span class="info-value">{{ formatearMoneda(ordenEncontrada.total) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Productos de la Orden -->
+      <div class="productos-orden-section">
+        <h4 class="section-subtitle">
+          <i class="fas fa-boxes"></i>
+          Productos ({{ ordenEncontrada.productos.length }})
+        </h4>
+        
+        <div class="productos-table-container">
+          <table class="productos-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Precio Unitario</th>
+                <th>Cantidad</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let detalle of ordenEncontrada.productos" class="producto-row">
+                <td class="producto-info">
+                  <div class="producto-datos">
+                    <strong class="producto-nombre">{{ detalle.producto.nombre }}</strong>
+                    <div class="producto-detalles">
+                      <span class="producto-marca">{{ detalle.producto.marca }}</span>
+                      <span class="producto-codigo">{{ detalle.producto.codigo }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="producto-precio">
+                  {{ formatearMoneda(detalle.precioUnitario) }}
+                </td>
+                <td class="producto-cantidad">
+                  <span class="cantidad-badge">{{ detalle.cantidad }}</span>
+                </td>
+                <td class="producto-subtotal">
+                  <strong>{{ formatearMoneda(detalle.subtotal) }}</strong>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario de Pago -->
+    <div *ngIf="ordenEncontrada && ordenEncontrada.estado === 'DISPONIBLEPARAPAGO'" class="pago-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-credit-card"></i>
+          Registrar Pago
+        </h3>
+        <p class="section-subtitle">Seleccione el método de pago y complete la información</p>
+      </div>
+
+      <form #formPago="ngForm" (ngSubmit)="procesarPago()" class="pago-form">
+        <!-- Información del Pago -->
+        <div class="pago-info-card">
+          <h4 class="card-title">Información del Pago</h4>
+          
+          <div class="form-grid">
+            <div class="input-group">
+              <input type="number" id="monto" name="monto" 
+                     [(ngModel)]="pago.monto" 
+                     placeholder=" "
+                     [max]="ordenEncontrada.total"
+                     required min="0.01" step="0.01" 
+                     #montoInput="ngModel" />
+              <label for="monto">Monto a Pagar *</label>
+              <div *ngIf="montoInput.invalid && (montoInput.dirty || montoInput.touched)" class="error-message">
+                <div *ngIf="montoInput.errors?.['required']">El monto es obligatorio</div>
+                <div *ngIf="montoInput.errors?.['min']">El monto debe ser mayor a 0</div>
+                <div *ngIf="montoInput.errors?.['max']">El monto no puede ser mayor al total de la orden</div>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <select id="metodoPago" name="metodoPago" 
+                      [(ngModel)]="pago.metodoPagoId" 
+                      #metodoPagoInput="ngModel"
+                      required (change)="onMetodoPagoChange()">
+                <option value="" disabled selected>Seleccione método de pago</option>
+                <option *ngFor="let metodo of metodosPago" [value]="metodo.id">
+                  {{ metodo.nombre }}
+                </option>
+              </select>
+              <label for="metodoPago">Método de Pago *</label>
+              <div *ngIf="metodoPagoInput.invalid && (metodoPagoInput.dirty || metodoPagoInput.touched)" class="error-message">
+                El método de pago es obligatorio
+              </div>
+            </div>
+          </div>
+
+          <!-- Campos específicos por método de pago -->
+          <div *ngIf="pago.metodoPagoId" class="campos-metodo-pago">
+            
+            <!-- Efectivo -->
+            <div *ngIf="pago.metodoPagoId === 1" class="efectivo-campos">
+              <div class="form-grid">
+                <div class="input-group">
+                  <input type="number" id="efectivoRecibido" 
+                         [(ngModel)]="efectivoRecibido" 
+                         name="efectivoRecibido"
+                         placeholder=" "
+                         required min="0.01" step="0.01"
+                         (input)="calcularCambio()" />
+                  <label for="efectivoRecibido">Efectivo Recibido *</label>
+                </div>
+                
+                <div class="input-group">
+                  <input type="number" id="cambio" 
+                         [(ngModel)]="cambio" 
+                         name="cambio"
+                         placeholder=" "
+                         readonly />
+                  <label for="cambio">Cambio a Entregar</label>
+                </div>
+              </div>
+              
+              <div *ngIf="cambio < 0" class="alerta-cambio">
+                <i class="fas fa-exclamation-triangle"></i>
+                El efectivo recibido es insuficiente. Faltan {{ formatearMoneda(-cambio) }}
+              </div>
+            </div>
+
+            <!-- Tarjeta -->
+            <div *ngIf="pago.metodoPagoId === 2" class="tarjeta-campos">
+              <div class="form-grid">
+                <div class="input-group">
+                  <input type="text" id="numeroTarjeta" 
+                         [(ngModel)]="datosTarjeta.numero" 
+                         name="numeroTarjeta"
+                         placeholder=" "
+                         maxlength="16"
+                         pattern="[0-9]{16}" />
+                  <label for="numeroTarjeta">Número de Tarjeta</label>
+                </div>
+                
+                <div class="input-group">
+                  <input type="text" id="numeroTransaccion" 
+                         [(ngModel)]="pago.numeroTransaccion" 
+                         name="numeroTransaccion"
+                         placeholder=" "
+                         maxlength="100" />
+                  <label for="numeroTransaccion">Número de Transacción *</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transferencia -->
+            <div *ngIf="pago.metodoPagoId === 3" class="transferencia-campos">
+              <div class="form-grid">
+                <div class="input-group">
+                  <input type="text" id="numeroReferencia" 
+                         [(ngModel)]="pago.numeroTransaccion" 
+                         name="numeroReferencia"
+                         placeholder=" "
+                         maxlength="100"
+                         required />
+                  <label for="numeroReferencia">Número de Referencia *</label>
+                </div>
+                
+                <div class="input-group">
+                  <input type="text" id="comprobante" 
+                         [(ngModel)]="pago.comprobante" 
+                         name="comprobante"
+                         placeholder=" "
+                         maxlength="255" />
+                  <label for="comprobante">Comprobante (URL/Referencia)</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumen del Pago -->
+          <div class="resumen-pago-card">
+            <h4 class="card-title">Resumen del Pago</h4>
+            <div class="resumen-grid">
+              <div class="resumen-item">
+                <span class="resumen-label">Total Orden:</span>
+                <span class="resumen-value">{{ formatearMoneda(ordenEncontrada.total) }}</span>
+              </div>
+              <div class="resumen-item">
+                <span class="resumen-label">Monto a Pagar:</span>
+                <span class="resumen-value">{{ formatearMoneda(pago.monto || 0) }}</span>
+              </div>
+              <div *ngIf="pago.metodoPagoId === 1" class="resumen-item">
+                <span class="resumen-label">Efectivo Recibido:</span>
+                <span class="resumen-value">{{ formatearMoneda(efectivoRecibido || 0) }}</span>
+              </div>
+              <div *ngIf="pago.metodoPagoId === 1" class="resumen-item cambio">
+                <span class="resumen-label">Cambio:</span>
+                <span class="resumen-value">{{ formatearMoneda(cambio || 0) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="form-actions">
+          <button type="submit" 
+                  [disabled]="formPago.invalid || procesandoPago || (pago.metodoPagoId === 1 && cambio < 0)" 
+                  class="btn-primary">
+            <i class="fas fa-check-circle" [class.fa-spin]="procesandoPago"></i>
+            {{ procesandoPago ? 'Procesando...' : 'Confirmar Pago' }}
+          </button>
+          <button type="button" (click)="limpiarFormulario()" class="btn-secondary">
+            <i class="fas fa-broom"></i>
+            Limpiar
+          </button>
+          <button type="button" (click)="cancelarPago()" class="btn-cancel">
+            <i class="fas fa-times"></i>
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Mensaje si la orden no está disponible para pago -->
+    <div *ngIf="ordenEncontrada && ordenEncontrada.estado !== 'DISPONIBLEPARAPAGO'" class="alerta-orden">
+      <div class="alerta-content">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div class="alerta-text">
+          <h4>Orden no disponible para pago</h4>
+          <p>Esta orden se encuentra en estado <strong>{{ ordenEncontrada.estado }}</strong> y no puede ser procesada para pago.</p>
+          <p *ngIf="ordenEncontrada.estado === 'PAGADA'">La orden ya fue pagada anteriormente.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN DE HISTORIAL DE PAGOS -->
+  <section *ngIf="seccionActiva === 'historialPagos'" class="seccion-activa">
+    <!-- Header de la página -->
+    <header class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <i class="fas fa-history"></i>
+          Historial de Pagos
+        </h1>
+        <p class="page-subtitle">Consulta y gestiona el historial de transacciones</p>
+      </div>
+    </header>
+
+    <!-- Filtros -->
+    <div class="filtros-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-filter"></i>
+          Filtros de Búsqueda
+        </h3>
+      </div>
+
+      <div class="filtros-container">
+        <div class="filtro-group">
+          <div class="input-with-icon">
+            <i class="fas fa-search"></i>
+            <input type="text" [(ngModel)]="filtroNumeroOrden" 
+                   placeholder="Buscar por número de orden...">
+          </div>
+        </div>
+
+        <div class="filtro-group">
+          <select [(ngModel)]="filtroMetodoPago">
+            <option value="">Todos los métodos</option>
+            <option *ngFor="let metodo of metodosPago" [value]="metodo.id">
+              {{ metodo.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filtro-group">
+          <select [(ngModel)]="filtroEstado">
+            <option value="">Todos los estados</option>
+            <option value="PENDIENTE">Pendiente</option>
+            <option value="COMPLETADO">Completado</option>
+            <option value="FALLIDO">Fallido</option>
+          </select>
+        </div>
+
+        <div class="filtro-group">
+          <input type="date" [(ngModel)]="filtroFechaInicio" 
+                 placeholder="Fecha inicio">
+        </div>
+
+        <div class="filtro-group">
+          <input type="date" [(ngModel)]="filtroFechaFin" 
+                 placeholder="Fecha fin">
+        </div>
+
+        <button (click)="aplicarFiltros()" class="btn-filtro">
+          <i class="fas fa-search"></i>
+          Aplicar Filtros
+        </button>
+
+        <button (click)="limpiarFiltros()" class="btn-limpiar">
+          <i class="fas fa-times"></i>
+          Limpiar
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla de Historial -->
+    <div class="tabla-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-list"></i>
+          Transacciones Recientes
+        </h3>
+        <div class="section-actions">
+          <button (click)="exportarHistorial()" class="btn-export">
+            <i class="fas fa-file-export"></i>
+            Exportar
+          </button>
+        </div>
+      </div>
+
+      <div class="tabla-container">
+        <div *ngIf="pagosFiltrados.length === 0" class="empty-state">
+          <i class="fas fa-receipt"></i>
+          <h3>No hay transacciones registradas</h3>
+          <p>No se encontraron pagos que coincidan con los criterios de búsqueda.</p>
+        </div>
+
+        <div *ngIf="pagosFiltrados.length > 0" class="table-responsive">
+          <table class="pagos-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Orden</th>
+                <th>Fecha</th>
+                <th>Método</th>
+                <th>Monto</th>
+                <th>Transacción</th>
+                <th>Estado</th>
+                <th>Usuario</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let pago of pagosFiltrados" class="pago-row">
+                <td class="pago-id">{{ pago.id }}</td>
+                <td class="pago-orden">
+                  <strong>{{ pago.ordenVentaId }}</strong>
+                </td>
+            
+                <td class="pago-monto">
+                  <strong>{{ formatearMoneda(pago.monto) }}</strong>
+                </td>
+                <td class="pago-transaccion">
+                  {{ pago.numeroTransaccion || 'N/A' }}
+                </td>
+                <td class="pago-estado">
+                  <span [class]="'badge badge-' + pago.estadoPago.toLowerCase()">
+                    {{ pago.estadoPago }}
+                  </span>
+                </td>
+                <td class="pago-usuario">
+                  {{ pago.usuarioId }}
+                </td>
+                <td class="pago-acciones">
+                  <div class="acciones-buttons">
+                    <button (click)="verDetallePago(pago)" class="btn-action btn-view" title="Ver detalles">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button (click)="reimprimirComprobante(pago)" class="btn-action btn-print" title="Reimprimir">
+                      <i class="fas fa-print"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>

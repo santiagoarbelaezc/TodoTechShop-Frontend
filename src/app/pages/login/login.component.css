@@ -306,19 +306,6 @@
       color: #333;
   }
 
-  footer {
-      margin-top: 35px;
-      color: #999;
-      text-align: center;
-      font-size: 13px;
-      width: 100%;
-      position: absolute;
-      bottom: 22px;
-      left: 0;
-      font-weight: 400;
-      transition: all 1s ease-in-out 0.8s;
-      padding: 0 22px;
-  }
 
   .login-container.swap-completed footer {
       color: #777;
@@ -1730,4 +1717,204 @@ button[type="submit"].loading::after {
 
 .input-group input:disabled + label {
     color: #999 !important;
+}
+
+
+/* Estilos para los requisitos de contraseña */
+.password-requirements {
+    margin-top: 12px;
+    padding: 16px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    border-left: 4px solid #3b82f6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.password-requirements:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.requirement {
+    font-size: 13px;
+    color: #6c757d;
+    margin: 8px 0;
+    padding: 4px 0;
+    transition: all 0.3s ease;
+    font-weight: 400;
+    position: relative;
+    padding-left: 24px;
+}
+
+.requirement:before {
+    content: "✗";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-right: 8px;
+    color: #dc3545;
+    font-weight: 600;
+    font-size: 12px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(220, 53, 69, 0.3);
+    transition: all 0.3s ease;
+}
+
+.requirement.valid {
+    color: #28a745;
+    font-weight: 500;
+}
+
+.requirement.valid:before {
+    content: "✓";
+    color: #28a745;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(40, 167, 69, 0.3);
+    animation: bounceIn 0.4s ease;
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: translateY(-50%) scale(0.8);
+        opacity: 0;
+    }
+    50% {
+        transform: translateY(-50%) scale(1.1);
+    }
+    100% {
+        transform: translateY(-50%) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Mejora el mensaje de validación */
+.validation-hint {
+    font-size: 12px;
+    color: #dc3545;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #fef2f2 0%, #fef5f5 100%);
+    border-radius: 8px;
+    border-left: 3px solid #dc3545;
+    font-weight: 400;
+    animation: slideInUp 0.3s ease-out;
+    box-shadow: 0 1px 4px rgba(220, 53, 69, 0.1);
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Efecto de progreso sutil */
+.password-strength {
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.password-strength::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #dc3545, #28a745);
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.password-strength.weak::after { width: 33%; background: #dc3545; }
+.password-strength.medium::after { width: 66%; background: #ffc107; }
+.password-strength.strong::after { width: 100%; background: #28a745; }
+
+/* Responsive design para requisitos de contraseña */
+@media screen and (max-width: 768px) {
+    .password-requirements {
+        padding: 14px;
+        margin-top: 10px;
+        border-radius: 10px;
+    }
+    
+    .requirement {
+        font-size: 12px;
+        margin: 6px 0;
+        padding-left: 22px;
+    }
+    
+    .requirement:before {
+        width: 14px;
+        height: 14px;
+        font-size: 11px;
+    }
+    
+    .validation-hint {
+        font-size: 11px;
+        padding: 8px 10px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .password-requirements {
+        padding: 12px;
+        border-radius: 8px;
+    }
+    
+    .requirement {
+        font-size: 11px;
+        padding-left: 20px;
+    }
+    
+    .requirement:before {
+        width: 12px;
+        height: 12px;
+        font-size: 10px;
+    }
+}
+
+/* Estados de interacción */
+.input-group:focus-within .password-requirements {
+    border-left-color: #000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Transición suave para cambios de estado */
+.password-requirements,
+.requirement,
+.validation-hint {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Efecto de aparición gradual para los requisitos */
+.password-requirements {
+    animation: fadeInScale 0.4s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }

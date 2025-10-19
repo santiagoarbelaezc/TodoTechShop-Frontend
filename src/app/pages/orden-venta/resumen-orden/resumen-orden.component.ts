@@ -48,10 +48,6 @@ export class ResumenOrdenComponent implements OnInit {
     this.cargarDetallesCompletos(orden.id);
   }
 
-  private esOrdenBasica(orden: any): boolean {
-    return !orden.productos || !Array.isArray(orden.productos);
-  }
-
   private cargarDetallesCompletos(ordenId: number): void {
     this.ordenVentaService.obtenerOrdenConDetalles(ordenId).subscribe({
       next: (ordenConDetalles) => {
@@ -567,6 +563,53 @@ export class ResumenOrdenComponent implements OnInit {
     });
   }
 
+  // =============================================
+  // MÉTODOS DE CÁLCULO CORREGIDOS - USAR VALORES DEL BACKEND
+  // =============================================
+
+  // Usar directamente los valores del backend
+  calcularSubtotal(): number {
+    return this.ordenActual?.subtotal || 0;
+  }
+
+  calcularBaseImponible(): number {
+    // Base imponible = subtotal - descuento (según lógica del backend)
+    const subtotal = this.ordenActual?.subtotal || 0;
+    const descuento = this.ordenActual?.descuento || 0;
+    return subtotal - descuento;
+  }
+
+  calcularImpuestos(): number {
+    // Usar el valor del backend en lugar de calcularlo
+    return this.ordenActual?.impuestos || 0;
+  }
+
+  calcularTotal(): number {
+    // Usar el valor del backend en lugar de calcularlo
+    return this.ordenActual?.total || 0;
+  }
+
+ // ✅ CORREGIDO: Calcular descuento según la fórmula especificada
+getDescuentoAplicado(): number {
+  if (!this.ordenActual) return 0;
+  
+  const valorOriginal = this.ordenActual.subtotal;
+  const porcentajeDescuento = 0.10; // 10%
+  
+  // Aplicar la fórmula: valor con descuento = valor original + (valor original × 0.10)
+  const valorConDescuento = valorOriginal + (valorOriginal * porcentajeDescuento);
+  
+  // Descuento = Valor con descuento - valor original
+  const descuento = valorConDescuento - valorOriginal;
+  
+  return descuento;
+}
+
+  getPorcentajeImpuestos(): number {
+    // Según el backend, los impuestos son del 2%
+    return 2;
+  }
+
   // Métodos de utilidad para el template
   formatearMoneda(valor: number): string {
     return new Intl.NumberFormat('es-CO', {
@@ -602,35 +645,6 @@ export class ResumenOrdenComponent implements OnInit {
       case EstadoOrden.CERRADA: return 'badge-cerrada';
       default: return 'badge-default';
     }
-  }
-
-  calcularSubtotal(): number {
-    if (!this.ordenActual?.productos) return 0;
-    return this.ordenActual.productos.reduce((total, detalle) => total + detalle.subtotal, 0);
-  }
-
-  calcularBaseImponible(): number {
-    const subtotal = this.calcularSubtotal();
-    const descuento = this.ordenActual?.descuento || 0;
-    return subtotal - descuento;
-  }
-
-  calcularImpuestos(): number {
-    const baseImponible = this.calcularBaseImponible();
-    return baseImponible * 0.03; // 3% de impuestos (actualizado)
-  }
-
-  calcularTotal(): number {
-    const baseImponible = this.calcularBaseImponible();
-    const impuestos = this.calcularImpuestos();
-    return baseImponible + impuestos;
-  }
-
-  getPorcentajeDescuento(): number {
-    const subtotal = this.calcularSubtotal();
-    if (subtotal === 0) return 0;
-    const descuento = this.ordenActual?.descuento || 0;
-    return (descuento / subtotal) * 100;
   }
 
   // Navegación

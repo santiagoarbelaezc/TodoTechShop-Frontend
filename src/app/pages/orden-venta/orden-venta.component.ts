@@ -47,7 +47,7 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
   showSuccessModal: boolean = false;
   errorMessage: string = '';
   successMessage: string = '';
-  descuentoError: string = ''; // ✅ NUEVO: Error específico para descuento
+  descuentoError: string = '';
 
   // Variable para almacenar el cliente creado
   clienteCreado: ClienteDto | null = null;
@@ -103,12 +103,15 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
     this.router.navigate(['/login']);
   }
 
-  // ✅ NUEVO MÉTODO: Validar descuento en tiempo real
+  // ✅ MÉTODO CORREGIDO: Validar descuento en tiempo real
   validarDescuento(): void {
     this.descuentoError = '';
     
-    if (this.cliente.descuentoAplicable === undefined || this.cliente.descuentoAplicable === null) {
-      return; // No hay descuento, no hay error
+    // Si está vacío o undefined, no hay error (se usará el descuento por defecto)
+    if (this.cliente.descuentoAplicable === undefined || 
+        this.cliente.descuentoAplicable === null || 
+        this.cliente.descuentoAplicable === 0) {
+      return;
     }
 
     if (this.cliente.descuentoAplicable < 0) {
@@ -131,7 +134,7 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // ✅ MÉTODO MODIFICADO: Crear cliente y orden simultáneamente con retraso
+  // ✅ MÉTODO CORREGIDO: Crear cliente y orden simultáneamente con retraso
   onSubmit(): void {
     console.log('🔄 === INICIANDO PROCESO DE CREACIÓN DE CLIENTE Y ORDEN ===');
     console.log('📝 Datos del cliente a crear:', this.cliente);
@@ -139,7 +142,7 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
     // Resetear mensajes
     this.errorMessage = '';
     this.successMessage = '';
-    this.descuentoError = ''; // ✅ Limpiar error de descuento
+    this.descuentoError = '';
     this.clienteCreado = null;
     this.ordenCreada = null;
     this.showSuccessModal = false;
@@ -187,6 +190,8 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
 
     // Validar descuento si se proporciona (validación adicional)
     if (this.cliente.descuentoAplicable !== undefined && 
+        this.cliente.descuentoAplicable !== null &&
+        this.cliente.descuentoAplicable > 0 &&
         (this.cliente.descuentoAplicable < 0 || this.cliente.descuentoAplicable > 30)) {
       console.log('❌ Validación fallida: Descuento fuera de rango');
       this.errorMessage = 'El descuento debe estar entre 0% y 30%';
@@ -202,6 +207,15 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // ✅ CORREGIDO: Determinar el descuento a aplicar
+    const descuentoAAplicar = this.cliente.descuentoAplicable !== undefined && 
+                              this.cliente.descuentoAplicable !== null && 
+                              this.cliente.descuentoAplicable > 0 
+                              ? this.cliente.descuentoAplicable 
+                              : this.getDescuentoPorDefecto();
+
+    console.log('💰 Descuento a aplicar:', descuentoAAplicar + '%');
+
     // Preparar datos para enviar al backend
     const clienteData: ClienteDto = {
       nombre: this.cliente.nombre.trim(),
@@ -210,7 +224,7 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
       telefono: this.cliente.telefono?.trim() || '',
       direccion: this.cliente.direccion?.trim() || '',
       tipoCliente: this.cliente.tipoCliente,
-      descuentoAplicable: this.cliente.descuentoAplicable || this.getDescuentoPorDefecto()
+      descuentoAplicable: descuentoAAplicar
     };
 
     console.log('📤 Datos del cliente a enviar al backend:', clienteData);
@@ -234,14 +248,16 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
           console.log('   👤 Nombre:', clienteResponse.data.nombre);
           console.log('   📧 Cédula:', clienteResponse.data.cedula);
           console.log('   🏷️ Tipo:', clienteResponse.data.tipoCliente);
+          console.log('   💰 Descuento:', clienteResponse.data.descuentoAplicable + '%');
           
           this.clienteCreado = clienteResponse.data;
           this.successMessage = `Cliente "${this.clienteCreado.nombre}" creado exitosamente. Preparando orden...`;
 
-          // ✅ CREAR ORDEN AUTOMÁTICAMENTE después de crear el cliente con RETRASO de 3 segundos
+          // ✅ CORREGIDO: CREAR ORDEN CON DESCUENTO INCLUIDO
           const createOrdenDto: CreateOrdenDto = {
             clienteId: this.clienteCreado.id!,
-            vendedorId: this.usuarioActual.userId
+            vendedorId: this.usuarioActual.userId,
+            descuento: descuentoAAplicar // ✅ NUEVO: Incluir el descuento en el DTO
           };
 
           console.log('📦 Preparando creación de orden con datos:', createOrdenDto);
@@ -287,6 +303,7 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
             console.log('   🔢 Número de Orden:', ordenCreada.numeroOrden);
             console.log('   🏷️ Estado:', ordenCreada.estado);
             console.log('   👤 Cliente:', ordenCreada.cliente);
+            console.log('   💰 Descuento en orden:', ordenCreada.descuento);
             console.log('   💰 Total:', ordenCreada.total);
             console.log('   📅 Fecha:', ordenCreada.fecha);
             
@@ -338,7 +355,7 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
       });
   }
 
-  // ✅ MÉTODO: Crear orden de venta (separado para uso individual) con retraso
+  // ✅ MÉTODO CORREGIDO: Crear orden de venta (separado para uso individual) con retraso
   crearOrdenVenta(): void {
     console.log('=== 🚀 INICIANDO CREACIÓN INDIVIDUAL DE ORDEN DE VENTA ===');
     
@@ -354,9 +371,13 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // ✅ CORREGIDO: Incluir descuento en el DTO
+    const descuentoAAplicar = this.clienteCreado.descuentoAplicable || this.getDescuentoPorDefecto();
+
     const createOrdenDto: CreateOrdenDto = {
       clienteId: this.clienteCreado.id!,
-      vendedorId: this.usuarioActual.userId
+      vendedorId: this.usuarioActual.userId,
+      descuento: descuentoAAplicar // ✅ NUEVO: Incluir descuento
     };
 
     console.log('📦 Datos para crear orden:', createOrdenDto);
@@ -489,6 +510,7 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
           if (ordenConDetalles) {
             console.log('✅ Detalles de orden cargados:', ordenConDetalles);
             console.log(`📦 Número de items en la orden: ${ordenConDetalles.productos.length || 0}`);
+            console.log(`💰 Descuento en detalles: ${ordenConDetalles.descuento}`);
             this.ordenConDetalles = ordenConDetalles;
           } else {
             console.log('⚠️ No se pudieron cargar los detalles de la orden');
@@ -513,7 +535,7 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
           this.ordenes = ordenes;
           console.log(`✅ ${ordenes.length} órdenes cargadas`);
           if (ordenes.length > 0) {
-            console.log('📋 Lista de órdenes:', ordenes.map(o => ({ id: o.id, numero: o.numeroOrden, estado: o.estado })));
+            console.log('📋 Lista de órdenes:', ordenes.map(o => ({ id: o.id, numero: o.numeroOrden, estado: o.estado, descuento: o.descuento })));
           }
         }
       });
@@ -572,7 +594,7 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
   aplicarDescuento(ordenId: number, porcentajeDescuento: number): void {
     console.log(`=== 💰 APLICANDO DESCUENTO DEL ${porcentajeDescuento}% A ORDEN ${ordenId} ===`);
     
-    if (porcentajeDescuento < 0 || porcentajeDescuento > 30) { // ✅ Cambiado de 100 a 30
+    if (porcentajeDescuento < 0 || porcentajeDescuento > 30) {
       this.errorMessage = 'El descuento debe estar entre 0% y 30%';
       return;
     }
@@ -766,8 +788,7 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
     };
     this.clienteCreado = null;
     this.errorMessage = '';
-    this.descuentoError = ''; // ✅ Limpiar error de descuento
-    // No limpiar successMessage aquí, se limpia en continuarConOrden
+    this.descuentoError = '';
   }
 
   // Métodos de conveniencia para estados de orden
@@ -805,7 +826,7 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
     return regex.test(telefono);
   }
 
-  // Método para obtener el descuento por defecto según el tipo de cliente
+  // ✅ MÉTODO CORREGIDO: Obtener el descuento por defecto según el tipo de cliente
   getDescuentoPorDefecto(): number {
     return this.cliente.tipoCliente === 'JURIDICO' ? 10.0 : 5.0;
   }
@@ -824,8 +845,5 @@ export class OrdenVentaComponent implements OnInit, AfterViewInit {
     this.isLoading = false;
     this.isCreatingOrder = false;
     this.successMessage = 'Creación de orden cancelada';
-    
-    // Aquí podrías implementar lógica para cancelar observables si fuera necesario
-    // En este caso, como usamos timer, simplemente detenemos los estados visuales
   }
 }

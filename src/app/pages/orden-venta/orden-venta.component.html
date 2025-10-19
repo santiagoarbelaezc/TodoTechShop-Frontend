@@ -31,24 +31,24 @@
         <!-- Mensaje de carga -->
         <div *ngIf="isLoading" class="message loading-message">
           <i class="fas fa-spinner fa-spin"></i>
-          Creando cliente, por favor espere...
+          <span>Creando cliente, por favor espere...</span>
         </div>
 
         <!-- Mensaje de éxito -->
         <div *ngIf="successMessage && !isLoading" class="message success-message">
           <i class="fas fa-check-circle"></i>
-          {{ successMessage }}
+          <span>{{ successMessage }}</span>
         </div>
 
         <!-- Mensaje de error -->
         <div *ngIf="errorMessage && !isLoading" class="message error-message">
           <i class="fas fa-exclamation-circle"></i>
-          {{ errorMessage }}
+          <span>{{ errorMessage }}</span>
         </div>
       </div>
 
       <!-- Formulario principal -->
-      <form *ngIf="!clienteCreado" (ngSubmit)="onSubmit()" class="venta-form">
+      <form *ngIf="!clienteCreado" (ngSubmit)="onSubmit()" class="venta-form" #clienteForm="ngForm">
         
         <!-- Contenedor principal con dos columnas -->
         <div class="form-content-wrapper">
@@ -67,12 +67,20 @@
                     name="nombreCliente" 
                     required 
                     [(ngModel)]="cliente.nombre"
+                    #nombreInput="ngModel"
                     minlength="2"
                     maxlength="150"
                     placeholder=" "
                     [disabled]="isLoading">
                   <label for="nombreCliente">Nombre del Cliente *</label>
                   <small class="input-hint">Entre 2 y 150 caracteres</small>
+                  
+                  <!-- Mensajes de validación para nombre -->
+                  <div *ngIf="nombreInput.invalid && (nombreInput.dirty || nombreInput.touched)" class="validation-message error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span *ngIf="nombreInput.errors?.['required']">El nombre del cliente es obligatorio</span>
+                    <span *ngIf="nombreInput.errors?.['minlength']">El nombre debe tener al menos 2 caracteres</span>
+                  </div>
                 </div>
 
                 <div class="input-group">
@@ -82,12 +90,20 @@
                     name="cedulaCliente" 
                     required 
                     [(ngModel)]="cliente.cedula"
+                    #cedulaInput="ngModel"
                     minlength="5"
                     maxlength="20"
                     placeholder=" "
                     [disabled]="isLoading">
                   <label for="cedulaCliente">Cédula *</label>
                   <small class="input-hint">Entre 5 y 20 caracteres (debe ser única)</small>
+                  
+                  <!-- Mensajes de validación para cédula -->
+                  <div *ngIf="cedulaInput.invalid && (cedulaInput.dirty || cedulaInput.touched)" class="validation-message error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span *ngIf="cedulaInput.errors?.['required']">La cédula es obligatoria</span>
+                    <span *ngIf="cedulaInput.errors?.['minlength']">La cédula debe tener al menos 5 caracteres</span>
+                  </div>
                 </div>
 
                 <div class="input-group">
@@ -96,10 +112,17 @@
                     id="correoCliente" 
                     name="correoCliente" 
                     [(ngModel)]="cliente.correo"
+                    #correoInput="ngModel"
                     maxlength="100"
                     placeholder=" "
                     [disabled]="isLoading">
                   <label for="correoCliente">Correo Electrónico</label>
+                  
+                  <!-- Mensajes de validación para correo -->
+                  <div *ngIf="correoInput.invalid && (correoInput.dirty || correoInput.touched)" class="validation-message error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span *ngIf="correoInput.errors?.['email']">Por favor ingresa un correo electrónico válido</span>
+                  </div>
                 </div>
 
                 <div class="input-group">
@@ -108,12 +131,19 @@
                     id="telefonoCliente" 
                     name="telefonoCliente" 
                     [(ngModel)]="cliente.telefono"
+                    #telefonoInput="ngModel"
                     pattern="[+]?[0-9]{10,20}"
                     maxlength="20"
                     placeholder=" "
                     [disabled]="isLoading">
                   <label for="telefonoCliente">Teléfono</label>
                   <small class="input-hint">Formato: +1234567890 o 1234567890</small>
+                  
+                  <!-- Mensajes de validación para teléfono -->
+                  <div *ngIf="telefonoInput.invalid && (telefonoInput.dirty || telefonoInput.touched)" class="validation-message error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span *ngIf="telefonoInput.errors?.['pattern']">El formato del teléfono no es válido</span>
+                  </div>
                 </div>
               </div>
 
@@ -122,11 +152,17 @@
                   id="direccionCliente" 
                   name="direccionCliente" 
                   [(ngModel)]="cliente.direccion"
+                  #direccionInput="ngModel"
                   maxlength="255"
                   placeholder=" "
                   rows="3"
                   [disabled]="isLoading"></textarea>
                 <label for="direccionCliente">Dirección</label>
+                
+                <!-- Contador de caracteres para dirección -->
+                <div class="character-counter" *ngIf="cliente.direccion">
+                  <small>{{ cliente.direccion.length }}/255 caracteres</small>
+                </div>
               </div>
             </section>
           </div>
@@ -145,6 +181,7 @@
                     name="tipoCliente" 
                     value="NATURAL"
                     [(ngModel)]="cliente.tipoCliente"
+                    #tipoClienteInput="ngModel"
                     required
                     [disabled]="isLoading">
                   <label for="tipoNatural">Persona Natural</label>
@@ -165,12 +202,19 @@
                 </div>
               </div>
 
+              <!-- Mensaje de validación para tipo de cliente -->
+              <div *ngIf="tipoClienteInput?.invalid && (tipoClienteInput?.dirty || tipoClienteInput?.touched)" class="validation-message error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Debes seleccionar un tipo de cliente</span>
+              </div>
+
               <div class="input-group">
                 <input 
                   type="number" 
                   id="descuentoAplicable" 
                   name="descuentoAplicable" 
                   [(ngModel)]="cliente.descuentoAplicable"
+                  #descuentoInput="ngModel"
                   placeholder=" "
                   min="0"
                   max="30"
@@ -187,21 +231,43 @@
                   <i class="fas fa-exclamation-triangle"></i>
                   <span class="error-text">{{ descuentoError }}</span>
                 </div>
+
+                <!-- Mensaje de éxito cuando el descuento es válido -->
+                <div *ngIf="!descuentoError && cliente.descuentoAplicable && descuentoInput.valid" class="validation-message success-message">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Descuento válido aplicado</span>
+                </div>
               </div>
             </section>
+
+            <!-- Resumen de validación del formulario -->
+            <div class="form-validation-summary" *ngIf="clienteForm.invalid && (clienteForm.dirty || clienteForm.touched)">
+              <div class="validation-message warning-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Por favor, completa todos los campos obligatorios correctamente antes de enviar el formulario.</span>
+              </div>
+            </div>
 
             <!-- Acciones del Formulario -->
             <section class="form-actions">
               <button type="button" class="btn-secondary" (click)="limpiarFormulario()" [disabled]="isLoading">
                 <i class="fas fa-broom"></i>
-                Limpiar
+                Limpiar Formulario
               </button>
-              <button type="submit" class="btn-primary" [disabled]="isLoading || descuentoError">
+              <button type="submit" class="btn-primary" [disabled]="isLoading || descuentoError || clienteForm.invalid">
                 <i class="fas fa-save"></i>
                 <span *ngIf="!isLoading">Registrar Cliente y Crear Orden</span>
                 <span *ngIf="isLoading">Creando Cliente...</span>
               </button>
             </section>
+
+            <!-- Indicador de progreso -->
+            <div class="progress-indicator" *ngIf="isLoading">
+              <div class="progress-bar">
+                <div class="progress-fill"></div>
+              </div>
+              <small>Procesando solicitud...</small>
+            </div>
           </div>
         </div>
       </form>

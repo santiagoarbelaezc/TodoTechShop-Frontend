@@ -27,6 +27,7 @@ import { ClientesComponent } from './pages/orden-venta/clientes/clientes.compone
 import { OrdenesActivasComponent } from './pages/orden-venta/ordenes-activas/ordenes-activas.component';
 import { OrdenesAdminComponent } from './pages/admin/ordenes-admin/ordenes-admin.component';
 import { ResumenOrdenComponent } from './pages/orden-venta/resumen-orden/resumen-orden.component';
+import { CajaInicioComponent } from './pages/caja/caja-inicio/caja-inicio.component';
 
 export const routes: Routes = [
   // 🔓 RUTAS PÚBLICAS
@@ -165,6 +166,12 @@ export const routes: Routes = [
     component: OrdenesActivasComponent, 
     canActivate: [authGuard, roleGuard],
     data: { roles: ['VENDEDOR'] }
+  },
+
+  { 
+    path: 'caja-inicio', 
+    component: CajaInicioComponent 
+    
   },
   
   // 🎯 RUTA COMODÍN (siempre al final)

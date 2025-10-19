@@ -21,6 +21,7 @@ export class CreacionComponent implements OnInit {
   seccionActiva: string = 'usuarios';
   usuarioEditando: boolean = false;
   usuarioEditandoId: number | null = null;
+  showPasswordRequirements: boolean = false;
 
   // Modelo de usuario
   usuario: CrearUsuarioDTO = this.inicializarUsuario();
@@ -41,7 +42,7 @@ export class CreacionComponent implements OnInit {
   terminoBusquedaNombre: string = '';
   terminoBusquedaCedula: string = '';
   tipoUsuarioFiltro: string = 'TODOS';
-  estadoFiltro: string = 'TODOS'; // Nuevo filtro por estado
+  estadoFiltro: string = 'TODOS';
   fechaInicioFiltro: string = '';
   fechaFinFiltro: string = '';
   fechaEspecificaFiltro: string = '';
@@ -49,6 +50,13 @@ export class CreacionComponent implements OnInit {
 
   // Para manejo de contraseña
   private contrasenaOriginal: string = '';
+
+  // Validación de contraseña
+  passwordRequirements = {
+    minLength: false,
+    hasUpperCase: false,
+    hasSpecialChar: false
+  };
 
   ngOnInit(): void {
     this.cargarUsuarios();
@@ -63,7 +71,7 @@ export class CreacionComponent implements OnInit {
       telefono: '',
       nombreUsuario: '',
       contrasena: '',
-      cambiarContrasena: false,
+      cambiarContrasena: true, // Cambiado a true por defecto para nuevos usuarios
       tipoUsuario: 'VENDEDOR',
       estado: true
     };
@@ -123,8 +131,82 @@ export class CreacionComponent implements OnInit {
     return tipo ? tipo.label : tipoUsuario;
   }
 
+  // ===== MÉTODOS MEJORADOS PARA VALIDACIÓN DE CONTRASEÑA =====
+
+  // Validación de contraseña
+  validatePassword(): boolean {
+    const password = this.usuario.contrasena;
+    
+    // Actualizar los requisitos para mostrar en la UI
+    this.updatePasswordRequirements(password);
+    
+    // Verificar que cumpla todos los requisitos
+    return this.passwordRequirements.minLength && 
+           this.passwordRequirements.hasUpperCase && 
+           this.passwordRequirements.hasSpecialChar;
+  }
+
+  // Método para actualizar los requisitos de la contraseña
+  private updatePasswordRequirements(password: string): void {
+    this.passwordRequirements = {
+      minLength: password.length >= 8,
+      hasUpperCase: /[A-Z]/.test(password),
+      hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+    };
+  }
+
+  // Método para obtener el mensaje de validación de contraseña
+  getPasswordValidationMessage(): string {
+    const req = this.passwordRequirements;
+    const messages = [];
+    
+    if (!req.minLength) messages.push('mínimo 8 caracteres');
+    if (!req.hasUpperCase) messages.push('una mayúscula');
+    if (!req.hasSpecialChar) messages.push('un carácter especial');
+    
+    return messages.join(', ');
+  }
+
+  // Método para determinar la fortaleza de la contraseña
+  getPasswordStrength(): string {
+    const password = this.usuario.contrasena;
+    if (!password || password.length === 0) return '';
+    
+    const requirements = this.passwordRequirements;
+    const metRequirements = Object.values(requirements).filter(Boolean).length;
+    
+    if (password.length < 4) return 'weak';
+    if (metRequirements === 3) return 'strong';
+    if (metRequirements >= 2 || password.length >= 10) return 'medium';
+    return 'weak';
+  }
+
+  // Validación del formulario completo
+  isFormValid(): boolean {
+    // Validaciones básicas del formulario
+    const basicValid = !!this.usuario.nombre?.trim() && 
+                      !!this.usuario.cedula?.trim() && 
+                      !!this.usuario.correo?.trim() && 
+                      !!this.usuario.telefono?.trim() && 
+                      !!this.usuario.nombreUsuario?.trim() && 
+                      !!this.usuario.tipoUsuario;
+
+    // Validación de contraseña
+    let passwordValid = true;
+    if (!this.usuarioEditando || this.usuario.cambiarContrasena) {
+      passwordValid = this.validatePassword() && !!this.usuario.contrasena?.trim();
+    }
+
+    return basicValid && passwordValid;
+  }
+
   // Operaciones CRUD
   guardarUsuario(): void {
+    if (!this.isFormValid()) {
+      alert('Por favor, complete todos los campos requeridos correctamente.');
+      return;
+    }
+
     if (this.usuarioEditando && this.usuarioEditandoId) {
       this.actualizarUsuario();
     } else {
@@ -133,15 +215,21 @@ export class CreacionComponent implements OnInit {
   }
 
   crearUsuario(): void {
+    // Validar contraseña antes de crear
+    if (!this.validatePassword()) {
+      alert('La contraseña no cumple con los requisitos de seguridad. Debe tener al menos 8 caracteres, una mayúscula y un carácter especial.');
+      return;
+    }
+
     const nuevoUsuario: UsuarioDto = {
       id: 0,
-      nombre: this.usuario.nombre,
-      cedula: this.usuario.cedula,
-      correo: this.usuario.correo,
-      telefono: this.usuario.telefono,
-      nombreUsuario: this.usuario.nombreUsuario,
+      nombre: this.usuario.nombre.trim(),
+      cedula: this.usuario.cedula.trim(),
+      correo: this.usuario.correo.trim(),
+      telefono: this.usuario.telefono.trim(),
+      nombreUsuario: this.usuario.nombreUsuario.trim(),
       contrasena: this.usuario.contrasena,
-      cambiarContrasena: true, // Forzar a true para creación
+      cambiarContrasena: this.usuario.cambiarContrasena,
       tipoUsuario: this.usuario.tipoUsuario,
       fechaCreacion: new Date(),
       estado: this.usuario.estado
@@ -159,7 +247,7 @@ export class CreacionComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al crear usuario:', error);
-        alert('Error al crear usuario: ' + error.message);
+        alert('Error al crear usuario: ' + (error.error?.mensaje || error.message));
       }
     });
   }
@@ -167,14 +255,20 @@ export class CreacionComponent implements OnInit {
   actualizarUsuario(): void {
     if (!this.usuarioEditandoId) return;
 
+    // Validar contraseña si se está cambiando
+    if (this.usuario.cambiarContrasena && !this.validatePassword()) {
+      alert('La nueva contraseña no cumple con los requisitos de seguridad. Debe tener al menos 8 caracteres, una mayúscula y un carácter especial.');
+      return;
+    }
+
     const usuarioActualizado: UsuarioDto = {
       id: this.usuarioEditandoId,
-      nombre: this.usuario.nombre,
-      cedula: this.usuario.cedula,
-      correo: this.usuario.correo,
-      telefono: this.usuario.telefono,
-      nombreUsuario: this.usuario.nombreUsuario,
-      contrasena: this.usuario.contrasena,
+      nombre: this.usuario.nombre.trim(),
+      cedula: this.usuario.cedula.trim(),
+      correo: this.usuario.correo.trim(),
+      telefono: this.usuario.telefono.trim(),
+      nombreUsuario: this.usuario.nombreUsuario.trim(),
+      contrasena: this.usuario.cambiarContrasena ? this.usuario.contrasena : this.contrasenaOriginal,
       cambiarContrasena: this.usuario.cambiarContrasena,
       tipoUsuario: this.usuario.tipoUsuario,
       fechaCreacion: new Date(),
@@ -193,7 +287,7 @@ export class CreacionComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al actualizar usuario:', error);
-        alert('Error al actualizar usuario: ' + error.message);
+        alert('Error al actualizar usuario: ' + (error.error?.mensaje || error.message));
       }
     });
   }
@@ -214,9 +308,14 @@ export class CreacionComponent implements OnInit {
       tipoUsuario: usuario.tipoUsuario as 'ADMIN' | 'VENDEDOR' | 'CAJERO' | 'DESPACHADOR',
       estado: usuario.estado
     };
+
+    // Actualizar requisitos de contraseña
+    this.updatePasswordRequirements(this.usuario.contrasena);
     
     // Scroll al formulario
-    document.querySelector('.form-container')?.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      document.querySelector('.form-container')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   }
 
   cambiarEstadoUsuario(usuario: UsuarioDto): void {
@@ -238,7 +337,7 @@ export class CreacionComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cambiar estado del usuario:', error);
-        alert('Error al cambiar estado del usuario: ' + error.message);
+        alert('Error al cambiar estado del usuario: ' + (error.error?.mensaje || error.message));
       }
     });
   }
@@ -261,7 +360,7 @@ export class CreacionComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al eliminar usuario:', error);
-        alert('Error al eliminar usuario: ' + error.message);
+        alert('Error al eliminar usuario: ' + (error.error?.mensaje || error.message));
       }
     });
   }
@@ -271,15 +370,53 @@ export class CreacionComponent implements OnInit {
     this.usuarioEditando = false;
     this.usuarioEditandoId = null;
     this.contrasenaOriginal = '';
+    this.showPasswordRequirements = false;
+    this.updatePasswordRequirements('');
   }
 
-  // Manejo de contraseña
+  // ===== MANEJO MEJORADO DE CONTRASEÑA =====
+
+  // Manejo de cambio del interruptor de contraseña
   onCambiarContrasenaChange(): void {
     if (!this.usuario.cambiarContrasena && this.usuarioEditando) {
+      // Si se desactiva el cambio de contraseña, restaurar la contraseña original
       this.usuario.contrasena = this.contrasenaOriginal;
     } else if (!this.usuario.cambiarContrasena) {
+      // Si es nuevo usuario y se desactiva (no debería pasar), limpiar contraseña
       this.usuario.contrasena = '';
     }
+    
+    // Actualizar requisitos visuales
+    this.updatePasswordRequirements(this.usuario.contrasena);
+    
+    // Ocultar requisitos si se desactiva el cambio
+    if (!this.usuario.cambiarContrasena) {
+      this.showPasswordRequirements = false;
+    }
+  }
+
+  // Eventos de contraseña mejorados
+  onPasswordInputChange(): void {
+    this.updatePasswordRequirements(this.usuario.contrasena);
+  }
+
+  onPasswordFocus(): void {
+    if (this.usuario.cambiarContrasena && this.usuario.contrasena) {
+      this.showPasswordRequirements = true;
+    }
+  }
+
+  onPasswordBlur(): void {
+    // Pequeño delay para permitir hacer clic en los requisitos si es necesario
+    setTimeout(() => {
+      this.showPasswordRequirements = false;
+    }, 300);
+  }
+
+  // Método auxiliar para ver si se debe mostrar la validación de contraseña
+  shouldShowPasswordValidation(): boolean {
+    return this.usuario.cambiarContrasena && 
+           (!!this.usuario.contrasena || this.showPasswordRequirements);
   }
 
   // Manejo de cambio de tipo de fecha
@@ -290,7 +427,7 @@ export class CreacionComponent implements OnInit {
     this.fechaEspecificaFiltro = '';
   }
 
-  // Búsquedas y filtros
+  // Búsquedas y filtros (sin cambios)
   buscarPorNombre(): void {
     if (!this.terminoBusquedaNombre.trim()) {
       this.usuariosFiltrados = [...this.usuarios];
@@ -349,37 +486,35 @@ export class CreacionComponent implements OnInit {
   }
 
   filtrarPorEstado(): void {
-  if (this.estadoFiltro === 'TODOS') {
-    this.usuariosFiltrados = [...this.usuarios];
-    return;
-  }
+    if (this.estadoFiltro === 'TODOS') {
+      this.usuariosFiltrados = [...this.usuarios];
+      return;
+    }
 
-  const estado = this.estadoFiltro === 'true';
-  
-  if (estado) {
-    // Usar obtenerUsuariosActivos para estado true
-    this.usuarioService.obtenerUsuariosActivos().subscribe({
-      next: (usuarios: UsuarioDto[]) => {
-        this.usuariosFiltrados = usuarios;
-      },
-      error: (error: any) => {
-        console.error('Error al filtrar por estado activo:', error);
-        this.usuariosFiltrados = this.usuarios.filter(u => u.estado === estado);
-      }
-    });
-  } else {
-    // Usar obtenerUsuariosInactivos para estado false
-    this.usuarioService.obtenerUsuariosInactivos().subscribe({
-      next: (usuarios: UsuarioDto[]) => {
-        this.usuariosFiltrados = usuarios;
-      },
-      error: (error: any) => {
-        console.error('Error al filtrar por estado inactivo:', error);
-        this.usuariosFiltrados = this.usuarios.filter(u => u.estado === estado);
-      }
-    });
+    const estado = this.estadoFiltro === 'true';
+    
+    if (estado) {
+      this.usuarioService.obtenerUsuariosActivos().subscribe({
+        next: (usuarios: UsuarioDto[]) => {
+          this.usuariosFiltrados = usuarios;
+        },
+        error: (error: any) => {
+          console.error('Error al filtrar por estado activo:', error);
+          this.usuariosFiltrados = this.usuarios.filter(u => u.estado === estado);
+        }
+      });
+    } else {
+      this.usuarioService.obtenerUsuariosInactivos().subscribe({
+        next: (usuarios: UsuarioDto[]) => {
+          this.usuariosFiltrados = usuarios;
+        },
+        error: (error: any) => {
+          console.error('Error al filtrar por estado inactivo:', error);
+          this.usuariosFiltrados = this.usuarios.filter(u => u.estado === estado);
+        }
+      });
+    }
   }
-}
 
   filtrarPorFecha(): void {
     if (this.tipoFiltroFecha === 'rango' && this.fechaInicioFiltro && this.fechaFinFiltro) {
@@ -440,58 +575,6 @@ export class CreacionComponent implements OnInit {
       const fecha = new Date(this.fechaEspecificaFiltro);
       this.usuariosFiltrados = this.usuarios.filter(u => new Date(u.fechaCreacion) <= fecha);
     }
-  }
-
-  // Método para aplicar múltiples filtros simultáneamente
-  aplicarFiltrosCombinados(): void {
-    let usuariosFiltrados = [...this.usuarios];
-
-    // Filtrar por nombre
-    if (this.terminoBusquedaNombre.trim()) {
-      usuariosFiltrados = usuariosFiltrados.filter(u => 
-        u.nombre.toLowerCase().includes(this.terminoBusquedaNombre.toLowerCase())
-      );
-    }
-
-    // Filtrar por cédula
-    if (this.terminoBusquedaCedula.trim()) {
-      usuariosFiltrados = usuariosFiltrados.filter(u => 
-        u.cedula.includes(this.terminoBusquedaCedula)
-      );
-    }
-
-    // Filtrar por tipo de usuario
-    if (this.tipoUsuarioFiltro !== 'TODOS') {
-      usuariosFiltrados = usuariosFiltrados.filter(u => 
-        u.tipoUsuario === this.tipoUsuarioFiltro
-      );
-    }
-
-    // Filtrar por estado
-    if (this.estadoFiltro !== 'TODOS') {
-      const estado = this.estadoFiltro === 'true';
-      usuariosFiltrados = usuariosFiltrados.filter(u => u.estado === estado);
-    }
-
-    // Filtrar por fecha
-    if (this.tipoFiltroFecha) {
-      if (this.tipoFiltroFecha === 'rango' && this.fechaInicioFiltro && this.fechaFinFiltro) {
-        const fechaInicio = new Date(this.fechaInicioFiltro);
-        const fechaFin = new Date(this.fechaFinFiltro);
-        usuariosFiltrados = usuariosFiltrados.filter(u => {
-          const fechaCreacion = new Date(u.fechaCreacion);
-          return fechaCreacion >= fechaInicio && fechaCreacion <= fechaFin;
-        });
-      } else if (this.tipoFiltroFecha === 'despues' && this.fechaEspecificaFiltro) {
-        const fecha = new Date(this.fechaEspecificaFiltro);
-        usuariosFiltrados = usuariosFiltrados.filter(u => new Date(u.fechaCreacion) >= fecha);
-      } else if (this.tipoFiltroFecha === 'antes' && this.fechaEspecificaFiltro) {
-        const fecha = new Date(this.fechaEspecificaFiltro);
-        usuariosFiltrados = usuariosFiltrados.filter(u => new Date(u.fechaCreacion) <= fecha);
-      }
-    }
-
-    this.usuariosFiltrados = usuariosFiltrados;
   }
 
   limpiarFiltros(): void {

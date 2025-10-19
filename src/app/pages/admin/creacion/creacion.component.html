@@ -123,72 +123,139 @@
           </div>
 
           <!-- Fila 3: Nombre de usuario y Contraseña -->
-<div class="input-group">
-    <input type="text" id="nombreUsuario" name="nombreUsuario" [(ngModel)]="usuario.nombreUsuario" 
-           #nombreUsuarioInput="ngModel"
-           placeholder=" "
-           required />
-    <label for="nombreUsuario">Nombre de usuario *</label>
-    <div *ngIf="nombreUsuarioInput.invalid && (nombreUsuarioInput.dirty || nombreUsuarioInput.touched)" class="error-message">
-        El nombre de usuario es obligatorio
-    </div>
-</div>
+          <div class="input-group">
+            <input type="text" id="nombreUsuario" name="nombreUsuario" [(ngModel)]="usuario.nombreUsuario" 
+                   #nombreUsuarioInput="ngModel"
+                   placeholder=" "
+                   required />
+            <label for="nombreUsuario">Nombre de usuario *</label>
+            <div *ngIf="nombreUsuarioInput.invalid && (nombreUsuarioInput.dirty || nombreUsuarioInput.touched)" class="error-message">
+              El nombre de usuario es obligatorio
+            </div>
+          </div>
 
-<div class="input-group">
+          <div class="input-group password-field" 
+     [class.validated]="validatePassword() && usuario.cambiarContrasena"
+     [class.password-typing]="usuario.contrasena && usuario.cambiarContrasena">
+  
+  <div class="input-group">
     <input type="password" id="contrasena" name="contrasena" [(ngModel)]="usuario.contrasena" 
            #contrasenaInput="ngModel"
            placeholder=" "
-           required minlength="6" 
-           [disabled]="!usuario.cambiarContrasena && usuarioEditando" />
+           [required]="!usuarioEditando || usuario.cambiarContrasena"
+           [disabled]="!usuario.cambiarContrasena && usuarioEditando"
+           (input)="onPasswordInputChange()"
+           (focus)="onPasswordFocus()"
+           (blur)="onPasswordBlur()" 
+           minlength="8" />
     <label for="contrasena">Contraseña *</label>
-    
-    <!-- Mensaje informativo cuando está desactivado en modo edición -->
-    <div *ngIf="!usuario.cambiarContrasena && usuarioEditando" class="info-message">
-        <small>Se conservará la contraseña actual del usuario</small>
+  </div>
+  
+  <!-- Indicador de fortaleza - AHORA AL LADO DERECHO -->
+  <div *ngIf="usuario.contrasena && usuario.cambiarContrasena" 
+       class="password-strength-indicator">
+    <div class="password-strength" 
+         [class.weak]="getPasswordStrength() === 'weak'"
+         [class.medium]="getPasswordStrength() === 'medium'" 
+         [class.strong]="getPasswordStrength() === 'strong'">
+      <div class="password-strength-label">
+        <span>Fortaleza</span>
+        <span class="strength-text">
+          <span *ngIf="getPasswordStrength() === 'weak'">Débil</span>
+          <span *ngIf="getPasswordStrength() === 'medium'">Media</span>
+          <span *ngIf="getPasswordStrength() === 'strong'">Fuerte</span>
+        </span>
+      </div>
+      <div class="password-strength-bar-container">
+        <div class="password-strength-bar"></div>
+      </div>
     </div>
-    
-    <div *ngIf="contrasenaInput.invalid && (contrasenaInput.dirty || contrasenaInput.touched) && usuario.cambiarContrasena" class="error-message">
-        <div *ngIf="contrasenaInput.errors?.['required']">La contraseña es obligatoria</div>
-        <div *ngIf="contrasenaInput.errors?.['minlength']">Mínimo 6 caracteres</div>
-    </div>
+  </div>
 </div>
 
-<!-- INTERRUPTOR DE CAMBIO DE CONTRASEÑA - FUERA DEL INPUT-GROUP -->
-<div class="password-switch-container">
-    <div class="switch-header">
-        <h4 class="switch-title">
-            <i class="fas fa-key"></i>
-            Cambiar Contraseña
-        </h4>
-        <span class="switch-status" *ngIf="usuarioEditando">
-            {{ usuario.cambiarContrasena ? 'Activado' : 'Desactivado' }}
-        </span>
-    </div>
-    
-    <div class="switch-controls">
-        <p class="switch-description" *ngIf="!usuarioEditando">
-            El usuario deberá cambiar la contraseña en su primer acceso al sistema
-        </p>
-        <p class="switch-description" *ngIf="usuarioEditando && !usuario.cambiarContrasena">
-            Se conservará la contraseña actual del usuario
-        </p>
-        <p class="switch-description" *ngIf="usuarioEditando && usuario.cambiarContrasena">
-            Se solicitará al usuario que cambie su contraseña en el próximo acceso
-        </p>
-        
-        <label class="switch" *ngIf="usuarioEditando">
-            <input type="checkbox" 
-                   [(ngModel)]="usuario.cambiarContrasena" 
-                   name="cambiarContrasena"
-                   (change)="onCambiarContrasenaChange()">
-            <span class="slider"></span>
-        </label>
-        <div *ngIf="!usuarioEditando" class="switch-disabled">
-            <i class="fas fa-check-circle"></i>
-            Activado para nuevo usuario
-        </div>
-    </div>
+<!-- Los demás elementos se mantienen igual pero debajo -->
+<div *ngIf="!usuario.cambiarContrasena && usuarioEditando" class="validation-message info-message">
+  <i class="fas fa-info-circle"></i>
+  <span>Se conservará la contraseña actual del usuario</span>
 </div>
+
+<!-- Requisitos de contraseña -->
+<div *ngIf="showPasswordRequirements && usuario.cambiarContrasena" class="password-requirements">
+  <div class="password-requirements-header">
+    <i class="fas fa-shield-alt"></i>
+    <h4>Requisitos de seguridad</h4>
+  </div>
+  <div class="requirement" [class.valid]="passwordRequirements.minLength">
+    Mínimo 8 caracteres
+  </div>
+  <div class="requirement" [class.valid]="passwordRequirements.hasUpperCase">
+    Al menos una mayúscula
+  </div>
+  <div class="requirement" [class.valid]="passwordRequirements.hasSpecialChar">
+    Al menos un carácter especial
+  </div>
+</div>
+
+<!-- Mensajes de validación -->
+<div *ngIf="contrasenaInput.invalid && (contrasenaInput.dirty || contrasenaInput.touched) && usuario.cambiarContrasena" 
+     class="validation-message error-message">
+  <i class="fas fa-exclamation-circle"></i>
+  <div>
+    <div *ngIf="contrasenaInput.errors?.['required']">La contraseña es obligatoria</div>
+    <div *ngIf="contrasenaInput.errors?.['minlength']">La contraseña debe tener al menos 8 caracteres</div>
+  </div>
+</div>
+
+<!-- Mensaje de validación en tiempo real -->
+<div *ngIf="usuario.contrasena && usuario.cambiarContrasena && !validatePassword()" 
+     class="validation-message validation-hint">
+  <i class="fas fa-exclamation-triangle"></i>
+  <span>Requisitos pendientes: {{ getPasswordValidationMessage() }}</span>
+</div>
+
+<!-- Mensaje de éxito -->
+<div *ngIf="usuario.contrasena && usuario.cambiarContrasena && validatePassword()" 
+     class="validation-message success-message">
+  <i class="fas fa-check-circle"></i>
+  <span>¡Contraseña segura! Cumple con todos los requisitos</span>
+</div>
+
+          <!-- INTERRUPTOR DE CAMBIO DE CONTRASEÑA -->
+          <div class="password-switch-container" [class.active]="usuario.cambiarContrasena">
+            <div class="switch-header">
+                <h4 class="switch-title">
+                    <i class="fas fa-key"></i>
+                    Cambiar Contraseña
+                </h4>
+                <span class="switch-status" *ngIf="usuarioEditando">
+                    {{ usuario.cambiarContrasena ? 'Activado' : 'Desactivado' }}
+                </span>
+            </div>
+            
+            <div class="switch-controls">
+                <p class="switch-description" *ngIf="!usuarioEditando">
+                    El usuario deberá cambiar la contraseña en su primer acceso al sistema
+                </p>
+                <p class="switch-description" *ngIf="usuarioEditando && !usuario.cambiarContrasena">
+                    Se conservará la contraseña actual del usuario
+                </p>
+                <p class="switch-description" *ngIf="usuarioEditando && usuario.cambiarContrasena">
+                    Se solicitará al usuario que cambie su contraseña en el próximo acceso
+                </p>
+                
+                <label class="switch" *ngIf="usuarioEditando">
+                    <input type="checkbox" 
+                           [(ngModel)]="usuario.cambiarContrasena" 
+                           name="cambiarContrasena"
+                           (change)="onCambiarContrasenaChange()">
+                    <span class="slider"></span>
+                </label>
+                <div *ngIf="!usuarioEditando" class="switch-disabled">
+                    <i class="fas fa-check-circle"></i>
+                    Activado para nuevo usuario
+                </div>
+            </div>
+          </div>
 
           <!-- Fila 4: Tipo de Usuario y Estado -->
           <div class="input-group">
@@ -221,7 +288,7 @@
 
         <!-- Botones del formulario -->
         <div class="form-actions">
-          <button type="submit" [disabled]="formUsuario.invalid" class="btn-primary">
+          <button type="submit" [disabled]="!isFormValid()" class="btn-primary">
             <i class="fas" [class.fa-save]="!usuarioEditando" [class.fa-edit]="usuarioEditando"></i>
             {{ usuarioEditando ? 'Actualizar' : 'Guardar' }} Usuario
           </button>
