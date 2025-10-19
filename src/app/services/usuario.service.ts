@@ -6,6 +6,7 @@ import { map, catchError } from 'rxjs/operators';
 import { UsuarioDto } from '../models/usuario/usuario.dto';
 import { MensajeDto } from '../models/mensaje.dto';
 import { LoginResponse } from '../models/login-response.dto';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,7 @@ import { LoginResponse } from '../models/login-response.dto';
 export class UsuarioService {
   private http = inject(HttpClient);
   
-  private apiUrl: string = 'http://localhost:8080';
+  private apiUrl = `${environment.apiUrl}`;
   private usuarioSubject = new BehaviorSubject<LoginResponse | null>(null);
 
   private getHeaders(): HttpHeaders {

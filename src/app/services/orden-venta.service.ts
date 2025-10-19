@@ -8,6 +8,7 @@ import {
   CreateOrdenDto 
 } from '../models/orden-venta/ordenventa.dto';
 import { MensajeDto } from '../models/mensaje.dto';
+import { environment } from '../../environments/environment';
 
 export enum EstadoOrden {
   PENDIENTE = 'PENDIENTE',
@@ -22,7 +23,7 @@ export enum EstadoOrden {
   providedIn: 'root'
 })
 export class OrdenVentaService {
-  private apiUrl = 'http://localhost:8080/ordenes';
+  private apiUrl = `${environment.apiUrl}/ordenes`;
   private ordenActual: OrdenDto | null = null;
 
   constructor(private http: HttpClient) { }

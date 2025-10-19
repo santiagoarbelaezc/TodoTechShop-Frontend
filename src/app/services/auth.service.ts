@@ -8,6 +8,7 @@ import { of } from 'rxjs';
 import { MensajeDto } from '../models/mensaje.dto';
 import { LoginResponse } from '../models/login-response.dto';
 import { UsuarioService } from './usuario.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +18,7 @@ export class AuthService {
   private router = inject(Router);
   private usuarioService = inject(UsuarioService);
   
-  private apiUrl: string = 'http://localhost:8080/usuarios';
+  private apiUrl = `${environment.apiUrl}/usuarios`;
   private USUARIO_KEY = 'currentUser';
   private TOKEN_KEY = 'authToken';
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);

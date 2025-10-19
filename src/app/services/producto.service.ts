@@ -10,6 +10,7 @@ import { ProductoDto } from '../models/producto/producto.dto';
 import { CantidadRequestDto } from '../models/producto/cantidad-request.dto';
 import { AjusteStockRequestDto } from '../models/producto/ajuste-stock-request.dto';
 import { StockResponseDto } from '../models/producto/stock-response.dto';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +18,7 @@ import { StockResponseDto } from '../models/producto/stock-response.dto';
 export class ProductoService {
   private http = inject(HttpClient);
   
-  private apiUrl: string = 'http://localhost:8080/productos';
+  private apiUrl = `${environment.apiUrl}/productos`;
   private productoSeleccionadoSubject = new BehaviorSubject<ProductoDto | null>(null);
   
   // Observable público para suscribirse a los cambios del producto seleccionado

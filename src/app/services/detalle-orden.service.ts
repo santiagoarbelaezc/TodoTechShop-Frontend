@@ -9,12 +9,13 @@ import {
   EliminarDetalleRequest 
 } from '../models/detalle-orden/detalle-orden.dto';
 import { MensajeDto } from '../models/mensaje.dto';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DetalleOrdenService {
-  private apiUrl = 'http://localhost:8080/detalles-orden';
+  private apiUrl = `${environment.apiUrl}/detalles-orden`;
 
   constructor(private http: HttpClient) {}
 

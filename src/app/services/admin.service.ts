@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,7 @@ export class AdminService {
   private authService = inject(AuthService);
   private router = inject(Router);
   
-  private apiUrl: string = 'http://localhost:8080';
+  private apiUrl = `${environment.apiUrl}`;
 
   private getHeaders(): HttpHeaders {
     // Usar el AuthService para obtener el token con validación de revocación
