@@ -60,7 +60,7 @@
           <div class="info-grid">
             <div class="info-item">
               <span class="info-label">Número de Orden:</span>
-              <span class="info-value">{{ ordenActual.numeroOrden || 'Por generar' }}</span>
+              <span class="info-value orden-numero">{{ ordenActual.numeroOrden || 'Por generar' }}</span>
             </div>
             
             <div class="info-item">
@@ -73,6 +73,11 @@
               <span [class]="'estado-badge ' + getBadgeClass(ordenActual.estado)">
                 {{ ordenActual.estado }}
               </span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">ID Orden:</span>
+              <span class="info-value">{{ ordenActual.id }}</span>
             </div>
           </div>
 
@@ -90,8 +95,12 @@
                     <i class="fas fa-id-card"></i>
                     {{ ordenActual.cliente.cedula }}
                   </span>
+                  <span class="persona-email">
+                    <i class="fas fa-envelope"></i>
+                    {{ ordenActual.cliente.correo || 'Sin correo' }}
+                  </span>
                   <span class="persona-tipo" [class.tipo-juridico]="ordenActual.cliente.tipoCliente === 'JURIDICO'">
-                    {{ ordenActual.cliente.tipoCliente }}
+                    {{ ordenActual.cliente.tipoCliente || 'NATURAL' }}
                   </span>
                 </div>
               </div>
@@ -105,9 +114,13 @@
               <div class="persona-info">
                 <strong class="persona-nombre">{{ ordenActual.vendedor.nombre }}</strong>
                 <div class="persona-detalles">
+                  <span class="persona-cedula">
+                    <i class="fas fa-id-card"></i>
+                    {{ ordenActual.vendedor.cedula }}
+                  </span>
                   <span class="persona-email">
                     <i class="fas fa-envelope"></i>
-                    {{ ordenActual.vendedor.nombre }}
+                    {{ ordenActual.vendedor.correo }}
                   </span>
                 </div>
               </div>
@@ -126,7 +139,7 @@
       </section>
 
       <!-- Productos de la Orden -->
-      <section class="productos-section">
+      <section *ngIf="ordenActual.productos && ordenActual.productos.length > 0" class="productos-section">
         <div class="productos-card">
           <h3 class="section-title">
             <i class="fas fa-boxes"></i>
@@ -157,6 +170,7 @@
                       <div class="producto-detalles">
                         <span class="producto-marca">{{ detalle.producto.marca }}</span>
                         <span class="producto-categoria">{{ detalle.producto.categoria.nombre }}</span>
+                        <span class="producto-codigo">Código: {{ detalle.producto.codigo }}</span>
                       </div>
                     </div>
                   </td>
@@ -176,6 +190,15 @@
         </div>
       </section>
 
+      <!-- Mensaje cuando no hay productos -->
+      <section *ngIf="!ordenActual.productos || ordenActual.productos.length === 0" class="sin-productos-section">
+        <div class="sin-productos-card">
+          <i class="fas fa-shopping-cart"></i>
+          <h3>No hay productos en la orden</h3>
+          <p>Agrega productos para ver el resumen completo</p>
+        </div>
+      </section>
+
       <!-- Resumen Financiero -->
       <section class="resumen-financiero-section">
         <div class="resumen-card">
@@ -186,70 +209,82 @@
 
           <div class="resumen-grid">
             <div class="totales-card">
-              <h4 class="totales-title">Totales de la Orden</h4>
+              <h4 class="totales-title">Desglose de Pagos</h4>
               
+              <!-- Subtotal -->
               <div class="total-item">
                 <span class="total-label">Subtotal Productos:</span>
-                <span class="total-value">{{ formatearMoneda(calcularSubtotal()) }}</span>
+                <span class="total-value">{{ getSubtotalFormateado() }}</span>
               </div>
 
-              <!-- ✅ CORREGIDO: Solo mostrar el valor del descuento, sin porcentaje -->
-              <div *ngIf="ordenActual.descuento > 0" class="total-item descuento">
+              <!-- Descuento -->
+              <div class="total-item descuento" *ngIf="tieneDescuento()">
                 <span class="total-label">
-                  Descuento Aplicado:
+                  <i class="fas fa-tag"></i>
+                  Descuento ({{ getPorcentajeDescuento() | number:'1.0-0' }}%):
                 </span>
                 <span class="total-value descuento-valor">
-                  -{{ formatearMoneda(getDescuentoAplicado()) }}
+                  -{{ getDescuentoFormateado() }}%
                 </span>
               </div>
 
+              <!-- Base Imponible -->
               <div class="total-item base-imponible">
                 <span class="total-label">Base Imponible:</span>
-                <span class="total-value">{{ formatearMoneda(calcularBaseImponible()) }}</span>
+                <span class="total-value">{{ getBaseImponibleFormateada() }}</span>
               </div>
 
+              <!-- Impuestos -->
               <div class="total-item impuestos">
                 <span class="total-label">Impuestos ({{ getPorcentajeImpuestos() }}%):</span>
-                <span class="total-value">{{ formatearMoneda(calcularImpuestos()) }}</span>
+                <span class="total-value">{{ getPorcentajeImpuestos() }}%</span>
               </div>
 
+              <div class="separator"></div>
+
+              <!-- Total General -->
               <div class="total-item total-final">
                 <span class="total-label">Total General:</span>
-                <span class="total-value">{{ formatearMoneda(calcularTotal()) }}</span>
+                <span class="total-value">{{ getTotalFormateado() }}</span>
               </div>
             </div>
 
             <div class="detalles-card">
-              <h4 class="detalles-title">Detalles del Cálculo</h4>
+              <h4 class="detalles-title">Valores del Sistema</h4>
               
               <div class="detalle-item">
-                <span class="detalle-label">Subtotal calculado:</span>
+                <span class="detalle-label">Subtotal:</span>
                 <span class="detalle-value">{{ formatearMoneda(ordenActual.subtotal) }}</span>
               </div>
 
               <div class="detalle-item">
-                <span class="detalle-label">Descuento aplicado:</span>
-                <span class="detalle-value">{{ formatearMoneda(ordenActual.descuento || 0) }}</span>
+                <span class="detalle-label">Descuento:</span>
+                <span class="detalle-value">{{(ordenActual.descuento || 0) }}</span>
               </div>
 
               <div class="detalle-item">
-                <span class="detalle-label">Base para impuestos:</span>
-                <span class="detalle-value">{{ formatearMoneda(ordenActual.subtotal - (ordenActual.descuento || 0)) }}</span>
+                <span class="detalle-label">Impuestos:</span>
+                <span class="detalle-value">{{ formatearMoneda(ordenActual.impuestos || 0) }}</span>
               </div>
 
               <div class="detalle-item">
-                <span class="detalle-label">Impuestos ({{ getPorcentajeImpuestos() }}%):</span>
-                <span class="detalle-value">{{ formatearMoneda(ordenActual.impuestos) }}</span>
-              </div>
-
-              <div class="detalle-item total-detalle">
-                <span class="detalle-label">Total orden:</span>
-                <span class="detalle-value">{{ formatearMoneda(ordenActual.total) }}</span>
+                <span class="detalle-label">Total:</span>
+                <span class="detalle-value">{{ getTotalFormateado() }}</span>
               </div>
 
               <div class="info-note">
                 <i class="fas fa-database"></i>
                 <span>Valores calculados automáticamente por el sistema</span>
+              </div>
+
+              <!-- Resumen de Cálculos -->
+              <div class="calculos-resumen">
+                <h5>Fórmula Aplicada:</h5>
+                <div class="formula">
+                  Base Imponible = Subtotal - Descuento<br>
+                  Impuestos = Base Imponible × {{ getPorcentajeImpuestos() }}%<br>
+                  Total = Base Imponible + Impuestos
+                </div>
               </div>
             </div>
           </div>
@@ -265,7 +300,9 @@
           </h3>
           
           <div class="acciones-buttons">
-            <button (click)="generarNumero()" class="btn-action btn-primary" [disabled]="!puedeGenerarNumero()">
+            <button (click)="generarNumero()" 
+                    class="btn-action btn-primary" 
+                    [disabled]="!puedeGenerarNumero() || !ordenActual.productos || ordenActual.productos.length === 0">
               <i class="fas fa-receipt"></i>
               Generar Número de Orden
             </button>
@@ -288,8 +325,18 @@
               <span>
                 {{ ordenActual.estado === 'DISPONIBLEPARAPAGO' ? 
                    'La orden ya tiene número generado y está disponible para pago' :
+                   ordenActual.estado === 'PAGADA' ? 
+                   'La orden ya ha sido pagada' :
                    'No se puede generar número de orden en el estado actual' }}
               </span>
+            </div>
+          </div>
+
+          <!-- Mensaje si no hay productos -->
+          <div *ngIf="(!ordenActual.productos || ordenActual.productos.length === 0) && puedeGenerarNumero()" class="estado-info">
+            <div class="info-message info-warning">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>Agrega productos a la orden antes de generar el número</span>
             </div>
           </div>
         </div>
@@ -315,7 +362,18 @@
             <div class="numero-orden-value">{{ ordenActual?.numeroOrden }}</div>
           </div>
 
-          <!-- ⚠️ MENSAJE DESTACADO SOBRE RESTRICCIONES -->
+          <div class="resumen-rapido">
+            <div class="resumen-item">
+              <span>Total de la Orden:</span>
+              <strong>{{ getTotalFormateado() }}</strong>
+            </div>
+            <div class="resumen-item" *ngIf="tieneDescuento()">
+              <span>Descuento aplicado:</span>
+              <strong class="descuento">-{{ getDescuentoFormateado() }}</strong>
+            </div>
+          </div>
+
+          <!-- Mensaje de restricciones -->
           <div class="alerta-importante">
             <div class="alerta-header">
               <i class="fas fa-exclamation-triangle"></i>
@@ -326,25 +384,21 @@
               <ul class="alerta-lista">
                 <li>
                   <i class="fas fa-ban"></i>
-                  <strong>NO se pueden agregar más productos</strong> a esta orden
+                  <strong>NO se pueden agregar más productos</strong>
                 </li>
                 <li>
                   <i class="fas fa-ban"></i>
-                  <strong>NO se pueden modificar</strong> las cantidades de productos existentes
+                  <strong>NO se pueden modificar</strong> las cantidades
                 </li>
                 <li>
                   <i class="fas fa-ban"></i>
-                  <strong>NO se pueden eliminar</strong> productos de la orden
+                  <strong>NO se pueden eliminar</strong> productos
                 </li>
                 <li>
                   <i class="fas fa-check-circle"></i>
-                  Solo se permite proceder con el <strong>proceso de pago</strong>
+                  Solo se permite proceder con el <strong>pago</strong>
                 </li>
               </ul>
-              <p class="alerta-advertencia">
-                <i class="fas fa-lightbulb"></i>
-                <strong>Consejo:</strong> Asegúrate de que todos los productos estén correctos antes de imprimir.
-              </p>
             </div>
           </div>
 

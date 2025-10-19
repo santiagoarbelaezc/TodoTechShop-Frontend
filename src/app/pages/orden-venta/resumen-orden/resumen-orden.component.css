@@ -1221,3 +1221,168 @@ body {
 .alerta-advertencia strong {
   color: #1b5e20;
 }
+
+/* ===== ESTILOS PARA LA SECCIÓN VALORES DEL SISTEMA ===== */
+
+.detalles-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 25px;
+    border: 1px solid #e9ecef;
+    height: fit-content;
+}
+
+.detalles-title {
+    font-size: 18px;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detalles-title i {
+    color: #1421cf;
+    font-size: 16px;
+}
+
+.detalle-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.detalle-item:last-child {
+    border-bottom: none;
+}
+
+.detalle-label {
+    font-size: 15px;
+    color: #666;
+    font-weight: 500;
+    flex: 1;
+}
+
+.detalle-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-align: right;
+    min-width: 120px;
+}
+
+/* Información de la base de datos */
+.info-note {
+    margin-top: 20px;
+    padding: 12px 16px;
+    background: rgba(52, 152, 219, 0.1);
+    border-radius: 8px;
+    font-size: 14px;
+    color: #2980b9;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.4;
+}
+
+.info-note i {
+    color: #2980b9;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+/* Resumen de cálculos */
+.calculos-resumen {
+    margin-top: 25px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.calculos-resumen h5 {
+    font-size: 16px;
+    color: #1a1a1a;
+    margin-bottom: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.calculos-resumen h5::before {
+    content: "📊";
+    font-size: 14px;
+}
+
+.formula {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #2c3e50;
+    line-height: 1.6;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #1421cf;
+}
+
+/* Estilos específicos para valores destacados */
+.detalle-item:nth-child(1) .detalle-value {
+    color: #1421cf;
+}
+
+.detalle-item:nth-child(2) .detalle-value {
+    color: #e74c3c;
+    font-weight: 700;
+}
+
+.detalle-item:nth-child(3) .detalle-value {
+    color: #f39c12;
+}
+
+.detalle-item:nth-child(4) .detalle-value {
+    color: #27ae60;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .detalles-card {
+        padding: 20px;
+    }
+    
+    .detalle-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .detalle-value {
+        align-self: flex-end;
+        min-width: auto;
+    }
+    
+    .formula {
+        font-size: 13px;
+        padding: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .detalles-card {
+        padding: 15px;
+    }
+    
+    .calculos-resumen {
+        padding: 15px;
+    }
+    
+    .formula {
+        font-size: 12px;
+    }
+}

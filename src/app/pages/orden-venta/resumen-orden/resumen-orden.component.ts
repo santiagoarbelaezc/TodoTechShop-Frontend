@@ -23,6 +23,9 @@ export class ResumenOrdenComponent implements OnInit {
   procesando = false;
   impresionCompletada = false;
 
+  // Constante para impuestos
+  private readonly PORCENTAJE_IMPUESTOS = 2;  // 2%
+
   ngOnInit(): void {
     console.log('🔄 Iniciando componente de Resumen de Orden...');
     this.cargarOrdenActual();
@@ -32,7 +35,6 @@ export class ResumenOrdenComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    // Obtener la orden actual del servicio
     const orden = this.ordenVentaService.obtenerOrdenActual();
     
     if (!orden) {
@@ -43,17 +45,17 @@ export class ResumenOrdenComponent implements OnInit {
     }
 
     console.log('✅ Orden actual encontrada:', orden);
-
-    // ✅ SIEMPRE cargar los detalles completos desde el backend
     this.cargarDetallesCompletos(orden.id);
   }
-
-  private cargarDetallesCompletos(ordenId: number): void {
+private cargarDetallesCompletos(ordenId: number): void {
     this.ordenVentaService.obtenerOrdenConDetalles(ordenId).subscribe({
       next: (ordenConDetalles) => {
         this.ordenActual = ordenConDetalles;
         this.loading = false;
         console.log('✅ Detalles de orden cargados:', ordenConDetalles);
+        
+        // ✅ NUEVO: Actualizar el total en el backend después de cargar los detalles
+        this.actualizarTotalEnBackend(ordenId);
       },
       error: (err) => {
         console.error('❌ Error al cargar detalles de orden:', err);
@@ -63,7 +65,115 @@ export class ResumenOrdenComponent implements OnInit {
     });
   }
 
-  // Método para generar número de orden y marcar como disponible para pago
+  // ✅ NUEVO MÉTODO: Actualizar el total en el backend
+  private actualizarTotalEnBackend(ordenId: number): void {
+    const totalCalculado = this.getTotal();
+    
+    console.log(`🔄 Actualizando total en backend - Orden ID: ${ordenId}, Total: ${totalCalculado}`);
+    
+    this.ordenVentaService.actualizarTotalOrden(ordenId, totalCalculado).subscribe({
+      next: (ordenActualizada) => {
+        console.log('✅ Total actualizado en backend:', ordenActualizada);
+        
+        // Actualizar la orden actual con los datos del backend
+        this.ordenVentaService.obtenerOrdenConDetalles(ordenId).subscribe({
+          next: (ordenConDetallesActualizada) => {
+            this.ordenActual = ordenConDetallesActualizada;
+            this.ordenVentaService.guardarOrdenActual(ordenConDetallesActualizada);
+            console.log('🔄 Orden actualizada con total sincronizado:', ordenConDetallesActualizada);
+          },
+          error: (err) => {
+            console.error('❌ Error al cargar orden actualizada:', err);
+          }
+        });
+      },
+      error: (err) => {
+        console.error('❌ Error al actualizar total en backend:', err);
+        // No mostramos error al usuario ya que esto es una sincronización en segundo plano
+      }
+    });
+  }
+  // =============================================
+  // MÉTODOS DE CÁLCULO CORREGIDOS - USAR VALORES DEL BACKEND
+  // =============================================
+
+  // ✅ Usar directamente los valores del backend
+  getSubtotal(): number {
+    return this.ordenActual?.subtotal || 0;
+  }
+
+  // ✅ Obtener el porcentaje de descuento de la orden
+  getPorcentajeDescuento(): number {
+    if (!this.ordenActual) return 0;
+    
+    // Calcular el porcentaje basado en el descuento aplicado y el subtotal
+    const subtotal = this.getSubtotal();
+    const descuentoAplicado = this.ordenActual.descuento || 0;
+    
+    if (subtotal > 0 && descuentoAplicado > 0) {
+      return (descuentoAplicado / subtotal) * 100;
+    }
+    
+    return 0;
+  }
+
+
+  // ✅ Calcular base imponible (subtotal - descuento)
+  getBaseImponible(): number {
+    const subtotal = this.getSubtotal();
+    const descuento = this.getDescuentoAplicado();
+    return Math.max(0, subtotal - (subtotal*descuento/100));
+  }
+
+  // ✅ Calcular impuestos sobre la base imponible
+  getImpuestos(): number {
+    const baseImponible = this.getBaseImponible();
+    const impuestos = baseImponible * (this.PORCENTAJE_IMPUESTOS / 100);
+    return this.redondearDecimales(impuestos, 2);
+  }
+
+  // ✅ Calcular total (base imponible + impuestos)
+  getTotal(): number {
+    const baseImponible = this.getBaseImponible();
+    const impuestos = this.getImpuestos();
+    const total = baseImponible + impuestos;
+    return this.redondearDecimales(total, 2);
+  }
+
+  // ✅ NUEVO MÉTODO: Redondear decimales elegantemente
+  private redondearDecimales(valor: number, decimales: number): number {
+    const factor = Math.pow(10, decimales);
+    return Math.round(valor * factor) / factor;
+  }
+
+  // Método para obtener porcentaje de impuestos
+  getPorcentajeImpuestos(): number {
+    return this.PORCENTAJE_IMPUESTOS;
+  }
+
+  // ✅ NUEVO MÉTODO: Formatear moneda elegante con separadores
+  formatearMonedaElegante(valor: number): string {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+      useGrouping: true
+    }).format(valor);
+  }
+
+  // ✅ NUEVO MÉTODO: Formatear valores decimales para impuestos
+  formatearMonedaDecimal(valor: number): string {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: true
+    }).format(valor);
+  }
+
+  // Método para generar número de orden
   generarNumero(): void {
     if (!this.ordenActual || !this.puedeGenerarNumero()) {
       return;
@@ -72,17 +182,13 @@ export class ResumenOrdenComponent implements OnInit {
     this.procesando = true;
     console.log('🔄 Generando número de orden y marcando como disponible para pago...');
 
-    // Marcar la orden como disponible para pago
     this.ordenVentaService.marcarComoDisponibleParaPago(this.ordenActual.id).subscribe({
       next: (ordenActualizada) => {
         console.log('✅ Orden marcada como disponible para pago:', ordenActualizada);
         
-        // ✅ ACTUALIZAR: Cargar los detalles completos después de generar el número
         this.ordenVentaService.obtenerOrdenConDetalles(this.ordenActual!.id).subscribe({
           next: (ordenConDetallesActualizada) => {
             this.ordenActual = ordenConDetallesActualizada;
-            
-            // Actualizar en el servicio y localStorage
             this.ordenVentaService.guardarOrdenActual(ordenConDetallesActualizada);
             
             this.procesando = false;
@@ -109,20 +215,19 @@ export class ResumenOrdenComponent implements OnInit {
   puedeGenerarNumero(): boolean {
     if (!this.ordenActual) return false;
     
-    // Solo permitir si la orden está en estado PENDIENTE o AGREGANDOPRODUCTOS
     const estadosPermitidos = [EstadoOrden.PENDIENTE, EstadoOrden.AGREGANDOPRODUCTOS];
     return estadosPermitidos.includes(this.ordenActual.estado) && !this.procesando;
   }
 
-  // ✅ MÉTODO ACTUALIZADO: Imprimir número de orden y luego limpiar
-  imprimirNumeroOrden(): void {
-    if (!this.ordenActual) return;
+  // ✅ MÉTODO ACTUALIZADO: Imprimir número de orden con diseño mejorado
+imprimirNumeroOrden(): void {
+  if (!this.ordenActual) return;
 
-    const contenidoImpresion = `
+  const contenidoImpresion = `
   <!DOCTYPE html>
   <html>
   <head>
-    <title>Número de Orden - ${this.ordenActual.numeroOrden}</title>
+    <title>Orden ${this.ordenActual.numeroOrden} - TodoTech</title>
     <meta charset="UTF-8">
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -133,259 +238,352 @@ export class ResumenOrdenComponent implements OnInit {
         box-sizing: border-box;
       }
       
-      body { 
-        font-family: 'Inter', Arial, sans-serif; 
-        text-align: center; 
-        padding: 20px;
-        background: white;
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #ffffff;
+        color: #1a1a1a;
+        line-height: 1.4;
+        padding: 15px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
       
       .ticket-container {
-        background: white;
-        border-radius: 12px;
-        padding: 30px 25px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        width: 100%;
-        max-width: 350px;
+        max-width: 400px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         border: 2px solid #e9ecef;
-        page-break-inside: avoid;
-        break-inside: avoid;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      /* Efecto de gradiente decorativo */
+      .ticket-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #1421cf 0%, #db1f1f 100%);
       }
       
       .logo {
-        font-size: 18px;
-        font-weight: 700;
+        text-align: center;
+        font-size: 28px;
+        font-weight: 800;
         color: #1421cf;
-        margin-bottom: 6px;
-        letter-spacing: -0.5px;
+        margin-bottom: 5px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
       }
       
       .subtitle {
-        font-size: 11px;
-        color: #6c757d;
+        text-align: center;
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 15px;
         text-transform: uppercase;
-        letter-spacing: 1.2px;
-        margin-bottom: 3px;
+        letter-spacing: 2px;
         font-weight: 500;
       }
       
       .title {
-        font-size: 13px;
-        font-weight: 600;
-        color: #495057;
+        text-align: center;
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a1a1a;
         margin-bottom: 20px;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
+        padding: 10px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
       }
       
-      .numero-orden { 
-        font-size: 24px;
-        font-weight: 700; 
-        color: #1421cf;
+      .numero-orden-container {
+        background: linear-gradient(135deg, #1421cf 0%, #3b49df 100%);
+        border-radius: 12px;
+        padding: 20px;
         margin: 20px 0;
-        padding: 15px 12px;
-        border: 2px solid #1421cf;
-        border-radius: 10px;
-        display: inline-block;
-        background: #f8f9ff;
+        text-align: center;
+        box-shadow: 0 6px 20px rgba(20, 33, 207, 0.3);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+      }
+      
+      .numero-orden-label {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 500;
+      }
+      
+      .numero-orden {
+        font-size: 32px;
+        font-weight: 800;
+        color: white;
         font-family: 'Courier New', monospace;
-        letter-spacing: 1.5px;
-        line-height: 1.2;
+        letter-spacing: 2px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+      
+      .decoration-line {
+        height: 2px;
+        background: linear-gradient(90deg, transparent 0%, #dee2e6 50%, transparent 100%);
+        margin: 20px 0;
+        position: relative;
+      }
+      
+      .decoration-line::before {
+        content: '⚡';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 0 10px;
+        color: #1421cf;
+        font-size: 14px;
       }
       
       .barcode-container {
-        margin: 20px 0;
-        padding: 15px;
+        text-align: center;
+        margin: 25px 0;
+        padding: 20px;
         background: #f8f9fa;
         border-radius: 10px;
         border: 1px solid #e9ecef;
       }
       
       .barcode {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 1px;
+        font-family: 'Libre Barcode 128', monospace;
+        font-size: 48px;
+        letter-spacing: 2px;
         margin-bottom: 10px;
-        padding: 10px;
-        background: white;
-        border-radius: 6px;
-        border: 1px solid #dee2e6;
-      }
-      
-      .barcode-line {
-        height: 40px;
-        background: #1a1a1a;
-        border-radius: 1px;
-        flex: 1;
-        max-width: 2px;
-        min-width: 1px;
-      }
-      
-      .barcode-line:nth-child(odd) {
-        height: 35px;
-        background: #2c2c2c;
-      }
-      
-      .barcode-line:nth-child(even) {
-        height: 30px;
-        background: #1a1a1a;
-      }
-      
-      .barcode-line:nth-child(3n) {
-        height: 40px;
-        background: #000;
-      }
-      
-      .barcode-line:nth-child(5n) {
-        height: 25px;
-        background: #333;
+        color: #1a1a1a;
       }
       
       .barcode-number {
         font-family: 'Courier New', monospace;
         font-size: 12px;
+        color: #666;
+        letter-spacing: 3px;
         font-weight: 600;
-        color: #495057;
-        letter-spacing: 4px;
-        margin-top: 6px;
       }
       
       .info-grid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 10px;
+        gap: 12px;
         margin: 20px 0;
-        text-align: left;
       }
       
       .info-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px solid #f1f3f4;
+        padding: 12px 15px;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
       }
       
-      .info-item:last-child {
-        border-bottom: none;
+      .info-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
       
       .info-label {
-        font-size: 12px;
-        color: #6c757d;
+        font-size: 13px;
+        color: #666;
         font-weight: 500;
+        flex: 1;
       }
       
       .info-value {
-        font-size: 12px;
-        color: #1a1a1a;
+        font-size: 14px;
         font-weight: 600;
+        color: #1a1a1a;
         text-align: right;
       }
       
       .status-badge {
-        display: inline-block;
-        padding: 3px 8px;
-        background: #e8f5e8;
-        color: #2e7d32;
-        border-radius: 10px;
-        font-size: 10px;
-        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.4px;
-        border: 1px solid #c8e6c9;
+        letter-spacing: 0.5px;
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        color: #155724;
+        border: 1px solid #b1dfbb;
       }
       
       .total-amount {
-        font-size: 13px;
-        color: #1421cf;
+        font-size: 16px;
         font-weight: 700;
+        color: #27ae60;
+      }
+      
+      /* Sección de resumen financiero */
+      .financial-summary {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0;
+        border: 1px solid #dee2e6;
+      }
+      
+      .financial-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 15px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      
+      .financial-title::before {
+        content: '💳';
+        font-size: 14px;
+      }
+      
+      .financial-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      
+      .financial-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px dashed #dee2e6;
+      }
+      
+      .financial-item:last-child {
+        border-bottom: none;
+      }
+      
+      .financial-label {
+        font-size: 13px;
+        color: #666;
+      }
+      
+      .financial-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1a1a1a;
+      }
+      
+      .financial-total {
+        border-top: 2px solid #dee2e6;
+        margin-top: 8px;
+        padding-top: 12px;
+      }
+      
+      .financial-total .financial-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1a1a1a;
+      }
+      
+      .financial-total .financial-value {
+        font-size: 16px;
+        font-weight: 800;
+        color: #27ae60;
       }
       
       .footer {
         margin-top: 25px;
-        padding-top: 15px;
-        border-top: 1px solid #e9ecef;
+        padding-top: 20px;
+        border-top: 2px solid #e9ecef;
+        text-align: center;
       }
       
       .footer-text {
-        font-size: 10px;
-        color: #6c757d;
-        line-height: 1.3;
-        margin-bottom: 6px;
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 8px;
+        font-weight: 500;
       }
       
       .print-date {
-        font-size: 9px;
-        color: #adb5bd;
+        font-size: 11px;
+        color: #999;
         font-family: 'Courier New', monospace;
       }
       
-      .decoration-line {
-        height: 1px;
-        background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+      .warning-note {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 12px 15px;
         margin: 15px 0;
+        text-align: center;
       }
       
-      /* ESTILOS DE IMPRESIÓN MEJORADOS - UNA SOLA HOJA */
+      .warning-note strong {
+        color: #856404;
+        font-size: 12px;
+        display: block;
+        margin-bottom: 5px;
+      }
+      
+      .warning-note span {
+        color: #856404;
+        font-size: 11px;
+        line-height: 1.3;
+      }
+      
+      /* Estilos específicos para impresión */
       @media print {
-        @page {
-          size: auto; /* Tamaño automático para una sola hoja */
-          margin: 0; /* Sin márgenes */
-          padding: 0;
-        }
-        
         body {
-          background: white !important;
-          padding: 10px !important;
-          margin: 0 !important;
-          height: auto !important;
-          width: 100% !important;
-          display: block !important;
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
+          padding: 0;
+          background: white;
         }
         
         .ticket-container {
-          box-shadow: none !important;
-          border: 2px solid #ccc !important;
-          margin: 0 auto !important;
-          max-width: 320px !important;
-          padding: 20px 15px !important;
-          page-break-inside: avoid !important;
-          break-inside: avoid !important;
-          break-after: avoid !important;
-          break-before: avoid !important;
+          box-shadow: none;
+          border: 1px solid #ccc;
+          max-width: 100%;
+          margin: 0;
+          border-radius: 0;
         }
         
-        .barcode-container {
-          background: #f8f9fa !important;
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        
-        /* Ocultar elementos no esenciales para impresión */
         .no-print {
           display: none !important;
         }
         
-        /* Asegurar que no haya saltos de página */
-        .ticket-container, .barcode-container, .info-grid {
-          page-break-inside: avoid !important;
-          break-inside: avoid !important;
+        @page {
+          margin: 0.5cm;
+          size: auto;
         }
       }
       
-      /* Efectos sutiles */
+      /* Animación sutil */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
       .ticket-container {
-        transition: all 0.3s ease;
+        animation: fadeInUp 0.5s ease-out;
       }
     </style>
   </head>
@@ -395,7 +593,10 @@ export class ResumenOrdenComponent implements OnInit {
       <div class="subtitle">Comprobante Digital</div>
       <div class="title">Orden de Compra</div>
       
-      <div class="numero-orden">${this.ordenActual.numeroOrden}</div>
+      <div class="numero-orden-container">
+        <div class="numero-orden-label">Número de Orden</div>
+        <div class="numero-orden">${this.ordenActual.numeroOrden}</div>
+      </div>
       
       <div class="decoration-line"></div>
       
@@ -429,132 +630,127 @@ export class ResumenOrdenComponent implements OnInit {
             <span class="status-badge">${this.ordenActual.estado}</span>
           </span>
         </div>
-        <div class="info-item">
-          <span class="info-label">Total</span>
-          <span class="info-value total-amount">${this.formatearMoneda(this.ordenActual.total)}</span>
+      </div>
+      
+      <!-- Sección de Resumen Financiero -->
+      <div class="financial-summary">
+        <div class="financial-title">Resumen Financiero</div>
+        <div class="financial-grid">
+          <div class="financial-item">
+            <span class="financial-label">Subtotal Productos:</span>
+            <span class="financial-value">${this.getSubtotalFormateado()}</span>
+          </div>
+          ${this.tieneDescuento() ? `
+          <div class="financial-item">
+            <span class="financial-label">Descuento (${this.getPorcentajeDescuento()}%):</span>
+            <span class="financial-value" style="color: #e74c3c;">-${this.getDescuentoFormateado()}</span>
+          </div>
+          ` : ''}
+          <div class="financial-item">
+            <span class="financial-label">Base Imponible:</span>
+            <span class="financial-value">${this.getBaseImponibleFormateada()}</span>
+          </div>
+          <div class="financial-item">
+            <span class="financial-label">Impuestos (${this.getPorcentajeImpuestos()}%):</span>
+            <span class="financial-value">${this.formatearMoneda(this.ordenActual.impuestos || 0)}</span>
+          </div>
+          <div class="financial-item financial-total">
+            <span class="financial-label">Total General:</span>
+            <span class="financial-value">${this.getTotalFormateado()}</span>
+          </div>
         </div>
+      </div>
+      
+      <div class="warning-note">
+        <strong>¡ATENCIÓN!</strong>
+        <span>Presente este código para procesar su pago. No se permiten modificaciones después de generada la orden.</span>
       </div>
       
       <div class="footer">
         <div class="footer-text">
-          Presente este código para procesar su pago
+          Gracias por su compra en TodoTech
         </div>
         <div class="print-date">
-          ${new Date().toLocaleString('es-CO', {
+          Impreso: ${new Date().toLocaleString('es-CO', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            second: '2-digit'
           })}
         </div>
       </div>
     </div>
     
     <script>
-      // Auto-imprimir y cerrar después de imprimir
       window.onload = function() {
         setTimeout(function() {
           window.print();
-        }, 250);
+        }, 500);
       };
       
-      // Cerrar cuando se completa la impresión
       window.onafterprint = function() {
         setTimeout(function() {
           window.close();
-        }, 500);
+        }, 1000);
       };
     </script>
   </body>
   </html>
 `;
 
-    const ventanaImpresion = window.open('', '_blank', 'width=400,height=600,scrollbars=no');
-    if (ventanaImpresion) {
-      ventanaImpresion.document.write(contenidoImpresion);
-      ventanaImpresion.document.close();
-      
-      // ✅ ESCUCHAR CUANDO SE CIERRA LA VENTANA DE IMPRESIÓN
-      const verificarVentana = setInterval(() => {
-        if (ventanaImpresion.closed) {
-          clearInterval(verificarVentana);
-          console.log('✅ Ventana de impresión cerrada, procesando...');
-          this.procesarDespuesDeImpresion();
-        }
-      }, 500);
-    } else {
-      // Si no se pudo abrir la ventana, procesar inmediatamente
-      console.warn('⚠️ No se pudo abrir ventana de impresión, procesando directamente...');
-      this.procesarDespuesDeImpresion();
-    }
+  const ventanaImpresion = window.open('', '_blank', 'width=500,height=700');
+  if (ventanaImpresion) {
+    ventanaImpresion.document.write(contenidoImpresion);
+    ventanaImpresion.document.close();
   }
+}
 
-  // ✅ NUEVO MÉTODO: Procesar después de la impresión
+// Método auxiliar para generar código de barras visual
+generarBarrasCodigo(codigo: string): string {
+  // Simulación de código de barras usando caracteres
+  const barras = '█';
+  const codigoLimpio = codigo.replace(/-/g, '');
+  let resultado = '';
+  
+  for (let i = 0; i < codigoLimpio.length; i++) {
+    const char = codigoLimpio.charAt(i);
+    const repeticiones = parseInt(char) || 5;
+    resultado += barras.repeat(repeticiones) + ' ';
+  }
+  
+  return resultado.trim();
+}
   private procesarDespuesDeImpresion(): void {
     console.log('🔄 Procesando después de la impresión...');
-    
-    // 1. Marcar que la impresión se completó
     this.impresionCompletada = true;
-    
-    // 2. Limpiar la orden actual
     this.limpiarOrdenActual();
-    
-    // 3. Cerrar el modal
     this.mostrarModal = false;
-    
-    // 4. Redirigir a OrdenVentaComponent
-    console.log('🔄 Redirigiendo a /ordenVenta...');
     this.router.navigate(['/ordenVenta']);
   }
 
-  // ✅ MÉTODO ACTUALIZADO: Cerrar modal
   cerrarModal(): void {
     console.log('❌ Cerrando modal sin imprimir');
     this.mostrarModal = false;
     
-    // Si ya se completó la impresión, redirigir
     if (this.impresionCompletada) {
       this.router.navigate(['/ordenVenta']);
     }
   }
 
-  // ✅ MÉTODO ACTUALIZADO: Limpiar orden actual
   private limpiarOrdenActual(): void {
     console.log('🧹 Limpiando orden actual después de imprimir...');
-    
-    // Limpiar en el servicio
     this.ordenVentaService.limpiarOrdenActual();
-    
-    // Limpiar en localStorage
     localStorage.removeItem('ordenActual');
     localStorage.removeItem('ordenId');
     localStorage.removeItem('currentOrder');
-    
-    // Limpiar en el componente
     this.ordenActual = null;
-    
     console.log('✅ Orden actual limpiada correctamente');
   }
 
-  // Método auxiliar para generar barras de código
-  generarBarrasCodigo(numeroOrden: string): string {
-    const codigo = numeroOrden.replace(/-/g, '');
-    let barrasHTML = '';
-    
-    // Generar barras con diferentes alturas para simular código real
-    for (let i = 0; i < 20; i++) {
-      const altura = Math.random() > 0.3 ? '40px' : 
-                    Math.random() > 0.6 ? '35px' : '30px';
-      const grosor = Math.random() > 0.7 ? '3px' : '2px';
-      
-      barrasHTML += `<div class="barcode-line" style="height: ${altura}; max-width: ${grosor};"></div>`;
-    }
-    
-    return barrasHTML;
-  }
+ 
 
-  // Método auxiliar para formatear fecha corta
   formatearFechaCorta(fecha: string): string {
     return new Date(fecha).toLocaleDateString('es-CO', {
       year: 'numeric',
@@ -563,60 +759,9 @@ export class ResumenOrdenComponent implements OnInit {
     });
   }
 
-  // =============================================
-  // MÉTODOS DE CÁLCULO CORREGIDOS - USAR VALORES DEL BACKEND
-  // =============================================
-
-  // Usar directamente los valores del backend
-  calcularSubtotal(): number {
-    return this.ordenActual?.subtotal || 0;
-  }
-
-  calcularBaseImponible(): number {
-    // Base imponible = subtotal - descuento (según lógica del backend)
-    const subtotal = this.ordenActual?.subtotal || 0;
-    const descuento = this.ordenActual?.descuento || 0;
-    return subtotal - descuento;
-  }
-
-  calcularImpuestos(): number {
-    // Usar el valor del backend en lugar de calcularlo
-    return this.ordenActual?.impuestos || 0;
-  }
-
-  calcularTotal(): number {
-    // Usar el valor del backend en lugar de calcularlo
-    return this.ordenActual?.total || 0;
-  }
-
- // ✅ CORREGIDO: Calcular descuento según la fórmula especificada
-getDescuentoAplicado(): number {
-  if (!this.ordenActual) return 0;
-  
-  const valorOriginal = this.ordenActual.subtotal;
-  const porcentajeDescuento = 0.10; // 10%
-  
-  // Aplicar la fórmula: valor con descuento = valor original + (valor original × 0.10)
-  const valorConDescuento = valorOriginal + (valorOriginal * porcentajeDescuento);
-  
-  // Descuento = Valor con descuento - valor original
-  const descuento = valorConDescuento - valorOriginal;
-  
-  return descuento;
-}
-
-  getPorcentajeImpuestos(): number {
-    // Según el backend, los impuestos son del 2%
-    return 2;
-  }
-
-  // Métodos de utilidad para el template
+  // ✅ MANTENER: Método original de formatearMoneda para compatibilidad
   formatearMoneda(valor: number): string {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(valor);
+    return this.formatearMonedaElegante(valor);
   }
 
   formatearFecha(fecha: string): string {
@@ -628,6 +773,52 @@ getDescuentoAplicado(): number {
       minute: '2-digit'
     });
   }
+
+  // ✅ CORREGIDO: Obtener el valor monetario del descuento aplicado
+getDescuentoAplicado(): number {
+  if (!this.ordenActual) return 0;
+  
+  // Si el backend ya proporciona un descuento como valor monetario, usarlo directamente
+  if (this.ordenActual.descuento > 0) {
+    return this.ordenActual.descuento;
+  }
+  
+  // Si no hay descuento en el backend, calcularlo basado en el porcentaje
+  const subtotal = this.getSubtotal();
+  const porcentajeDescuento = this.getPorcentajeDescuento();
+  return subtotal * (porcentajeDescuento / 100);
+}
+
+
+
+// ✅ NUEVO MÉTODO: Obtener el valor del descuento formateado para mostrar (sin símbolo %)
+getDescuentoFormateado(): string {
+  const descuento = this.getDescuentoAplicado();
+  return this.formatearMonedaElegante(descuento);
+}
+
+// ✅ NUEVO MÉTODO: Obtener el ahorro formateado (para mensajes)
+getAhorroFormateado(): string {
+  return this.getDescuentoFormateado();
+}
+
+// ✅ NUEVO MÉTODO: Verificar si el descuento es significativo
+esDescuentoSignificativo(): boolean {
+  const porcentaje = this.getPorcentajeDescuento();
+  return porcentaje >= 5; // Considerar significativo si es 5% o más
+}
+
+// ✅ NUEVO MÉTODO: Obtener mensaje descriptivo del descuento
+getMensajeDescuento(): string {
+  const porcentaje = this.getPorcentajeDescuento();
+  const valor = this.getDescuentoFormateado();
+  
+  if (porcentaje > 0) {
+    return `¡Descuento del ${porcentaje.toFixed(0)}% aplicado! Ahorras ${valor}`;
+  }
+  
+  return 'Sin descuento aplicado';
+}
 
   obtenerImagenProducto(imagenUrl: string | undefined): string {
     if (!imagenUrl) return 'assets/images/default-product.png';
@@ -652,8 +843,38 @@ getDescuentoAplicado(): number {
     this.router.navigate(['/inicio']);
   }
 
-  // Recargar datos
   recargarOrden(): void {
     this.cargarOrdenActual();
+  }
+
+  // ✅ NUEVO MÉTODO: Verificar si hay descuento aplicado
+  tieneDescuento(): boolean {
+    return this.getDescuentoAplicado() > 0;
+  }
+
+  
+
+  // ✅ NUEVO MÉTODO: Obtener impuestos formateados
+  getImpuestosFormateados(): string {
+    const impuestos = this.getImpuestos();
+    return this.formatearMonedaDecimal(impuestos);
+  }
+
+  // ✅ NUEVO MÉTODO: Obtener total formateado
+  getTotalFormateado(): string {
+    const total = this.getTotal();
+    return this.formatearMonedaElegante(total);
+  }
+
+  // ✅ NUEVO MÉTODO: Obtener base imponible formateada
+  getBaseImponibleFormateada(): string {
+    const base = this.getBaseImponible();
+    return this.formatearMonedaElegante(base);
+  }
+
+  // ✅ NUEVO MÉTODO: Obtener subtotal formateado
+  getSubtotalFormateado(): string {
+    const subtotal = this.getSubtotal();
+    return this.formatearMonedaElegante(subtotal);
   }
 }

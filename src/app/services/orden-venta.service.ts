@@ -293,4 +293,21 @@ export class OrdenVentaService {
       map(response => response.data!)
     );
   }
+
+  /**
+ * Actualiza el total de una orden existente
+ * @param id ID de la orden a actualizar
+ * @param total Nuevo valor para el total de la orden
+ * @returns Orden actualizada
+ */
+actualizarTotalOrden(id: number, total: number): Observable<OrdenDto> {
+  return this.http.patch<MensajeDto<OrdenDto>>(
+    `${this.apiUrl}/${id}/total?total=${total}`, 
+    {}
+  ).pipe(
+    map(response => response.data!)
+  );
+}
+
+
 }
