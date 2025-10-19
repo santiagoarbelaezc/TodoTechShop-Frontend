@@ -1,38 +1,44 @@
-import { Component, AfterViewInit, HostListener, inject } from '@angular/core';
+import { Component, AfterViewInit, HostListener, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../../services/producto.service';
-import { NavbarInicioComponent } from '../navbar-inicio/navbar-inicio.component';
-
-import { ProductoPruebaService } from '../../../services/producto-prueba.service';
+import { CarritoService } from '../../../services/carrito.service';
 import { AuthService } from '../../../services/auth.service';
+import { NavbarStateService } from '../../../services/navbar-state.service';
+import { NavbarInicioComponent } from '../navbar-inicio/navbar-inicio.component';
+import { CarritoComponent } from '../carrito/carrito.component';
+import { CarruselProductosComponent } from '../carrusel-productos/carrusel-productos.component';
+import { ProductoPruebaService } from '../../../services/producto-prueba.service';
 import { CategoriaDto } from '../../../models/categoria.dto';
 import { ProductoDto } from '../../../models/producto/producto.dto';
-
-interface DetalleCarrito {
-  cantidad: number;
-  subtotal: number;
-  producto?: ProductoDto;
-}
 
 @Component({
   selector: 'app-buscar-inicio',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarInicioComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    NavbarInicioComponent,
+    CarritoComponent,
+    CarruselProductosComponent
+  ],
   templateUrl: './buscar-inicio.component.html',
   styleUrls: ['./buscar-inicio.component.css']
 })
-export class BuscarInicioComponent implements AfterViewInit {
-
-  carrito: { detalle: DetalleCarrito, nombreProducto: string }[] = [];
+export class BuscarInicioComponent implements AfterViewInit, OnInit {
 
   private productoService = inject(ProductoService);
+  private carritoService = inject(CarritoService);
   private productoPruebaService = inject(ProductoPruebaService);
+  private authService = inject(AuthService);
+  private navbarStateService = inject(NavbarStateService);
+  private router = inject(Router);
 
   productos: ProductoDto[] = [];
   productosFiltrados: ProductoDto[] = [];
   categorias: CategoriaDto[] = [];
+  productosPorCategoria: {categoria: CategoriaDto, productos: ProductoDto[]}[] = [];
 
   terminoBusqueda: string = '';
   categoriaSeleccionada: string = 'todas';
@@ -43,96 +49,55 @@ export class BuscarInicioComponent implements AfterViewInit {
   mostrarCarrito = false;
   carritoVisible = false;
 
-  mostrarInputDescuento: boolean = false;
-  codigoDescuento: string = '';
-  aplicandoDescuento: boolean = false;
-  errorDescuento: string = '';
+  loading = true;
+  error: string | null = null;
 
-  descuentosValidos: { [codigo: string]: number } = {
-    '11': 20,
-    'DESC20': 20,
-    'NAVIDAD': 15,
-    'BLACKFRIDAY': 30,
-    'VIP15': 15
-  };
-
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
-
-  // Método para controlar el scroll del carrusel
-  scrollCarousel(direction: 'prev' | 'next', carouselId: string): void {
-    const carousel = document.getElementById(`carousel-${carouselId}`);
-    if (!carousel) return;
-
-    const scrollAmount = 325; // Ancho del item + gap
-    const currentScroll = carousel.scrollLeft;
+  ngOnInit(): void {
+    console.log('🔄 Iniciando componente de Búsqueda...');
     
-    if (direction === 'next') {
-      carousel.scrollTo({
-        left: currentScroll + scrollAmount,
-        behavior: 'smooth'
-      });
-    } else {
-      carousel.scrollTo({
-        left: currentScroll - scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  }
-
-  @HostListener('window:scroll', [])
-  onScroll(): void {
-    const bannerAltura = 300;
-    this.mostrarCarrito = window.scrollY > bannerAltura;
+    // ✅ ESTABLECER LA SECCIÓN ACTIVA EN EL NAVBAR
+    this.navbarStateService.setSeccionActiva('buscar');
+    console.log('🎯 Sección activa establecida: buscar');
+    
+    this.cargarProductos();
   }
 
   ngAfterViewInit(): void {
-    this.inicializarDatos();
-    this.inicializarCarritoEjemplo();
+    console.log('🎯 Inicializando vista de búsqueda...');
   }
 
-  private inicializarDatos(): void {
-    // Obtener todos los productos y categorías
-    this.productos = this.productoPruebaService.obtenerTodosLosProductos();
-    this.categorias = this.productoPruebaService.obtenerTodasLasCategorias();
-    this.productosFiltrados = [...this.productos];
-    
-    console.log('Datos inicializados:', {
-      totalProductos: this.productos.length,
-      categorias: this.categorias.length
-    });
-  }
+  // ✅ Cargar productos desde el servicio
+  private cargarProductos(): void {
+    this.loading = true;
+    this.error = null;
 
-  private inicializarCarritoEjemplo(): void {
-    // Carrito de ejemplo con algunos productos
-    const producto1 = this.productoPruebaService.obtenerProductoPorId(1); // iPhone 13
-    const producto6 = this.productoPruebaService.obtenerProductoPorId(6); // HP Pavilion
-
-    if (producto1 && producto6) {
-      this.carrito = [
-        {
-          detalle: {
-            cantidad: 2,
-            subtotal: producto1.precio * 2,
-            producto: producto1
-          },
-          nombreProducto: producto1.nombre
-        },
-        {
-          detalle: {
-            cantidad: 1,
-            subtotal: producto6.precio,
-            producto: producto6
-          },
-          nombreProducto: producto6.nombre
-        }
-      ];
+    try {
+      // Usar el servicio de prueba para obtener productos
+      this.productos = this.productoPruebaService.obtenerTodosLosProductos();
+      this.categorias = this.productoPruebaService.obtenerTodasLasCategorias();
+      this.productosFiltrados = [...this.productos];
+      this.organizarProductosPorCategoria();
+      
+      this.loading = false;
+      console.log('✅ Productos cargados correctamente:', this.productos.length);
+    } catch (err) {
+      console.error('❌ Error al cargar productos:', err);
+      this.error = 'Error al cargar los productos. Intente nuevamente.';
+      this.loading = false;
     }
   }
 
-  // Método para buscar productos
+  // ✅ Organizar productos por categoría para los carruseles
+  private organizarProductosPorCategoria(): void {
+    this.productosPorCategoria = this.categorias
+      .map(categoria => ({
+        categoria,
+        productos: this.productosFiltrados.filter(p => p.categoria.id === categoria.id)
+      }))
+      .filter(grupo => grupo.productos.length > 0);
+  }
+
+  // ✅ Método para buscar productos
   buscarProductos(): void {
     if (!this.terminoBusqueda.trim()) {
       this.productosFiltrados = [...this.productos];
@@ -140,9 +105,10 @@ export class BuscarInicioComponent implements AfterViewInit {
       this.productosFiltrados = this.productoPruebaService.buscarProductos(this.terminoBusqueda);
     }
     this.aplicarFiltros();
+    this.organizarProductosPorCategoria();
   }
 
-  // Método para aplicar filtros
+  // ✅ Método para aplicar filtros
   aplicarFiltros(): void {
     let productosFiltrados = [...this.productos];
 
@@ -168,9 +134,10 @@ export class BuscarInicioComponent implements AfterViewInit {
     productosFiltrados = this.ordenarProductos(productosFiltrados);
 
     this.productosFiltrados = productosFiltrados;
+    this.organizarProductosPorCategoria();
   }
 
-  // Método para ordenar productos
+  // ✅ Método para ordenar productos
   private ordenarProductos(productos: ProductoDto[]): ProductoDto[] {
     switch (this.ordenarPor) {
       case 'precio-asc':
@@ -186,7 +153,7 @@ export class BuscarInicioComponent implements AfterViewInit {
     }
   }
 
-  // Limpiar filtros
+  // ✅ Limpiar filtros
   limpiarFiltros(): void {
     this.terminoBusqueda = '';
     this.categoriaSeleccionada = 'todas';
@@ -194,145 +161,41 @@ export class BuscarInicioComponent implements AfterViewInit {
     this.precioMax = 10000000;
     this.ordenarPor = 'nombre';
     this.productosFiltrados = [...this.productos];
+    this.organizarProductosPorCategoria();
   }
 
-  // Método para ver detalle del producto
+  // ✅ Ver detalle de producto
   verDetalleProducto(producto: ProductoDto): void {
     this.productoService.seleccionarProducto(producto);
     this.router.navigate(['/descripcion-producto']);
   }
 
-  // Método para agregar al carrito
+  // ✅ Agregar producto al carrito
   agregarAlCarrito(producto: ProductoDto, event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-    }
+    if (event) event.stopPropagation();
 
     if (producto.stock <= 0) {
-      console.warn('Producto sin stock disponible.');
+      alert('Producto sin stock disponible.');
       return;
     }
 
-    const itemExistente = this.carrito.find(item => 
-      item.detalle.producto?.id === producto.id
-    );
-
-    if (itemExistente) {
-      itemExistente.detalle.cantidad++;
-      itemExistente.detalle.subtotal = itemExistente.detalle.cantidad * producto.precio;
-    } else {
-      this.carrito.push({
-        detalle: {
-          cantidad: 1,
-          subtotal: producto.precio,
-          producto: producto
-        },
-        nombreProducto: producto.nombre
-      });
-    }
-
+    this.carritoService.agregarProducto(producto);
     producto.stock--;
-    console.log('Producto agregado al carrito:', producto.nombre);
+    alert(`${producto.nombre} agregado al carrito`);
   }
 
-  eliminarProducto(index: number): void {
-    const item = this.carrito[index];
-    if (item.detalle.producto) {
-      item.detalle.producto.stock += item.detalle.cantidad;
-    }
-    this.carrito.splice(index, 1);
-    console.log('Producto eliminado del carrito');
+  // ✅ Comunicación con componente carrito
+  onCarritoVisibleChange(visible: boolean): void {
+    this.carritoVisible = visible;
   }
 
-  ajustarCantidad(index: number, cambio: number): void {
-    const item = this.carrito[index];
-    const producto = item.detalle.producto;
-    
-    if (!producto) return;
-
-    if (cambio > 0) {
-      if (producto.stock > 0) {
-        item.detalle.cantidad++;
-        producto.stock--;
-      }
-    } else {
-      if (item.detalle.cantidad > 1) {
-        item.detalle.cantidad--;
-        producto.stock++;
-      }
-    }
-
-    item.detalle.subtotal = item.detalle.cantidad * producto.precio;
+  // ✅ Mostrar carrito cuando se hace scroll
+  @HostListener('window:scroll')
+  onScroll(): void {
+    this.mostrarCarrito = window.scrollY > 300;
   }
 
-  toggleCarrito(): void {
-    this.carritoVisible = !this.carritoVisible;
-  }
-
-  aplicarDescuento() {
-    this.mostrarInputDescuento = true;
-    setTimeout(() => {
-      const input = document.querySelector('.discount-input');
-      if (input) (input as HTMLElement).focus();
-    });
-  }
-
-  validarDescuento() {
-    console.log('Validando descuento:', this.codigoDescuento);
-
-    if (!this.codigoDescuento.trim()) {
-      this.errorDescuento = 'Por favor ingresa un código de descuento';
-      return;
-    }
-
-    this.aplicandoDescuento = true;
-    this.errorDescuento = '';
-
-    const codigo = this.codigoDescuento.toUpperCase().trim();
-    const porcentaje = this.descuentosValidos[codigo];
-
-    if (porcentaje === undefined) {
-      this.errorDescuento = 'Código no válido';
-      this.aplicandoDescuento = false;
-      return;
-    }
-
-    setTimeout(() => {
-      console.log(`Descuento del ${porcentaje}% aplicado`);
-      this.cargarDetallesCarrito();
-      this.mostrarInputDescuento = false;
-      this.codigoDescuento = '';
-      this.aplicandoDescuento = false;
-    }, 1000);
-  }
-
-  private cargarDetallesCarrito(): void {
-    console.log('Carrito actualizado con descuento aplicado');
-  }
-
-  pagarCarrito() {
-    this.router.navigate(['/caja']).then(() => {
-      console.log('Navegando a caja para pagar');
-    });
-  }
-
-  cancelarOrden(): void {
-    this.carrito.forEach(item => {
-      if (item.detalle.producto) {
-        item.detalle.producto.stock += item.detalle.cantidad;
-      }
-    });
-    
-    this.carrito = [];
-    console.log('Orden cancelada y stock restaurado');
-  }
-
-  // Método auxiliar para obtener imagen del producto
-  obtenerImagenProducto(producto: ProductoDto): string {
-    return producto.imagenUrl || 'assets/images/default-product.png';
-  }
-
-  // Método para formatear precio
+  // ✅ Formatear precios
   formatearPrecio(precio: number): string {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -341,38 +204,25 @@ export class BuscarInicioComponent implements AfterViewInit {
     }).format(precio);
   }
 
-  // Método para verificar si un producto tiene stock bajo
+  // ✅ Stock y clases visuales
   tieneStockBajo(producto: ProductoDto): boolean {
-    return producto.stock <= 3;
+    return producto.stock <= 3 && producto.stock > 0;
   }
 
-  // Método para obtener el texto de stock
   obtenerTextoStock(producto: ProductoDto): string {
-    if (producto.stock === 0) {
-      return 'Sin stock';
-    } else if (this.tieneStockBajo(producto)) {
-      return `Últimas ${producto.stock} unidades`;
-    } else {
-      return `Stock: ${producto.stock}`;
-    }
+    if (producto.stock === 0) return 'Sin stock';
+    if (this.tieneStockBajo(producto)) return `Últimas ${producto.stock} unidades`;
+    return `Stock: ${producto.stock}`;
   }
 
-  // Método para obtener la clase CSS del stock
   obtenerClaseStock(producto: ProductoDto): string {
-    if (producto.stock === 0) {
-      return 'stock-agotado';
-    } else if (this.tieneStockBajo(producto)) {
-      return 'stock-bajo';
-    } else {
-      return 'stock-normal';
-    }
+    if (producto.stock === 0) return 'stock-agotado';
+    if (this.tieneStockBajo(producto)) return 'stock-bajo';
+    return 'stock-normal';
   }
 
-  // Método para obtener productos agrupados por categoría para el carrusel
-  obtenerProductosPorCategoria(): {categoria: CategoriaDto, productos: ProductoDto[]}[] {
-    return this.categorias.map(categoria => ({
-      categoria,
-      productos: this.productosFiltrados.filter(p => p.categoria.id === categoria.id)
-    })).filter(grupo => grupo.productos.length > 0);
+  // ✅ Recargar en caso de error
+  recargarProductos(): void {
+    this.cargarProductos();
   }
 }

@@ -28,6 +28,7 @@ import { OrdenesActivasComponent } from './pages/orden-venta/ordenes-activas/ord
 import { OrdenesAdminComponent } from './pages/admin/ordenes-admin/ordenes-admin.component';
 import { ResumenOrdenComponent } from './pages/orden-venta/resumen-orden/resumen-orden.component';
 import { CajaInicioComponent } from './pages/caja/caja-inicio/caja-inicio.component';
+import { CatalogoComponent } from './pages/cliente/catalogo/catalogo.component';
 
 export const routes: Routes = [
   // 🔓 RUTAS PÚBLICAS
@@ -50,6 +51,10 @@ export const routes: Routes = [
     path: 'manual-usuario', 
     component: ManualUsuarioComponent,
     canActivate: [publicGuard]
+  },
+  { 
+    path: 'catalogo-cliente', 
+    component: CatalogoComponent
   },
   { 
     path: 'acceso-denegado', 

@@ -327,4 +327,16 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   openUserManual(): void {
     this.router.navigate(['/manual-usuario']);
   }
+goToCatalog(): void {
+  console.log('🔍 Navegando al catálogo público...');
+  this.router.navigate(['/catalogo-cliente']).then(success => {
+    if (success) {
+      console.log('✅ Navegación exitosa al catálogo');
+    } else {
+      console.error('❌ Error en la navegación al catálogo');
+    }
+  }).catch(error => {
+    console.error('❌ Error al navegar:', error);
+  });
+}
 }

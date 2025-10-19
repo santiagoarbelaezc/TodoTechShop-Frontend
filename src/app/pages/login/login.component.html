@@ -92,6 +92,23 @@
           <p>Verificando credenciales...</p>
         </div>
 
+        <!-- Botón para ingresar al catálogo -->
+        <div class="catalog-section">
+          <div class="catalog-divider">
+            <span>O</span>
+          </div>
+          <button 
+            class="catalog-btn"
+            (click)="goToCatalog()"
+            [disabled]="isLoading">
+            <i class="fas fa-store"></i>
+            <span>Ingresar a Catálogo</span>
+          </button>
+          <p class="catalog-description">
+            Explora nuestros productos sin iniciar sesión
+          </p>
+        </div>
+
         <!-- Enlace para recuperar contraseña -->
         <div class="forgot-password">
           <a href="#" (click)="goToRecoverPassword($event)">¿Olvidaste tu contraseña?</a>
@@ -142,7 +159,5 @@
         </div>
       </div>
     </main>
-    
-    
 </body>
 </html>

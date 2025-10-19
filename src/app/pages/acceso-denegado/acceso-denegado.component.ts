@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service'; // Ajusta la ruta según tu estructura
 
 @Component({
   selector: 'app-acceso-denegado',
@@ -11,9 +12,13 @@ import { CommonModule } from '@angular/common';
 })
 export class AccesoDenegadoComponent implements OnInit {
   
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {
     console.log('🔧 AccesoDenegadoComponent - Constructor ejecutado');
     console.log('🔧 Router inyectado:', this.router ? 'SÍ' : 'NO');
+    console.log('🔧 AuthService inyectado:', this.authService ? 'SÍ' : 'NO');
   }
 
   ngOnInit(): void {
@@ -26,34 +31,26 @@ export class AccesoDenegadoComponent implements OnInit {
 
   volverAlLogin(): void {
     console.log('🔄 volverAlLogin() - Método llamado');
-    console.log('📍 Intentando navegar a /login');
     
     try {
-      // Verificar el estado del router
-      console.log('🔧 Estado del router:', this.router);
+      console.log('📍 Usando AuthService.logout() para redirección');
       
-      // Intentar navegación
-      this.router.navigate(['/login']).then(success => {
-        console.log(success ? '✅ Navegación exitosa' : '❌ Navegación fallida');
-        
-        if (!success) {
-          console.error('❌ Error: No se pudo navegar a /login');
-          console.log('🔄 Intentando redirección alternativa...');
-          this.alternativeRedirect();
-        }
-      }).catch(error => {
-        console.error('❌ Error en navigate:', error);
-        this.alternativeRedirect();
-      });
+      // ✅ Usar el logout del servicio que ya maneja todo automáticamente
+      this.authService.logout();
       
     } catch (error) {
-      console.error('❌ Error crítico en volverAlLogin:', error);
+      console.error('❌ Error en volverAlLogin:', error);
+      
+      // Fallback si el servicio falla
       this.alternativeRedirect();
     }
   }
 
   private alternativeRedirect(): void {
     console.log('🔄 alternativeRedirect() - Método llamado');
+    
+    // Limpiar estado de autenticación manualmente
+    this.authService.clearAuthState();
     
     // Métodos alternativos de redirección
     const alternatives = [
@@ -64,6 +61,14 @@ export class AccesoDenegadoComponent implements OnInit {
       () => {
         console.log('🔄 Intentando alternativa 2: window.location.replace');
         window.location.replace('/login');
+      },
+      () => {
+        console.log('🔄 Intentando alternativa 3: router.navigate con fallback');
+        this.router.navigate(['/login']).then(success => {
+          if (!success) {
+            window.location.href = '/login';
+          }
+        });
       }
     ];
     
@@ -92,6 +97,6 @@ export class AccesoDenegadoComponent implements OnInit {
   private showFallbackMessage(): void {
     console.error('❌ CRÍTICO: No se pudo redirigir al login');
     // Mostrar mensaje al usuario
-    alert('Error de redirección. Por favor, recarga la página manualmente.');
+    alert('Error de redirección. Por favor, recarga la página manualmente y ve a /login');
   }
 }

@@ -10,21 +10,29 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const token = authService.getToken();
   
-  // URLs públicas que no requieren token
+  // ✅ URLs públicas que no requieren token - AGREGAR ENDPOINTS PÚBLICOS DE PRODUCTOS
   const publicUrls = [
     '/usuarios/login',
-    '/usuarios/recordar-contrasena'
+    '/usuarios/recordar-contrasena',
+    '/productos/publicos/todos',
+    '/productos/publicos/activos',
+    '/productos/publicos/disponibles',
+    '/productos/publicos/categoria/',
+    '/productos/publicos/buscar',
+    '/productos/publicos/' // Este cubre cualquier endpoint que empiece con /publicos/
   ];
   
   const isPublicUrl = publicUrls.some(url => req.url.includes(url));
   
   if (isPublicUrl) {
+    console.log('🔓 Petición pública detectada, omitiendo token:', req.url);
     return next(req);
   }
   
   // Si no hay token o el usuario no está logueado, redirigir al login
   if (!token || !authService.isLoggedIn()) {
-    authService.logout(); // Usar el método público logout()
+    console.warn('❌ Token no disponible o usuario no autenticado para:', req.url);
+    authService.logout();
     router.navigate(['/login']);
     return throwError(() => new Error('Token no disponible o usuario no autenticado'));
   }
@@ -35,10 +43,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     }
   });
   
+  console.log('🔐 Token agregado a la petición:', req.url);
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 || error.status === 403) {
-        authService.logout(); // Usar el método público logout() en errores de auth
+        console.error('❌ Error de autenticación:', error.status);
+        authService.logout();
         router.navigate(['/login']);
       }
       return throwError(() => error);

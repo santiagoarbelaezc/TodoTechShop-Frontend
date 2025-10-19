@@ -323,4 +323,98 @@ export class ProductoService {
       map(response => response.stock)
     );
   }
+
+  // ===== MÉTODOS PÚBLICOS PARA CATÁLOGO (SIN AUTENTICACIÓN) =====
+
+/**
+ * Obtener todos los productos (público - sin autenticación)
+ */
+obtenerTodosLosProductosPublicos(): Observable<ProductoDto[]> {
+  return this.http.get<MensajeDto<ProductoDto[]>>(
+    `${this.apiUrl}/publicos/todos`
+  ).pipe(
+    map(response => response.data || []),
+    catchError(error => {
+      console.error('Error obteniendo productos públicos:', error);
+      throw error;
+    })
+  );
+}
+
+/**
+ * Obtener productos activos (público - sin autenticación)
+ */
+obtenerProductosActivosPublicos(): Observable<ProductoDto[]> {
+  return this.http.get<MensajeDto<ProductoDto[]>>(
+    `${this.apiUrl}/publicos/activos`
+  ).pipe(
+    map(response => response.data || []),
+    catchError(error => {
+      console.error('Error obteniendo productos activos públicos:', error);
+      throw error;
+    })
+  );
+}
+
+/**
+ * Obtener productos disponibles (público - sin autenticación)
+ */
+obtenerProductosDisponiblesPublicos(): Observable<ProductoDto[]> {
+  return this.http.get<MensajeDto<ProductoDto[]>>(
+    `${this.apiUrl}/publicos/disponibles`
+  ).pipe(
+    map(response => response.data || []),
+    catchError(error => {
+      console.error('Error obteniendo productos disponibles públicos:', error);
+      throw error;
+    })
+  );
+}
+
+/**
+ * Obtener productos por categoría (público - sin autenticación)
+ */
+obtenerProductoPorCategoriaPublico(categoriaId: number): Observable<ProductoDto[]> {
+  return this.http.get<MensajeDto<ProductoDto[]>>(
+    `${this.apiUrl}/publicos/categoria/${categoriaId}`
+  ).pipe(
+    map(response => response.data || []),
+    catchError(error => {
+      console.error(`Error obteniendo productos de categoría ${categoriaId} (público):`, error);
+      throw error;
+    })
+  );
+}
+
+/**
+ * Buscar productos por nombre (público - sin autenticación)
+ */
+buscarProductosPorNombrePublico(nombre: string): Observable<ProductoDto[]> {
+  const params = new HttpParams().set('nombre', nombre);
+  return this.http.get<MensajeDto<ProductoDto[]>>(
+    `${this.apiUrl}/publicos/buscar`, 
+    { params: params }
+  ).pipe(
+    map(response => response.data || []),
+    catchError(error => {
+      console.error(`Error buscando productos con nombre ${nombre} (público):`, error);
+      throw error;
+    })
+  );
+}
+
+/**
+ * Obtener producto por ID (público - sin autenticación)
+ */
+obtenerProductoPorIdPublico(id: number): Observable<ProductoDto> {
+  return this.http.get<MensajeDto<ProductoDto>>(
+    `${this.apiUrl}/publicos/${id}`
+  ).pipe(
+    map(response => response.data!),
+    catchError(error => {
+      console.error(`Error obteniendo producto con ID ${id} (público):`, error);
+      throw error;
+    })
+  );
+}
 }
