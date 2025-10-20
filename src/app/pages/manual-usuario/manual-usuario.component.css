@@ -398,3 +398,150 @@ footer {
         margin-bottom: 15px;
     }
 }
+
+
+/* Estilos para las imágenes del manual */
+.manual-image {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  display: block;
+  margin: 0 auto;
+}
+
+.image-caption {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+  font-style: italic;
+  margin-top: 8px;
+  margin-bottom: 15px;
+}
+
+.step-image {
+  margin-top: 15px;
+}
+
+/* Reemplaza el placeholder anterior */
+.image-placeholder {
+  display: none;
+}
+
+
+/* Estilos para la sección de descarga */
+.download-section {
+  text-align: center;
+  padding: 30px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  margin: 20px 0;
+  border: 2px dashed #dee2e6;
+}
+
+.download-button {
+  background: linear-gradient(135deg, #1421cf 0%, #db1f1f 100%);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 20px;
+}
+
+.download-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.download-icon {
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+.download-info {
+  margin-top: 20px;
+  text-align: left;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #1421cf;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.download-info p {
+  margin: 10px 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.download-info strong {
+  color: #1a1a1a;
+}
+
+/* Estilos para el paso de descarga especial */
+.step .step-number:contains("📥") {
+  background: linear-gradient(135deg, #1421cf 0%, #db1f1f 100%);
+  font-size: 20px;
+}
+
+/* Estilos para las imágenes del manual */
+.manual-image {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  display: block;
+  margin: 0 auto;
+}
+
+.image-caption {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+  font-style: italic;
+  margin-top: 8px;
+  margin-bottom: 15px;
+}
+
+.step-image {
+  margin-top: 15px;
+}
+
+/* Reemplaza el placeholder anterior */
+.image-placeholder {
+  display: none;
+}
+
+/* Estilo para cursor pointer en items de navegación */
+.nav-item {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 15px 25px;
+  text-decoration: none;
+  color: #555;
+  transition: all 0.3s ease;
+  border-left: 3px solid transparent;
+  user-select: none;
+}
+
+.nav-item:hover {
+  background: #e9ecef;
+  color: #000;
+}
+
+.nav-item.active {
+  background: #fff;
+  border-left-color: #000;
+  color: #000;
+  font-weight: 500;
+}

@@ -309,5 +309,4 @@ actualizarTotalOrden(id: number, total: number): Observable<OrdenDto> {
   );
 }
 
-
 }

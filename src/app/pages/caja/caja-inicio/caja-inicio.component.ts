@@ -1,66 +1,26 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { 
+  EstadoOrden, 
+  OrdenConDetallesDto, 
+  OrdenDto
+} from '../../../models/orden-venta/ordenventa.dto';
+import { ClienteDto } from '../../../models/cliente.dto';
+import { UsuarioDto } from '../../../models/usuario/usuario.dto';
+import { DetalleOrdenDto } from '../../../models/detalle-orden/detalle-orden.dto';
+import { LoginResponse } from '../../../models/login-response.dto';
+import { OrdenVentaService } from '../../../services/orden-venta.service';
+import { AuthService } from '../../../services/auth.service';
+import { catchError, finalize, map } from 'rxjs/operators';
+import { of, forkJoin } from 'rxjs';
 
-
-// Enums y modelos (debes crear estos según tu backend)
+// Enums locales
 enum EstadoPago {
   PENDIENTE = 'PENDIENTE',
   COMPLETADO = 'COMPLETADO',
   FALLIDO = 'FALLIDO'
-}
-
-enum EstadoOrden {
-  PENDIENTE = 'PENDIENTE',
-  AGREGANDOPRODUCTOS = 'AGREGANDOPRODUCTOS',
-  DISPONIBLEPARAPAGO = 'DISPONIBLEPARAPAGO',
-  PAGADA = 'PAGADA',
-  ENTREGADA = 'ENTREGADA',
-  CERRADA = 'CERRADA'
-}
-
-interface ClienteDto {
-  id: number;
-  nombre: string;
-  cedula: string;
-  tipoCliente: string;
-}
-
-interface VendedorDto {
-  id: number;
-  nombre: string;
-  email: string;
-}
-
-interface ProductoDetalleDto {
-  producto: {
-    id: number;
-    nombre: string;
-    codigo: string;
-    marca: string;
-    categoria: {
-      id: number;
-      nombre: string;
-    };
-  };
-  cantidad: number;
-  precioUnitario: number;
-  subtotal: number;
-}
-
-interface OrdenConDetallesDto {
-  id: number;
-  numeroOrden: string;
-  fecha: string;
-  estado: EstadoOrden;
-  cliente: ClienteDto;
-  vendedor: VendedorDto;
-  productos: ProductoDetalleDto[];
-  subtotal: number;
-  descuento: number;
-  impuestos: number;
-  total: number;
-  observaciones?: string;
 }
 
 interface MetodoPagoDto {
@@ -90,6 +50,11 @@ interface PagoDto {
 })
 export class CajaInicioComponent implements OnInit {
   
+  // Servicios
+  private ordenVentaService = inject(OrdenVentaService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
   // Variables de estado
   seccionActiva: string = 'caja';
   
@@ -118,10 +83,11 @@ export class CajaInicioComponent implements OnInit {
     { id: 3, nombre: 'Transferencia', descripcion: 'Transferencia bancaria' }
   ];
 
-  // Estadísticas
+  // Estadísticas (calculadas localmente)
   totalTransaccionesHoy: number = 0;
   totalRecaudadoHoy: number = 0;
   ordenesPendientes: number = 0;
+  ordenesDisponiblesPago: number = 0;
 
   // Historial de pagos
   pagosFiltrados: PagoDto[] = [];
@@ -131,7 +97,14 @@ export class CajaInicioComponent implements OnInit {
   filtroFechaInicio: string = '';
   filtroFechaFin: string = '';
 
+  // Usuario autenticado
+  usuarioActual: LoginResponse | null = null;
+
+  // Lista de órdenes para búsqueda
+  private todasLasOrdenes: OrdenDto[] = [];
+
   ngOnInit(): void {
+    this.cargarUsuarioActual();
     this.cargarEstadisticas();
     this.cargarHistorialPagos();
   }
@@ -143,10 +116,30 @@ export class CajaInicioComponent implements OnInit {
       monto: 0,
       metodoPagoId: 0,
       numeroTransaccion: '',
-      usuarioId: 1, // Esto debería venir del usuario autenticado
+      usuarioId: this.usuarioActual?.userId || 1,
       comprobante: '',
       estadoPago: EstadoPago.PENDIENTE
     };
+  }
+
+  private cargarUsuarioActual(): void {
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.usuarioActual = user;
+      this.pago.usuarioId = user.userId;
+    } else {
+      // Usuario por defecto para desarrollo
+      this.usuarioActual = { 
+        token: 'dev-token',
+        tokenType: 'Bearer',
+        userId: 1,
+        username: 'cajero',
+        nombre: 'Usuario Sistema',
+        role: 'CAJERO',
+        mensaje: 'Usuario de desarrollo'
+      };
+      this.pago.usuarioId = 1;
+    }
   }
 
   // Navegación
@@ -154,10 +147,12 @@ export class CajaInicioComponent implements OnInit {
     this.seccionActiva = seccion;
     if (seccion === 'historialPagos') {
       this.cargarHistorialPagos();
+    } else if (seccion === 'caja') {
+      this.limpiarFormulario();
     }
   }
 
-  // Búsqueda de orden
+  // Búsqueda de orden - CON SERVICIO REAL
   buscarOrden(): void {
     if (!this.numeroOrdenBusqueda.trim()) {
       this.mostrarMensaje('Ingrese un número de orden válido', false);
@@ -165,69 +160,64 @@ export class CajaInicioComponent implements OnInit {
     }
 
     this.buscandoOrden = true;
-    this.mensajeBusqueda = '';
+    this.mensajeBusqueda = 'Buscando orden...';
+    this.busquedaExito = false;
 
-    // Simulación de búsqueda - reemplazar con servicio real
-    setTimeout(() => {
-      // Aquí iría la llamada al servicio real
-      // this.ordenService.buscarPorNumero(this.numeroOrdenBusqueda).subscribe(...)
-      
-      // Datos de ejemplo para demostración
-      const ordenEjemplo: OrdenConDetallesDto = {
-        id: 1,
-        numeroOrden: this.numeroOrdenBusqueda,
-        fecha: new Date().toISOString(),
-        estado: EstadoOrden.DISPONIBLEPARAPAGO,
-        cliente: {
-          id: 1,
-          nombre: 'Juan Pérez',
-          cedula: '123456789',
-          tipoCliente: 'NATURAL'
-        },
-        vendedor: {
-          id: 1,
-          nombre: 'María García',
-          email: 'maria@todotech.com'
-        },
-        productos: [
-          {
-            producto: {
-              id: 1,
-              nombre: 'Laptop Gaming',
-              codigo: 'LTG-001',
-              marca: 'ASUS',
-              categoria: { id: 1, nombre: 'Computación' }
-            },
-            cantidad: 1,
-            precioUnitario: 2500000,
-            subtotal: 2500000
-          },
-          {
-            producto: {
-              id: 2,
-              nombre: 'Mouse Inalámbrico',
-              codigo: 'MS-002',
-              marca: 'Logitech',
-              categoria: { id: 2, nombre: 'Accesorios' }
-            },
-            cantidad: 2,
-            precioUnitario: 80000,
-            subtotal: 160000
+    // Primero cargar todas las órdenes para buscar
+    this.ordenVentaService.obtenerTodasLasOrdenes().pipe(
+      map(ordenes => {
+        this.todasLasOrdenes = ordenes;
+        
+        // Buscar la orden por número
+        const ordenEncontrada = ordenes.find(orden => 
+          orden.numeroOrden.toLowerCase().includes(this.numeroOrdenBusqueda.toLowerCase()) ||
+          orden.numeroOrden === this.numeroOrdenBusqueda
+        );
+
+        if (!ordenEncontrada) {
+          throw new Error('Orden no encontrada');
+        }
+
+        return ordenEncontrada;
+      }),
+      catchError(error => {
+        this.mostrarMensaje(error.message || 'Error al buscar la orden', false);
+        return of(null);
+      }),
+      finalize(() => {
+        this.buscandoOrden = false;
+      })
+    ).subscribe({
+      next: (orden) => {
+        if (orden) {
+          // Si encontramos la orden básica, cargar los detalles completos
+          this.cargarDetallesOrden(orden.id);
+        }
+      }
+    });
+  }
+
+  private cargarDetallesOrden(ordenId: number): void {
+    this.ordenVentaService.obtenerOrdenConDetalles(ordenId).pipe(
+      catchError(error => {
+        this.mostrarMensaje('Error al cargar los detalles de la orden', false);
+        return of(null);
+      })
+    ).subscribe({
+      next: (ordenConDetalles) => {
+        if (ordenConDetalles) {
+          this.ordenEncontrada = ordenConDetalles;
+          this.pago.ordenVentaId = ordenConDetalles.id;
+          this.pago.monto = ordenConDetalles.total;
+          
+          if (ordenConDetalles.estado === EstadoOrden.DISPONIBLEPARAPAGO) {
+            this.mostrarMensaje(`✅ Orden ${ordenConDetalles.numeroOrden} encontrada - Lista para pago`, true);
+          } else {
+            this.mostrarMensaje(`⚠️ Orden ${ordenConDetalles.numeroOrden} encontrada - Estado: ${ordenConDetalles.estado}`, false);
           }
-        ],
-        subtotal: 2660000,
-        descuento: 0,
-        impuestos: 79800,
-        total: 2739800
-      };
-
-      this.ordenEncontrada = ordenEjemplo;
-      this.pago.ordenVentaId = ordenEjemplo.id;
-      this.pago.monto = ordenEjemplo.total;
-      
-      this.buscandoOrden = false;
-      this.mostrarMensaje(`Orden ${this.numeroOrdenBusqueda} encontrada`, true);
-    }, 1000);
+        }
+      }
+    });
   }
 
   private mostrarMensaje(mensaje: string, exito: boolean): void {
@@ -264,19 +254,35 @@ export class CajaInicioComponent implements OnInit {
       return;
     }
 
-    // Simulación de procesamiento de pago - reemplazar con servicio real
-    setTimeout(() => {
-      // Aquí iría la llamada al servicio real
-      // this.pagoService.registrarPago(this.pago).subscribe(...)
-      
+    if (!this.pago.numeroTransaccion && this.pago.metodoPagoId !== 1) {
+      this.mostrarMensaje('El número de transacción/referencia es obligatorio', false);
       this.procesandoPago = false;
-      this.mostrarMensaje('Pago procesado exitosamente', true);
+      return;
+    }
+
+    // Simulación de procesamiento de pago
+    setTimeout(() => {
+      // Aquí iría la llamada al servicio real de pagos
+      console.log('Procesando pago:', this.pago);
       
-      // Generar comprobante
-      this.generarComprobante();
-      
-      // Limpiar formulario
-      this.limpiarFormulario();
+      // Actualizar estado de la orden a PAGADA
+      this.ordenVentaService.marcarComoPagada(this.ordenEncontrada!.id).pipe(
+        catchError(error => {
+          this.mostrarMensaje('Error al actualizar estado de la orden', false);
+          return of(null);
+        })
+      ).subscribe({
+        next: (ordenActualizada) => {
+          this.procesandoPago = false;
+          
+          if (ordenActualizada) {
+            this.mostrarMensaje('✅ Pago procesado exitosamente', true);
+            this.generarComprobante();
+            this.limpiarFormulario();
+            this.cargarEstadisticas(); // Actualizar estadísticas
+          }
+        }
+      });
     }, 2000);
   }
 
@@ -289,26 +295,51 @@ export class CajaInicioComponent implements OnInit {
       <head>
         <title>Comprobante de Pago - ${this.ordenEncontrada.numeroOrden}</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          .header { text-align: center; margin-bottom: 20px; }
+          body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+          .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
           .info { margin-bottom: 15px; }
-          .total { font-weight: bold; font-size: 1.2em; }
-          .footer { margin-top: 30px; text-align: center; font-size: 0.8em; }
+          .total { font-weight: bold; font-size: 1.2em; border-top: 2px solid #333; padding-top: 10px; }
+          .footer { margin-top: 30px; text-align: center; font-size: 0.8em; color: #666; }
+          .productos { margin: 20px 0; }
+          .producto-item { display: flex; justify-content: space-between; margin: 5px 0; }
         </style>
       </head>
       <body>
         <div class="header">
-          <h2>TODOTECH - Comprobante de Pago</h2>
+          <h2>🏪 TODOTECH</h2>
+          <h3>Comprobante de Pago</h3>
         </div>
         <div class="info">
           <p><strong>Orden:</strong> ${this.ordenEncontrada.numeroOrden}</p>
           <p><strong>Cliente:</strong> ${this.ordenEncontrada.cliente.nombre}</p>
+          <p><strong>Documento:</strong> ${this.ordenEncontrada.cliente.cedula}</p>
           <p><strong>Método de Pago:</strong> ${this.obtenerNombreMetodoPago(this.pago.metodoPagoId)}</p>
-          <p><strong>Monto:</strong> ${this.formatearMoneda(this.pago.monto)}</p>
+          <p><strong>Transacción:</strong> ${this.pago.numeroTransaccion || 'N/A'}</p>
           <p><strong>Fecha:</strong> ${new Date().toLocaleString('es-CO')}</p>
+          <p><strong>Cajero:</strong> ${this.usuarioActual?.nombre}</p>
         </div>
+        
+        <div class="productos">
+          <h4>Productos:</h4>
+          ${this.ordenEncontrada.productos.map((producto: any) => `
+            <div class="producto-item">
+              <span>${producto.producto.nombre} x${producto.cantidad}</span>
+              <span>${this.formatearMoneda(producto.subtotal)}</span>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="total">
+          <p><strong>Total Pagado:</strong> ${this.formatearMoneda(this.pago.monto)}</p>
+          ${this.pago.metodoPagoId === 1 ? `
+            <p><strong>Efectivo Recibido:</strong> ${this.formatearMoneda(this.efectivoRecibido)}</p>
+            <p><strong>Cambio:</strong> ${this.formatearMoneda(this.cambio)}</p>
+          ` : ''}
+        </div>
+        
         <div class="footer">
           <p>¡Gracias por su compra!</p>
+          <p>TodoTech - Sistema de Gestión Comercial</p>
         </div>
       </body>
       </html>
@@ -336,9 +367,31 @@ export class CajaInicioComponent implements OnInit {
     this.numeroOrdenBusqueda = '';
   }
 
+  // Estadísticas (calculadas localmente)
+  cargarEstadisticas(): void {
+    this.ordenVentaService.obtenerTodasLasOrdenes().pipe(
+      catchError(() => of([]))
+    ).subscribe(ordenes => {
+      const hoy = new Date().toDateString();
+      
+      // Calcular estadísticas
+      this.ordenesDisponiblesPago = ordenes.filter(orden => 
+        orden.estado === EstadoOrden.DISPONIBLEPARAPAGO
+      ).length;
+      
+      this.ordenesPendientes = ordenes.filter(orden => 
+        orden.estado === EstadoOrden.PENDIENTE
+      ).length;
+      
+      // Simular transacciones de hoy (en un caso real vendría del backend)
+      this.totalTransaccionesHoy = Math.floor(Math.random() * 20) + 5;
+      this.totalRecaudadoHoy = this.totalTransaccionesHoy * 500000;
+    });
+  }
+
   // Historial de pagos
   cargarHistorialPagos(): void {
-    // Simulación de carga de historial - reemplazar con servicio real
+    // Simulación de historial - en un caso real vendría del backend
     this.pagosFiltrados = [
       {
         id: 1,
@@ -350,13 +403,24 @@ export class CajaInicioComponent implements OnInit {
         usuarioId: 1,
         comprobante: '',
         estadoPago: EstadoPago.COMPLETADO
+      },
+      {
+        id: 2,
+        ordenVentaId: 1002,
+        monto: 1500000,
+        metodoPagoId: 1,
+        numeroTransaccion: 'EF-001',
+        fechaPago: new Date(Date.now() - 86400000).toISOString(),
+        usuarioId: 1,
+        comprobante: '',
+        estadoPago: EstadoPago.COMPLETADO
       }
     ];
   }
 
   aplicarFiltros(): void {
-    // Implementar lógica de filtrado
-    this.cargarHistorialPagos(); // Simulación
+    // Implementar lógica de filtrado básica
+    this.cargarHistorialPagos(); // Por ahora recargamos todo
   }
 
   limpiarFiltros(): void {
@@ -369,28 +433,53 @@ export class CajaInicioComponent implements OnInit {
   }
 
   exportarHistorial(): void {
-    // Implementar exportación a Excel/PDF
-    alert('Funcionalidad de exportación en desarrollo');
+    // Implementar exportación básica
+    const csvContent = this.convertToCSV(this.pagosFiltrados);
+    this.descargarCSV(csvContent, 'historial_pagos.csv');
+  }
+
+  private convertToCSV(data: any[]): string {
+    const headers = ['ID', 'Orden', 'Monto', 'Método', 'Transacción', 'Estado', 'Fecha'];
+    const rows = data.map(pago => [
+      pago.id,
+      pago.ordenVentaId,
+      this.formatearMoneda(pago.monto),
+      this.obtenerNombreMetodoPago(pago.metodoPagoId),
+      pago.numeroTransaccion,
+      pago.estadoPago,
+      this.formatearFechaCorta(pago.fechaPago || '')
+    ]);
+    
+    return [headers, ...rows].map(row => row.join(',')).join('\n');
+  }
+
+  private descargarCSV(csvContent: string, filename: string): void {
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 
   verDetallePago(pago: PagoDto): void {
-    // Implementar vista de detalle
-    alert(`Detalles del pago ${pago.id} - Orden ${pago.ordenVentaId}`);
+    alert(`Detalles del pago:\n
+ID: ${pago.id}
+Orden: ${pago.ordenVentaId}
+Monto: ${this.formatearMoneda(pago.monto)}
+Método: ${this.obtenerNombreMetodoPago(pago.metodoPagoId)}
+Transacción: ${pago.numeroTransaccion}
+Estado: ${pago.estadoPago}
+Fecha: ${this.formatearFecha(pago.fechaPago || '')}`);
   }
 
   reimprimirComprobante(pago: PagoDto): void {
-    // Implementar reimpresión de comprobante
     alert(`Reimprimiendo comprobante para pago ${pago.id}`);
+    // Aquí iría la lógica para reimprimir el comprobante
   }
 
   // Utilidades
-  cargarEstadisticas(): void {
-    // Simulación de estadísticas - reemplazar con servicio real
-    this.totalTransaccionesHoy = 15;
-    this.totalRecaudadoHoy = 12500000;
-    this.ordenesPendientes = 3;
-  }
-
   formatearMoneda(valor: number): string {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -416,5 +505,21 @@ export class CajaInicioComponent implements OnInit {
   obtenerNombreMetodoPago(metodoId: number): string {
     const metodo = this.metodosPago.find(m => m.id === metodoId);
     return metodo ? metodo.nombre : 'Desconocido';
+  }
+
+  // Método para buscar orden actual guardada
+  buscarOrdenActual(): void {
+    const ordenActual = this.ordenVentaService.obtenerOrdenActual();
+    if (ordenActual) {
+      this.numeroOrdenBusqueda = ordenActual.numeroOrden;
+      this.buscarOrden();
+    } else {
+      this.mostrarMensaje('No hay orden actual guardada', false);
+    }
+  }
+
+  // Método para obtener el nombre del usuario actual
+  obtenerNombreUsuario(): string {
+    return this.usuarioActual?.nombre || 'Cajero';
   }
 }

@@ -11,6 +11,13 @@
     <!-- Navbar igual al inicio -->
     <app-navbar-inicio></app-navbar-inicio>
 
+    <!-- ✅ CARRITO AGREGADO -->
+    <app-carrito
+        [mostrarCarrito]="mostrarCarrito"
+        [carritoVisible]="carritoVisible"
+        (carritoVisibleChange)="onCarritoVisibleChange($event)">
+    </app-carrito>
+
     <!-- Loading state -->
     <div *ngIf="loading" class="loading-container">
         <div class="loading-spinner"></div>

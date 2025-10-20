@@ -29,27 +29,29 @@
       <nav class="menu-nav">
         <ul>
           <li>
-            <a href="#cliente-catalogo" class="nav-item active" data-section="cliente-catalogo">
+            <a class="nav-item active" (click)="showSection('cliente-catalogo')">
               <span class="nav-icon">🛒</span>
               <span class="nav-text">Soy cliente, ¿cómo puedo ver el catálogo?</span>
             </a>
           </li>
+          
           <li>
-            <a href="#navegar-catalogo" class="nav-item" data-section="navegar-catalogo">
-              <span class="nav-icon">🧭</span>
-              <span class="nav-text">Cómo navegar a través del catálogo</span>
-            </a>
-          </li>
-          <li>
-            <a href="#problema-ingreso" class="nav-item" data-section="problema-ingreso">
+            <a class="nav-item" (click)="showSection('problema-ingreso')">
               <span class="nav-icon">🔐</span>
               <span class="nav-text">No me está dejando ingresar</span>
             </a>
           </li>
           <li>
-            <a href="#recuperar-contrasena" class="nav-item" data-section="recuperar-contrasena">
+            <a class="nav-item" (click)="showSection('recuperar-contrasena')">
               <span class="nav-icon">🔑</span>
               <span class="nav-text">Cómo recuperar mi contraseña</span>
+            </a>
+          </li>
+
+          <li>
+            <a class="nav-item" (click)="showSection('descargar-manual')">
+              <span class="nav-icon">📥</span>
+              <span class="nav-text">Descargar Manual</span>
             </a>
           </li>
         </ul>
@@ -70,12 +72,11 @@
             <div class="step">
               <div class="step-number">1</div>
               <div class="step-content">
-                <h3>Accede a nuestra plataforma</h3>
-                <p>Visita nuestro sitio web oficial de TodoTech Shop o descarga nuestra aplicación móvil desde la tienda de aplicaciones.</p>
+                <h3>Accede al catálogo como cliente no registrado</h3>
+                <p>Para ver nuestro catálogo sin necesidad de registrarte, debes presionar el botón "Ingresar Catálogo" en la pantalla principal.</p>
                 <div class="step-image">
-                  <div class="image-placeholder">
-                    <span>Imagen: Página de inicio de TodoTech Shop</span>
-                  </div>
+                  <img src="assets/CapturaCatalogo1.png" alt="Botón Ingresar Catálogo" class="manual-image">
+                  <div class="image-caption">Presiona el botón "Ingresar Catálogo" para acceder</div>
                 </div>
               </div>
             </div>
@@ -83,12 +84,11 @@
             <div class="step">
               <div class="step-number">2</div>
               <div class="step-content">
-                <h3>Navega sin necesidad de registro</h3>
-                <p>Puedes explorar nuestro catálogo completo sin crear una cuenta. Simplemente haz clic en la sección "Productos" o "Catálogo" en el menú principal.</p>
+                <h3>Navega por las categorías disponibles</h3>
+                <p>Una vez en el catálogo, podrás ver todas nuestras categorías de productos organizadas para tu fácil navegación.</p>
                 <div class="step-image">
-                  <div class="image-placeholder">
-                    <span>Imagen: Sección de catálogo público</span>
-                  </div>
+                  <img src="assets/CapturaCatalogo2.png" alt="Categorías del catálogo" class="manual-image">
+                  <div class="image-caption">Explora nuestras diferentes categorías de productos</div>
                 </div>
               </div>
             </div>
@@ -96,12 +96,35 @@
             <div class="step">
               <div class="step-number">3</div>
               <div class="step-content">
-                <h3>Filtra y busca productos</h3>
-                <p>Utiliza nuestra barra de búsqueda y filtros por categoría, precio o marca para encontrar exactamente lo que necesitas.</p>
+                <h3>Desplázate para ver los productos más nuevos</h3>
+                <p>Utiliza el scroll para navegar verticalmente y descubrir nuestros productos más recientes y populares.</p>
                 <div class="step-image">
-                  <div class="image-placeholder">
-                    <span>Imagen: Herramientas de búsqueda y filtrado</span>
-                  </div>
+                  <img src="assets/CapturaCatalogo3.png" alt="Scroll para ver productos nuevos" class="manual-image">
+                  <div class="image-caption">Desplázate hacia abajo para ver más productos</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <h3>Consulta precios y características</h3>
+                <p>En nuestro catálogo podrás ver todos nuestros productos con sus precios actualizados y características principales.</p>
+                <div class="step-image">
+                  <img src="assets/CapturaCatalogo4.png" alt="Productos con precios" class="manual-image">
+                  <div class="image-caption">Visualiza productos, precios y especificaciones</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step">
+              <div class="step-number">5</div>
+              <div class="step-content">
+                <h3>Compra en nuestra tienda física</h3>
+                <p>Si deseas comprar algún producto, debes visitar nuestra tienda física donde serás atendido por uno de nuestros vendedores especializados.</p>
+                <div class="step-image">
+                  <img src="assets/CapturaCatalogo5.png" alt="Información de compra en tienda física" class="manual-image">
+                  <div class="image-caption">Acude a nuestra tienda física para realizar tus compras</div>
                 </div>
               </div>
             </div>
@@ -111,68 +134,6 @@
               <div class="tip-content">
                 <h4>Consejo importante</h4>
                 <p>Crear una cuenta te permitirá guardar productos en tu lista de deseos, recibir notificaciones de ofertas y realizar compras de manera más rápida.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        <!-- Sección 2: Cómo navegar a través del catálogo -->
-        <section id="navegar-catalogo" class="content-item">
-          <div class="content-header">
-            <h1>Cómo navegar a través del catálogo</h1>
-            <p>Aprende a utilizar todas las funciones de nuestro catálogo interactivo</p>
-          </div>
-          
-          <div class="content-body">
-            <div class="step">
-              <div class="step-number">1</div>
-              <div class="step-content">
-                <h3>Explora por categorías</h3>
-                <p>Navega a través de nuestras categorías organizadas para encontrar productos similares. Tenemos secciones como Electrónicos, Computación, Smartphones, Accesorios y más.</p>
-                <div class="step-image">
-                  <div class="image-placeholder">
-                    <span>Imagen: Menú de categorías</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="step">
-              <div class="step-number">2</div>
-              <div class="step-content">
-                <h3>Usa la búsqueda inteligente</h3>
-                <p>Escribe palabras clave en la barra de búsqueda. Nuestro sistema sugiere productos relacionados mientras escribes.</p>
-                <div class="step-image">
-                  <div class="image-placeholder">
-                    <span>Imagen: Barra de búsqueda con sugerencias</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="step">
-              <div class="step-number">3</div>
-              <div class="step-content">
-                <h3>Aplica filtros avanzados</h3>
-                <p>Refina tu búsqueda usando filtros por precio, marca, valoración de clientes, disponibilidad y características específicas.</p>
-                <div class="step-image">
-                  <div class="image-placeholder">
-                    <span>Imagen: Panel de filtros avanzados</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="step">
-              <div class="step-number">4</div>
-              <div class="step-content">
-                <h3>Visualiza productos</h3>
-                <p>Haz clic en cualquier producto para ver imágenes en alta resolución, descripción detallada, especificaciones técnicas y reseñas de otros clientes.</p>
-                <div class="step-image">
-                  <div class="image-placeholder">
-                    <span>Imagen: Página de detalles del producto</span>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -317,34 +278,55 @@
             </div>
           </div>
         </section>
+
+        <!-- Sección 5: Descargar Manual -->
+        <section id="descargar-manual" class="content-item">
+          <div class="content-header">
+            <h1>Descargar Manual Completo</h1>
+            <p>Manual completo del sistema TodoTech Shop en formato descargable</p>
+          </div>
+          
+          <div class="content-body">
+            <div class="step">
+              <div class="step-number">📥</div>
+              <div class="step-content">
+                <h3>Manual del Sistema TodoTech Shop</h3>
+                <p>Descarga el manual completo que incluye:</p>
+                <ul>
+                  <li>Roles y responsabilidades de todos los actores del sistema</li>
+                  <li>Proceso completo de compra para clientes</li>
+                  <li>Integración con sistemas de inventario y finanzas</li>
+                  <li>Beneficios del sistema para la tienda y clientes</li>
+                  <li>Información de contacto y soporte</li>
+                </ul>
+                
+                <div class="step-image">
+                  <div class="download-section">
+                    <button class="download-button" (click)="descargarManual()">
+                      <span class="download-icon">⬇️</span>
+                      Descargar Manual Completo
+                    </button>
+                    <div class="download-info">
+                      <p><strong>Formato:</strong> HTML (Compatible con todos los navegadores)</p>
+                      <p><strong>Tamaño estimado:</strong> 15-20 KB</p>
+                      <p><strong>Contenido:</strong> 4 páginas con información completa</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="tip-box">
+              <div class="tip-icon">💡</div>
+              <div class="tip-content">
+                <h4>Recomendación</h4>
+                <p>Guarda una copia de este manual en tu equipo para consultarlo cuando lo necesites, especialmente durante el proceso de capacitación.</p>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   </main>
-  
-
-  <script>
-    // Script para la navegación entre secciones
-    document.addEventListener('DOMContentLoaded', function() {
-      const navItems = document.querySelectorAll('.nav-item');
-      const contentItems = document.querySelectorAll('.content-item');
-      
-      navItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-          e.preventDefault();
-          
-          // Remover clase active de todos los items
-          navItems.forEach(nav => nav.classList.remove('active'));
-          contentItems.forEach(content => content.classList.remove('active'));
-          
-          // Agregar clase active al item clickeado
-          this.classList.add('active');
-          
-          // Mostrar la sección correspondiente
-          const sectionId = this.getAttribute('data-section');
-          document.getElementById(sectionId).classList.add('active');
-        });
-      });
-    });
-  </script>
 </body>
 </html>

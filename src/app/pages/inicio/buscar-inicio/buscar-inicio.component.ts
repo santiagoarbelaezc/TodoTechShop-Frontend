@@ -9,7 +9,6 @@ import { NavbarStateService } from '../../../services/navbar-state.service';
 import { NavbarInicioComponent } from '../navbar-inicio/navbar-inicio.component';
 import { CarritoComponent } from '../carrito/carrito.component';
 import { CarruselProductosComponent } from '../carrusel-productos/carrusel-productos.component';
-import { ProductoPruebaService } from '../../../services/producto-prueba.service';
 import { CategoriaDto } from '../../../models/categoria.dto';
 import { ProductoDto } from '../../../models/producto/producto.dto';
 
@@ -30,7 +29,6 @@ export class BuscarInicioComponent implements AfterViewInit, OnInit {
 
   private productoService = inject(ProductoService);
   private carritoService = inject(CarritoService);
-  private productoPruebaService = inject(ProductoPruebaService);
   private authService = inject(AuthService);
   private navbarStateService = inject(NavbarStateService);
   private router = inject(Router);
@@ -66,25 +64,41 @@ export class BuscarInicioComponent implements AfterViewInit, OnInit {
     console.log('🎯 Inicializando vista de búsqueda...');
   }
 
-  // ✅ Cargar productos desde el servicio
+  // ✅ Cargar productos desde el servicio real
   private cargarProductos(): void {
     this.loading = true;
     this.error = null;
 
-    try {
-      // Usar el servicio de prueba para obtener productos
-      this.productos = this.productoPruebaService.obtenerTodosLosProductos();
-      this.categorias = this.productoPruebaService.obtenerTodasLasCategorias();
-      this.productosFiltrados = [...this.productos];
-      this.organizarProductosPorCategoria();
-      
-      this.loading = false;
-      console.log('✅ Productos cargados correctamente:', this.productos.length);
-    } catch (err) {
-      console.error('❌ Error al cargar productos:', err);
-      this.error = 'Error al cargar los productos. Intente nuevamente.';
-      this.loading = false;
-    }
+    // Usar el servicio real para obtener productos públicos
+    this.productoService.obtenerProductosDisponiblesPublicos().subscribe({
+      next: (productos) => {
+        this.productos = productos;
+        this.productosFiltrados = [...this.productos];
+        this.extraerCategorias();
+        this.organizarProductosPorCategoria();
+        this.loading = false;
+        console.log('✅ Productos cargados correctamente desde el servicio:', this.productos.length);
+      },
+      error: (err) => {
+        console.error('❌ Error al cargar productos:', err);
+        this.error = 'Error al cargar los productos. Intente nuevamente.';
+        this.loading = false;
+      }
+    });
+  }
+
+  // ✅ Extraer categorías únicas de los productos
+  private extraerCategorias(): void {
+    const categoriasUnicas = new Map<number, CategoriaDto>();
+    
+    this.productos.forEach(producto => {
+      if (producto.categoria && !categoriasUnicas.has(producto.categoria.id)) {
+        categoriasUnicas.set(producto.categoria.id, producto.categoria);
+      }
+    });
+    
+    this.categorias = Array.from(categoriasUnicas.values());
+    console.log('📂 Categorías extraídas:', this.categorias.length);
   }
 
   // ✅ Organizar productos por categoría para los carruseles
@@ -95,27 +109,35 @@ export class BuscarInicioComponent implements AfterViewInit, OnInit {
         productos: this.productosFiltrados.filter(p => p.categoria.id === categoria.id)
       }))
       .filter(grupo => grupo.productos.length > 0);
+    
+    console.log('📊 Productos organizados por categoría:', this.productosPorCategoria.length);
   }
 
-  // ✅ Método para buscar productos
+  // ✅ Método para buscar productos usando el servicio real
   buscarProductos(): void {
     if (!this.terminoBusqueda.trim()) {
       this.productosFiltrados = [...this.productos];
+      this.aplicarFiltros();
     } else {
-      this.productosFiltrados = this.productoPruebaService.buscarProductos(this.terminoBusqueda);
+      this.loading = true;
+      this.productoService.buscarProductosPorNombrePublico(this.terminoBusqueda).subscribe({
+        next: (productos) => {
+          this.productosFiltrados = productos;
+          this.aplicarFiltros();
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('❌ Error al buscar productos:', err);
+          this.error = 'Error al buscar productos. Intente nuevamente.';
+          this.loading = false;
+        }
+      });
     }
-    this.aplicarFiltros();
-    this.organizarProductosPorCategoria();
   }
 
   // ✅ Método para aplicar filtros
   aplicarFiltros(): void {
-    let productosFiltrados = [...this.productos];
-
-    // Filtro por término de búsqueda
-    if (this.terminoBusqueda.trim()) {
-      productosFiltrados = this.productoPruebaService.buscarProductos(this.terminoBusqueda);
-    }
+    let productosFiltrados = [...this.productosFiltrados];
 
     // Filtro por categoría
     if (this.categoriaSeleccionada !== 'todas') {

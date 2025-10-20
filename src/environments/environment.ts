@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8080' // URL para desarrollo
+  apiUrl: 'https://todotechbackend-iqb0.onrender.com' // URL para desarrollo
 };

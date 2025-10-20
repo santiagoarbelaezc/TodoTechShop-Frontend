@@ -1,11 +1,13 @@
-import { Component, OnInit, OnDestroy, inject, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, AfterViewInit, HostListener } from '@angular/core'; // ✅ AÑADIR HostListener
 import { CommonModule, ViewportScroller } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { NavbarInicioComponent } from '../navbar-inicio/navbar-inicio.component';
+import { CarritoComponent } from '../carrito/carrito.component'; // ✅ IMPORTAR CARRITO COMPONENT
 
 import { ProductoService } from '../../../services/producto.service';
+import { CarritoService } from '../../../services/carrito.service';
 import { ProductoDto } from '../../../models/producto/producto.dto';
 
 // Interfaz extendida para incluir la propiedad imagen
@@ -16,12 +18,13 @@ interface ProductoConImagen extends ProductoDto {
 @Component({
   selector: 'app-descripcionproducto',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarInicioComponent],
+  imports: [CommonModule, FormsModule, NavbarInicioComponent, CarritoComponent], // ✅ AÑADIR CarritoComponent
   templateUrl: './descripcionproducto.component.html',
   styleUrls: ['./descripcionproducto.component.css']
 })
 export class DescripcionproductoComponent implements OnInit, OnDestroy, AfterViewInit {
   private productoService = inject(ProductoService);
+  private carritoService = inject(CarritoService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private viewportScroller = inject(ViewportScroller);
@@ -31,6 +34,10 @@ export class DescripcionproductoComponent implements OnInit, OnDestroy, AfterVie
   quantity: number = 1;
   loading: boolean = false;
   error: string | null = null;
+
+  // ✅ PROPIEDADES PARA EL CARRITO
+  mostrarCarrito = false;
+  carritoVisible = false;
 
   private subscriptions: Subscription = new Subscription();
 
@@ -49,6 +56,17 @@ export class DescripcionproductoComponent implements OnInit, OnDestroy, AfterVie
 
   private scrollToTop(): void {
     this.viewportScroller.scrollToPosition([0, 0]);
+  }
+
+  // ✅ MOSTRAR CARRITO AL HACER SCROLL (MISMA LÓGICA QUE INICIO COMPONENT)
+  @HostListener('window:scroll')
+  onScroll(): void {
+    this.mostrarCarrito = window.scrollY > 300;
+  }
+
+  // ✅ COMUNICACIÓN CON COMPONENTE CARRITO
+  onCarritoVisibleChange(visible: boolean): void {
+    this.carritoVisible = visible;
   }
 
   private loadProduct(): void {
@@ -208,12 +226,28 @@ export class DescripcionproductoComponent implements OnInit, OnDestroy, AfterVie
     }
   }
 
+  // ✅ MÉTODO AGREGAR AL CARRITO ACTUALIZADO
   addToCart(): void {
-    if (this.producto && this.producto.stock > 0) {
-      console.log(`Agregando ${this.quantity} ${this.producto.nombre} al carrito`);
-      // Aquí puedes integrar con tu servicio de carrito
-      alert(`${this.quantity} ${this.producto.nombre} agregado(s) al carrito`);
+    if (!this.producto) return;
+
+    if (this.producto.stock <= 0) {
+      alert('Producto sin stock disponible.');
+      return;
     }
+
+    // ✅ AGREGAR LA CANTIDAD SELECCIONADA AL CARRITO
+    for (let i = 0; i < this.quantity; i++) {
+      this.carritoService.agregarProducto(this.producto);
+    }
+
+    // ✅ ACTUALIZAR STOCK (si es necesario)
+    // Nota: En una aplicación real, esto debería manejarse en el backend
+    this.producto.stock -= this.quantity;
+
+    alert(`${this.quantity} ${this.producto.nombre} agregado(s) al carrito`);
+
+    // ✅ RESETEAR CANTIDAD A 1 DESPUÉS DE AGREGAR
+    this.quantity = 1;
   }
 
   viewProduct(producto: ProductoConImagen): void {
