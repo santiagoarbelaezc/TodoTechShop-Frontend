@@ -71,7 +71,7 @@ export class CreacionComponent implements OnInit {
       telefono: '',
       nombreUsuario: '',
       contrasena: '',
-      cambiarContrasena: true, // Cambiado a true por defecto para nuevos usuarios
+      cambiarContrasena: true,
       tipoUsuario: 'VENDEDOR',
       estado: true
     };
@@ -131,11 +131,11 @@ export class CreacionComponent implements OnInit {
     return tipo ? tipo.label : tipoUsuario;
   }
 
-  // ===== MÉTODOS MEJORADOS PARA VALIDACIÓN DE CONTRASEÑA =====
+  // ===== MÉTODOS CORREGIDOS PARA VALIDACIÓN DE CONTRASEÑA =====
 
   // Validación de contraseña
   validatePassword(): boolean {
-    const password = this.usuario.contrasena;
+    const password = this.usuario.contrasena || '';
     
     // Actualizar los requisitos para mostrar en la UI
     this.updatePasswordRequirements(password);
@@ -146,12 +146,15 @@ export class CreacionComponent implements OnInit {
            this.passwordRequirements.hasSpecialChar;
   }
 
-  // Método para actualizar los requisitos de la contraseña
-  private updatePasswordRequirements(password: string): void {
+  // Método para actualizar los requisitos de la contraseña - CORREGIDO
+  private updatePasswordRequirements(password: string | undefined): void {
+    // Asegurarse de que password siempre sea un string
+    const safePassword = password || '';
+    
     this.passwordRequirements = {
-      minLength: password.length >= 8,
-      hasUpperCase: /[A-Z]/.test(password),
-      hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+      minLength: safePassword.length >= 8,
+      hasUpperCase: /[A-Z]/.test(safePassword),
+      hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(safePassword)
     };
   }
 
@@ -167,9 +170,9 @@ export class CreacionComponent implements OnInit {
     return messages.join(', ');
   }
 
-  // Método para determinar la fortaleza de la contraseña
+  // Método para determinar la fortaleza de la contraseña - CORREGIDO
   getPasswordStrength(): string {
-    const password = this.usuario.contrasena;
+    const password = this.usuario.contrasena || '';
     if (!password || password.length === 0) return '';
     
     const requirements = this.passwordRequirements;
@@ -181,7 +184,7 @@ export class CreacionComponent implements OnInit {
     return 'weak';
   }
 
-  // Validación del formulario completo
+  // Validación del formulario completo - CORREGIDO
   isFormValid(): boolean {
     // Validaciones básicas del formulario
     const basicValid = !!this.usuario.nombre?.trim() && 
@@ -228,7 +231,7 @@ export class CreacionComponent implements OnInit {
       correo: this.usuario.correo.trim(),
       telefono: this.usuario.telefono.trim(),
       nombreUsuario: this.usuario.nombreUsuario.trim(),
-      contrasena: this.usuario.contrasena,
+      contrasena: this.usuario.contrasena || '',
       cambiarContrasena: this.usuario.cambiarContrasena,
       tipoUsuario: this.usuario.tipoUsuario,
       fechaCreacion: new Date(),
@@ -268,7 +271,7 @@ export class CreacionComponent implements OnInit {
       correo: this.usuario.correo.trim(),
       telefono: this.usuario.telefono.trim(),
       nombreUsuario: this.usuario.nombreUsuario.trim(),
-      contrasena: this.usuario.cambiarContrasena ? this.usuario.contrasena : this.contrasenaOriginal,
+      contrasena: this.usuario.cambiarContrasena ? (this.usuario.contrasena || '') : this.contrasenaOriginal,
       cambiarContrasena: this.usuario.cambiarContrasena,
       tipoUsuario: this.usuario.tipoUsuario,
       fechaCreacion: new Date(),
@@ -292,10 +295,11 @@ export class CreacionComponent implements OnInit {
     });
   }
 
+  // Método editarUsuario CORREGIDO
   editarUsuario(usuario: UsuarioDto): void {
     this.usuarioEditando = true;
     this.usuarioEditandoId = usuario.id;
-    this.contrasenaOriginal = usuario.contrasena;
+    this.contrasenaOriginal = usuario.contrasena || '';
     
     this.usuario = {
       nombre: usuario.nombre,
@@ -303,13 +307,13 @@ export class CreacionComponent implements OnInit {
       correo: usuario.correo,
       telefono: usuario.telefono,
       nombreUsuario: usuario.nombreUsuario,
-      contrasena: usuario.contrasena,
+      contrasena: usuario.contrasena || '', // Asegurar que nunca sea undefined
       cambiarContrasena: usuario.cambiarContrasena || false,
       tipoUsuario: usuario.tipoUsuario as 'ADMIN' | 'VENDEDOR' | 'CAJERO' | 'DESPACHADOR',
       estado: usuario.estado
     };
 
-    // Actualizar requisitos de contraseña
+    // Actualizar requisitos de contraseña con valor seguro
     this.updatePasswordRequirements(this.usuario.contrasena);
     
     // Scroll al formulario
@@ -376,7 +380,7 @@ export class CreacionComponent implements OnInit {
 
   // ===== MANEJO MEJORADO DE CONTRASEÑA =====
 
-  // Manejo de cambio del interruptor de contraseña
+  // Manejo de cambio del interruptor de contraseña - CORREGIDO
   onCambiarContrasenaChange(): void {
     if (!this.usuario.cambiarContrasena && this.usuarioEditando) {
       // Si se desactiva el cambio de contraseña, restaurar la contraseña original
@@ -386,7 +390,7 @@ export class CreacionComponent implements OnInit {
       this.usuario.contrasena = '';
     }
     
-    // Actualizar requisitos visuales
+    // Actualizar requisitos visuales con valor seguro
     this.updatePasswordRequirements(this.usuario.contrasena);
     
     // Ocultar requisitos si se desactiva el cambio
@@ -395,7 +399,7 @@ export class CreacionComponent implements OnInit {
     }
   }
 
-  // Eventos de contraseña mejorados
+  // Eventos de contraseña mejorados - CORREGIDOS
   onPasswordInputChange(): void {
     this.updatePasswordRequirements(this.usuario.contrasena);
   }
@@ -427,7 +431,7 @@ export class CreacionComponent implements OnInit {
     this.fechaEspecificaFiltro = '';
   }
 
-  // Búsquedas y filtros (sin cambios)
+  // Búsquedas y filtros
   buscarPorNombre(): void {
     if (!this.terminoBusquedaNombre.trim()) {
       this.usuariosFiltrados = [...this.usuarios];

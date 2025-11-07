@@ -1,0 +1,152 @@
+<div class="stripe-checkout-container">
+  <!-- Estado de carga inicial -->
+  <div class="loading" *ngIf="cargando && !error">
+    <div class="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+    </div>
+    <h3>Inicializando sistema de pago seguro...</h3>
+    <p>Estamos preparando todo para procesar tu pago de forma segura.</p>
+  </div>
+  
+  <!-- Estado de error -->
+  <div class="error" *ngIf="error">
+    <div class="error-icon">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <h3>Error en el sistema de pago</h3>
+    <p>{{ error }}</p>
+    <div class="error-actions">
+      <button (click)="reintentar()" class="btn btn-retry" [disabled]="procesando">
+        <i class="fas fa-redo"></i>
+        Reintentar
+      </button>
+      <button (click)="cerrar()" class="btn btn-cancel" [disabled]="procesando">
+        <i class="fas fa-times"></i>
+        Cerrar
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div [class.hidden]="cargando || error" class="checkout-content">
+    <div class="stripe-header">
+      <div class="header-icon">
+        <i class="fas fa-credit-card"></i>
+      </div>
+      <h2>Pago Seguro con Stripe</h2>
+      <p>Complete los datos de su tarjeta para procesar el pago</p>
+      
+      <div class="order-info" *ngIf="paymentIntentId">
+        <i class="fas fa-receipt"></i>
+        <div class="order-details">
+          <strong>Referencia:</strong> 
+          <span class="reference">{{ paymentIntentId.substring(0, 20) }}...</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Formulario de Stripe Elements -->
+    <form id="payment-form" class="card-form" (submit)="$event.preventDefault(); procesarPago()">
+      <!-- Elemento de tarjeta de Stripe -->
+      <div class="form-group">
+        <label for="card-element" class="form-label">
+          <i class="fas fa-credit-card"></i>
+          Información de la Tarjeta *
+        </label>
+        <div id="card-element" class="stripe-card-element">
+          <!-- Stripe injects the Card Element here -->
+        </div>
+        <div id="card-errors" class="error-message" role="alert" *ngIf="cardErrors">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ cardErrors }}
+        </div>
+      </div>
+
+      <!-- Nombre del titular -->
+      <div class="form-group">
+        <label for="cardholder-name" class="form-label">
+          <i class="fas fa-user"></i>
+          Nombre del Titular *
+        </label>
+        <input
+          id="cardholder-name"
+          type="text"
+          [(ngModel)]="cardholderName"
+          name="cardholderName"
+          placeholder="JUAN PEREZ"
+          class="form-control"
+          [class.invalid]="!cardholderName && cardholderName !== ''"
+          required
+          maxlength="100">
+        <div class="helper-text">
+          Nombre exacto como aparece en la tarjeta
+        </div>
+      </div>
+
+      <!-- Información de ayuda -->
+      <div class="card-help">
+        <div class="help-title">
+          <i class="fas fa-info-circle"></i>
+          Información importante
+        </div>
+        <div class="help-item">
+          <i class="fas fa-shield-alt"></i>
+          <span>Procesado de forma segura por Stripe</span>
+        </div>
+        <div class="help-item">
+          <i class="fas fa-lock"></i>
+          <span>Tus datos están encriptados y protegidos</span>
+        </div>
+        <div class="help-item">
+          <i class="fas fa-credit-card"></i>
+          <span>Aceptamos todas las tarjetas principales</span>
+        </div>
+      </div>
+    </form>
+    
+    <div class="actions">
+      <button (click)="procesarPago()" 
+              [disabled]="!puedeProcesarPago()" 
+              class="btn btn-pay"
+              [class.processing]="procesando">
+        <span class="btn-content">
+          <i class="fas fa-spinner fa-spin" *ngIf="procesando"></i>
+          <i class="fas fa-lock" *ngIf="!procesando"></i>
+          {{ procesando ? 'Procesando Pago...' : 'Pagar Ahora' }}
+        </span>
+      </button>
+      
+      <button (click)="cerrar()" 
+              [disabled]="procesando" 
+              class="btn btn-secondary">
+        <i class="fas fa-times"></i>
+        Cancelar
+      </button>
+    </div>
+    
+    <div class="stripe-security">
+      <div class="security-features">
+        <div class="security-badge">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <div class="security-text">
+          <strong>Pago 100% Seguro</strong>
+          <span>Protegido por Stripe - Certificado PCI DSS</span>
+        </div>
+      </div>
+      
+      <div class="accepted-cards">
+        <span>Tarjetas aceptadas:</span>
+        <div class="card-icons">
+          <i class="fab fa-cc-visa"></i>
+          <i class="fab fa-cc-mastercard"></i>
+          <i class="fab fa-cc-amex"></i>
+          <i class="fab fa-cc-discover"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Debug info (solo en desarrollo) -->
+   
+  </div>
+</div>

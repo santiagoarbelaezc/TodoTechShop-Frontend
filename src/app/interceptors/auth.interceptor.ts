@@ -1,4 +1,4 @@
-// src/app/interceptors/auth.interceptor.ts
+// auth.interceptor.ts - MEJORADO
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
@@ -10,7 +10,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const token = authService.getToken();
   
-  // ✅ URLs públicas que no requieren token - AGREGAR ENDPOINTS PÚBLICOS DE PRODUCTOS
+  // ✅ URLs públicas que no requieren token
   const publicUrls = [
     '/usuarios/login',
     '/usuarios/recordar-contrasena',
@@ -19,13 +19,27 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     '/productos/publicos/disponibles',
     '/productos/publicos/categoria/',
     '/productos/publicos/buscar',
-    '/productos/publicos/' // Este cubre cualquier endpoint que empiece con /publicos/
+    '/productos/publicos/' 
+  ];
+  
+  // ✅ URLs de APIs externas que NO deben recibir el header Authorization
+  const externalApis = [
+    'https://api.frankfurter.app',
+    'https://api.exchangerate.host',
+    'https://api.exchangerate-api.com',
+    'https://open.er-api.com'
   ];
   
   const isPublicUrl = publicUrls.some(url => req.url.includes(url));
+  const isExternalApi = externalApis.some(api => req.url.startsWith(api));
   
-  if (isPublicUrl) {
-    console.log('🔓 Petición pública detectada, omitiendo token:', req.url);
+  if (isPublicUrl || isExternalApi) {
+    // Para APIs externas, usar fetch sin headers de autorización
+    if (isExternalApi) {
+      console.log('🌐 Petición a API externa detectada, omitiendo token:', req.url);
+    } else {
+      console.log('🔓 Petición pública detectada, omitiendo token:', req.url);
+    }
     return next(req);
   }
   

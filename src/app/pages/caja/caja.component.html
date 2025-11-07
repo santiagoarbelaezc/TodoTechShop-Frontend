@@ -1,226 +1,397 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Facturación</title>
-  <link rel="stylesheet" href="caja.component.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Caja - TodoTech</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="caja.component.css" />
+  
+  <!-- ❌ ELIMINADO: Stripe.js ya se carga a través de @stripe/stripe-js -->
+  <!-- <script src="https://js.stripe.com/v3/"></script> -->
 </head>
 <body>
-  <div class="container">
-  <!-- Sidebar -->
-  <!-- Sidebar -->
-<aside class="sidebar">
-  <h1>TodoTech Caja</h1>
-  <h2>Cajero: {{currentOrderDetails.seller}}</h2>
+  <div class="overlay"></div>
+  
+  <!-- Navbar -->
+  <app-navbar-caja 
+    (seccionCambiada)="onSeccionCambiada($event)"
+    [seccionActiva]="seccionActiva">
+  </app-navbar-caja>
 
-  <button *ngFor="let item of menuItems" 
-          class="btn" 
-          [class.active]="item.active"
-          (click)="selectItem(item)">
-    <i class="fas {{item.icon}}"></i> {{item.text}}
-  </button>
-
-  <button class="btn">
-    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-  </button>
-
-  <h3 class="titulo-ordenes">Órdenes activas</h3>
-  <div class="contenedor-tabla-scroll">
-    <div class="tabla-ordenes">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Cliente</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let orden of ordenes">
-            <td>{{ orden.id }}</td>
-            <td>{{ orden.cliente.nombre }}</td>
-            <td>${{ orden.total }}</td>
-          </tr>
-        </tbody>
-      </table>
+  <!-- Sistema de Mensajes -->
+  <div *ngIf="successMessage" class="mensaje-exito">
+    <i class="fas fa-check-circle"></i>
+    <div class="mensaje-contenido">
+      <div class="mensaje-titulo">¡Éxito!</div>
+      <div class="mensaje-texto">{{ successMessage }}</div>
     </div>
   </div>
-</aside>
 
-
- <!-- Order Details -->
-<article id="detalle-orden" class="detalle-orden">
-  <h2>Detalle de la Orden</h2>
-  <form id="form-detalle-orden">
-    <div class="form-row">
-      <div class="form-group">
-        <label for="vendedor">Vendedor:</label>
-        <input type="text" id="vendedor" [value]="currentOrderDetails.seller" readonly />
-      </div>
-      <div class="form-group">
-        <label for="cliente">Cliente:</label>
-        <input type="text" id="cliente" [value]="currentOrderDetails.client" readonly />
-      </div>
+  <div *ngIf="errorMessage" class="mensaje-error">
+    <i class="fas fa-exclamation-circle"></i>
+    <div class="mensaje-contenido">
+      <div class="mensaje-titulo">Error</div>
+      <div class="mensaje-texto">{{ errorMessage }}</div>
     </div>
+  </div>
+
+  <div *ngIf="cargando" class="mensaje-carga">
+    <i class="fas fa-spinner fa-spin"></i>
+    <div class="mensaje-contenido">
+      <div class="mensaje-titulo">Procesando</div>
+      <div class="mensaje-texto">Procesando pago...</div>
+    </div>
+  </div>
+
+  <!-- Contenido Principal -->
+  <main class="caja-container">
     
-    <div class="form-row">
-      <div class="form-group">
-        <label for="fecha">Fecha:</label>
-        <input type="text" id="fecha" [value]="currentOrderDetails.date" readonly />
+    <!-- Header de la página -->
+    <header class="page-header">
+      <div class="header-main">
+        <div class="header-content">
+          <h1 class="page-title">
+            <i class="fas fa-cash-register"></i>
+            Sistema de Caja
+          </h1>
+          <p class="page-subtitle">Procesa pagos de órdenes de venta - Cajero: {{currentOrderDetails.seller}}</p>
+        </div>
+        
+        <!-- Estadísticas -->
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-receipt"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ totalOrdenes }}</span>
+              <span class="stat-label">Total Órdenes</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon pendientes">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ ordenesPendientes }}</span>
+              <span class="stat-label">Pendientes Pago</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon completadas">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ ordenesPagadas }}</span>
+              <span class="stat-label">Pagadas Hoy</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="estado">Estado:</label>
-        <input type="text" id="estado" [value]="currentOrderDetails.status" readonly />
-      </div>
-    </div>
-    
-    <div class="form-group">
-      <label for="metodo-seleccionado">Método de Pago:</label>
-      <input type="text" id="metodo-seleccionado" [value]="selectedPaymentMethod" readonly />
-    </div>
-    
-    <div class="resumen-orden">
-      <div class="resumen-item">
-        <label for="impuestos">Impuestos:</label>
-        <input type="text" id="impuestos" [value]="currentOrderDetails.taxes" readonly class="resumen-input" />
-      </div>
-      <div class="resumen-item">
-        <label for="valor-total">Valor Total:</label>
-        <input type="text" id="valor-total" [value]="currentOrderDetails.total" readonly class="resumen-input" />
-      </div>
-      <div class="resumen-item">
-        <label for="valor-pagar">Valor a Pagar:</label>
-        <input type="text" id="valor-pagar" [value]="currentOrderDetails.toPay" readonly class="resumen-input valor-final" />
-      </div>
-    </div>
- 
 
-
-      <!-- Payment Methods Section -->
-<section class="metodos-pago">
-  <h3>Seleccionar Método de Pago</h3>
-  <div class="metodos-pago-icons">
-    <img src="assets/paypal.png" alt="PayPal" (click)="selectPaymentMethod('PayPal')" [class.active]="selectedPaymentMethod === 'PayPal'" />
-    <img src="assets/visa.png" alt="Visa" (click)="selectPaymentMethod('Visa')" [class.active]="selectedPaymentMethod === 'Visa'" />
-    <img src="assets/mastercard.png" alt="MasterCard" (click)="selectPaymentMethod('MasterCard')" [class.active]="selectedPaymentMethod === 'MasterCard'" />
-    <img src="assets/redcompra.png" alt="RedCompra" (click)="selectPaymentMethod('RedCompra')" [class.active]="selectedPaymentMethod === 'RedCompra'" />
-    <img src="assets/visadevito.png" alt="Visa Débito" (click)="selectPaymentMethod('Visa Débito')" [class.active]="selectedPaymentMethod === 'Visa Débito'" />
-    <img src="assets/efectivo.png" alt="Efectivo" (click)="selectPaymentMethod('Efectivo')" [class.active]="selectedPaymentMethod === 'Efectivo'" />
-  </div>
-
-  <!-- Formulario de tarjeta (existente) -->
-  <div class="card-form" *ngIf="showCardForm">
-    <!-- ... (mantén tu formulario de tarjeta actual) ... -->
-  </div>
-
- <!-- Sección de efectivo -->
-<div class="cash-form" *ngIf="selectedPaymentMethod === 'Efectivo'">
-  <div class="form-group">
-    <label for="cashAmount" class="form-label">Efectivo recibido ($):</label>
-    <input
-      type="number"
-      id="cashAmount"
-      name="cashAmount"
-      [(ngModel)]="cashAmount"
-      (input)="calculateChange()"
-      min="0"
-      placeholder="Ingrese monto recibido" />
-  </div>
-
-  <!-- Resumen de pago -->
-<div class="payment-summary">
-  <div class="summary-row">
-    <span>Subtotal:</span>
-    <span>{{ orden?.total | currency:'COP':'symbol':'1.0-0' }}</span>
-  </div>
-  <div class="summary-row">
-    <span>IVA (19%):</span>
-    <span>{{ (orden?.total || 0) * 0.19 | currency:'COP':'symbol':'1.0-0' }}</span>
-  </div>
-  <div class="summary-row total">
-    <span>Total a pagar:</span>
-    <span>{{ (orden?.total || 0) * 1.19 | currency:'COP':'symbol':'1.0-0' }}</span>
-  </div>
-</div>
-
-  <!-- Sección de cambio -->
-  <div class="change-section" *ngIf="cashAmount > 0">
-    <div class="summary-row">
-      <span>Efectivo recibido:</span>
-      <span>{{ cashAmount | currency:'COP':'symbol':'1.0-0' }}</span>
-    </div>
-    <div class="summary-row change" [class.negative]="changeAmount < 0">
-      <span>Cambio:</span>
-      <span>{{ changeAmount | currency:'COP':'symbol':'1.0-0' }}</span>
-    </div>
-    
-    <div class="alert" *ngIf="changeAmount < 0">
-      ¡Faltan {{ (-1 * changeAmount) | currency:'COP':'symbol':'1.0-0' }}!
-    </div>
-  </div>
-</div>
-</section>
-
-<!-- Payment Details Section -->
-<section class="detalles-pago" *ngIf="showCardForm">
-  <h3>Detalles del Pago</h3>
-  <div class="form-group">
-    <label for="numeroReferencia">Número de tarjeta / referencia</label>
-    <input type="text" id="numeroReferencia" placeholder="Ingrese el número" 
-           [(ngModel)]="cardDetails.referenceNumber" 
-           name="referenceNumber"
-           (input)="validateCardForm()" />
-  </div>
-  <div class="form-group">
-    <label for="nombreTitular">Nombre del titular / pagador</label>
-    <input type="text" id="nombreTitular" placeholder="Nombre completo" 
-           [(ngModel)]="cardDetails.cardName" 
-           name="cardName"
-           (input)="validateCardForm()" />
-  </div>
-  <div class="form-group">
-    <label for="codigoSeguridad">Código de seguridad / comprobante</label>
-    <input type="text" id="codigoSeguridad" placeholder="CVV / Código" 
-           [(ngModel)]="cardDetails.securityCode" 
-           name="securityCode"
-           (input)="validateCardForm()" />
-  </div>
-  <!-- Campos existentes de la tarjeta -->
-  <div class="form-group">
-    <label for="cardNumber">Número de Tarjeta</label>
-    <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" 
-           [(ngModel)]="cardDetails.cardNumber" 
-           name="cardNumber"
-           (input)="validateCardForm()" />
-  </div>
-  <div class="form-group">
-    <label for="expiryDate">Fecha de Expiración</label>
-    <input type="text" id="expiryDate" placeholder="MM/YY" 
-           [(ngModel)]="cardDetails.expiryDate" 
-           name="expiryDate"
-           (input)="validateCardForm()" />
-  </div>
-  <div class="form-group">
-    <label for="cvv">CVV</label>
-    <input type="text" id="cvv" placeholder="123" 
-           [(ngModel)]="cardDetails.cvv" 
-           name="cvv"
-           (input)="validateCardForm()" />
-  </div>
-</section>
-
-      <!-- Action Buttons -->
-      <div class="acciones">
-        <button type="button" (click)="cancelOrder()" class="btn-cancelar">
-          Cancelar Orden
-        </button>
-        <button type="button" (click)="processPayment()" class="btn-pagar">
-          Procesar Pago
+      <!-- Panel de Órdenes -->
+      <div class="ordenes-header-panel">
+        <div class="panel-header">
+          <h3>
+            <i class="fas fa-list-ol"></i>
+            Órdenes Pendientes de Pago
+          </h3>
+          <span class="badge-count">{{ordenes.length}}</span>
+        </div>
+        
+        <div class="ordenes-list">
+          <div *ngFor="let orden of ordenes" 
+               class="orden-card"
+               [class.selected]="orden.id === ordenSeleccionada?.id"
+               (click)="seleccionarOrden(orden)">
+            
+            <div class="orden-header">
+              <span class="orden-numero">#{{orden.numeroOrden}}</span>
+              <span class="orden-estado" [class]="'estado-' + orden.estado.toLowerCase()">
+                {{orden.estado}}
+              </span>
+            </div>
+            
+            <div class="orden-cliente-info">
+              <i class="fas fa-user"></i>
+              <span class="cliente-nombre">{{orden.cliente.nombre}}</span>
+            </div>
+            
+            <div class="orden-total">
+              <span class="total-label">Total:</span>
+              <span class="total-value">{{orden.total | currency:'COP':'symbol':'1.0-0'}}</span>
+            </div>
+          </div>
           
-        </button>
+          <div *ngIf="ordenes.length === 0" class="no-ordenes">
+            <i class="fas fa-shopping-cart"></i>
+            <p>No hay órdenes pendientes de pago</p>
+          </div>
+        </div>
       </div>
-    </form>
-  </article>
-</div>
+    </header>
+
+    <!-- Panel Principal: Detalles y Pago -->
+    <section class="pago-panel">
+      <div class="panel-header">
+        <h3>
+          <i class="fas fa-credit-card"></i>
+          Procesar Pago
+        </h3>
+        <div class="orden-info" *ngIf="ordenSeleccionada">
+          <span class="orden-id">Orden #{{ordenSeleccionada.numeroOrden}}</span>
+          <span class="orden-status" [class]="'status-' + ordenSeleccionada.estado.toLowerCase()">
+            {{ordenSeleccionada.estado}}
+          </span>
+        </div>
+      </div>
+
+      <div class="pago-content" *ngIf="ordenSeleccionada; else noOrdenSelected">
+        <div class="pago-grid">
+          <!-- Columna Izquierda: Información de la Orden -->
+          <div class="pago-col izquierda">
+            <!-- Información de la Orden -->
+            <div class="info-section">
+              <h4 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                Información de la Orden
+              </h4>
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>Cliente:</label>
+                  <span class="cliente-dato">{{ordenSeleccionada.cliente.nombre}}</span>
+                </div>
+                <div class="info-item">
+                  <label>Cédula/NIT:</label>
+                  <span class="cliente-dato">{{ordenSeleccionada.cliente.cedula}}</span>
+                </div>
+                <div class="info-item">
+                  <label>Vendedor:</label>
+                  <span class="cliente-dato">{{ordenSeleccionada.vendedor.nombre}}</span>
+                </div>
+                <div class="info-item">
+                  <label>Fecha:</label>
+                  <span class="cliente-dato">{{ordenSeleccionada.fecha | date:'dd/MM/yyyy'}}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Productos de la Orden -->
+            <div class="productos-section">
+              <h4 class="section-title">
+                <i class="fas fa-boxes"></i>
+                Productos
+              </h4>
+              <div class="productos-list">
+                <div *ngFor="let producto of ordenSeleccionada.productos" class="producto-item">
+                  <div class="producto-info">
+                    <span class="producto-nombre">{{producto.producto.nombre}}</span>
+                    <span class="producto-precio">{{producto.precioUnitario | currency:'COP':'symbol':'1.0-0'}} x {{producto.cantidad}}</span>
+                  </div>
+                  <span class="producto-subtotal">{{producto.subtotal | currency:'COP':'symbol':'1.0-0'}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Totales y Métodos de Pago -->
+          <div class="pago-col derecha">
+            <!-- Resumen de Totales -->
+            <div class="totales-section">
+              <h4 class="section-title">
+                <i class="fas fa-calculator"></i>
+                Resumen de Totales
+              </h4>
+              <div class="totales-grid">
+                <div class="total-item">
+                  <span>Subtotal:</span>
+                  <span>{{ordenSeleccionada.subtotal | currency:'COP':'symbol':'1.0-0'}}</span>
+                </div>
+                <div class="total-item">
+                  <span>Descuento ({{ordenSeleccionada.cliente.descuentoAplicable || 0}}%):</span>
+                  <span class="descuento">-{{ordenSeleccionada.descuento | currency:'COP':'symbol':'1.0-0'}}</span>
+                </div>
+                <div class="total-item">
+                  <span>IVA (19%):</span>
+                  <span>{{ordenSeleccionada.impuestos | currency:'COP':'symbol':'1.0-0'}}</span>
+                </div>
+                <div class="total-item total-final">
+                  <span>TOTAL A PAGAR:</span>
+                  <span class="total-pagar">{{ordenSeleccionada.total | currency:'COP':'symbol':'1.0-0'}}</span>
+                </div>
+
+                <!-- Información de conversión para Stripe -->
+                <div *ngIf="esMetodoStripe()" class="conversion-info">
+                  <div class="conversion-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>El monto se convertirá automáticamente a USD al procesar el pago</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Métodos de Pago -->
+            <div class="metodos-pago-section">
+              <h4 class="section-title">
+                <i class="fas fa-credit-card"></i>
+                Método de Pago
+              </h4>
+              
+              <div class="metodos-pago-grid">
+                <div class="metodo-pago-card" 
+                     *ngFor="let metodo of metodosPago"
+                     (click)="selectPaymentMethod(metodo.nombre)"
+                     [class.active]="selectedPaymentMethod === metodo.nombre"
+                     [class.stripe-method]="metodo.tipoMetodo === 'STRIPE'">
+                  <img [src]="metodo.icono" [alt]="metodo.nombre" class="metodo-icon" />
+                  <span class="metodo-nombre">{{ metodo.nombre }}</span>
+                  <span *ngIf="metodo.tipoMetodo === 'STRIPE'" class="stripe-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    Seguro
+                  </span>
+                </div>
+              </div>
+
+              <!-- Información de Stripe -->
+              <div *ngIf="esMetodoStripe()" class="stripe-info-section">
+                <div class="stripe-info-message">
+                  <i class="fas fa-shield-alt"></i>
+                  <div class="stripe-info-content">
+                    <strong>Pago seguro con Stripe</strong>
+                    <p>Será redirigido a Stripe para completar el pago de forma segura. El monto en COP se convertirá automáticamente a USD.</p>
+                  </div>
+                </div>
+
+                <div class="stripe-features">
+                  <div class="stripe-feature">
+                    <i class="fas fa-lock"></i>
+                    <span>Protegido con encriptación SSL</span>
+                  </div>
+                  <div class="stripe-feature">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Datos de tarjeta seguros</span>
+                  </div>
+                  <div class="stripe-feature">
+                    <i class="fas fa-globe"></i>
+                    <span>Conversión automática a USD</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Formulario para PayPal/MercadoPago -->
+              <div *ngIf="showCardForm" class="card-form-section">
+                <div class="form-group">
+                  <label for="cardNumber">Número de Tarjeta</label>
+                  <input type="text" id="cardNumber" [(ngModel)]="cardDetails.cardNumber" 
+                         (input)="validateCardForm()" placeholder="1234 5678 9012 3456" 
+                         class="form-input" />
+                </div>
+                
+                <div class="form-group">
+                  <label for="cardName">Nombre en la Tarjeta</label>
+                  <input type="text" id="cardName" [(ngModel)]="cardDetails.cardName" 
+                         (input)="validateCardForm()" placeholder="JUAN PEREZ" 
+                         class="form-input" />
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="expiryDate">Fecha de Expiración</label>
+                    <input type="text" id="expiryDate" [(ngModel)]="cardDetails.expiryDate" 
+                           (input)="validateCardForm()" placeholder="MM/AA" 
+                           class="form-input" />
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="cvv">CVV</label>
+                    <input type="text" id="cvv" [(ngModel)]="cardDetails.cvv" 
+                           (input)="validateCardForm()" placeholder="123" 
+                           class="form-input" />
+                  </div>
+                </div>
+                
+                <div class="form-checkbox">
+                  <input type="checkbox" id="saveCard" [(ngModel)]="cardDetails.saveCard" />
+                  <label for="saveCard">Guardar tarjeta para futuras compras</label>
+                </div>
+              </div>
+
+              <!-- Formulario de Efectivo -->
+              <div class="cash-form" *ngIf="selectedPaymentMethod === 'Efectivo'">
+                <div class="cash-input-group">
+                  <label for="cashAmount" class="cash-label">
+                    <i class="fas fa-money-bill-wave"></i>
+                    Efectivo Recibido:
+                  </label>
+                  <input
+                    type="number"
+                    id="cashAmount"
+                    name="cashAmount"
+                    [(ngModel)]="cashAmount"
+                    (input)="calculateChange()"
+                    min="0"
+                    placeholder="0"
+                    class="cash-input" />
+                </div>
+
+                <!-- Resumen de Cambio -->
+                <div class="cambio-section" *ngIf="cashAmount > 0">
+                  <div class="cambio-item">
+                    <span>Total a Pagar:</span>
+                    <span>{{ordenSeleccionada.total | currency:'COP':'symbol':'1.0-0'}}</span>
+                  </div>
+                  <div class="cambio-item">
+                    <span>Efectivo Recibido:</span>
+                    <span>{{cashAmount | currency:'COP':'symbol':'1.0-0'}}</span>
+                  </div>
+                  <div class="cambio-item cambio-total" [class.negativo]="changeAmount < 0">
+                    <span>Cambio:</span>
+                    <span>{{changeAmount | currency:'COP':'symbol':'1.0-0'}}</span>
+                  </div>
+                  
+                  <div class="alerta-cambio" *ngIf="changeAmount < 0">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>¡Faltan {{(-changeAmount) | currency:'COP':'symbol':'1.0-0'}}!</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="acciones-pago">
+          <button type="button" (click)="cancelOrder()" class="btn btn-cancelar" [disabled]="cargando">
+            <i class="fas fa-times"></i>
+            Cancelar
+          </button>
+          <button type="button" (click)="processPayment()" class="btn btn-pagar" 
+                  [disabled]="!puedeProcesarPago() || cargando"
+                  [class.processing]="cargando">
+            <i class="fas fa-credit-card" *ngIf="!cargando"></i>
+            <i class="fas fa-spinner fa-spin" *ngIf="cargando"></i>
+            
+            <span *ngIf="cargando">Procesando...</span>
+            <span *ngIf="!cargando">
+              {{ esMetodoStripe() ? 'Pagar con Stripe' : 'Procesar Pago' }}
+            </span>
+            
+            <span *ngIf="ordenSeleccionada" class="total-btn">
+              {{ordenSeleccionada.total | currency:'COP':'symbol':'1.0-0'}}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <ng-template #noOrdenSelected>
+        <div class="no-orden-selected">
+          <i class="fas fa-hand-holding-usd"></i>
+          <h3>Seleccione una orden</h3>
+          <p>Elija una orden de la lista para procesar el pago</p>
+        </div>
+      </ng-template>
+    </section>
+  </main>
+</body>
+</html>

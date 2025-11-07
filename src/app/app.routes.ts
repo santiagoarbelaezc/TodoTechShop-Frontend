@@ -29,6 +29,7 @@ import { OrdenesAdminComponent } from './pages/admin/ordenes-admin/ordenes-admin
 import { ResumenOrdenComponent } from './pages/orden-venta/resumen-orden/resumen-orden.component';
 import { CajaInicioComponent } from './pages/caja/caja-inicio/caja-inicio.component';
 import { CatalogoComponent } from './pages/cliente/catalogo/catalogo.component';
+import { StripeCheckoutComponent } from './pages/stripe-checkout/stripe-checkout.component';
 
 export const routes: Routes = [
   // 🔓 RUTAS PÚBLICAS
@@ -142,6 +143,14 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['CAJERO'] }
   },
+
+  { 
+    path: 'checkout', 
+    component: StripeCheckoutComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['CAJERO'] }
+  },
+  
   { 
     path: 'despacho', 
     component: DespachoComponent, 
