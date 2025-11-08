@@ -8,19 +8,12 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { OrdenVentaService, EstadoOrden } from '../../services/orden-venta.service';
-import { PagoService } from '../../services/pago.service';
 import { StripePaymentService } from '../../services/stripe-payment.service';
-import { PaymentStateService } from '../../services/payment-state.service'; // ✅ NUEVO
-import { OrdenDto, OrdenConDetallesDto } from '../../models/orden-venta/ordenventa.dto';
-import { ClienteDto } from '../../models/cliente.dto';
-import { UsuarioDto } from '../../models/usuario/usuario.dto';
-import { ProductoDto } from '../../models/producto/producto.dto';
-import { CategoriaDto } from '../../models/categoria.dto';
-import { EstadoProducto } from '../../models/enums/estado-producto.enum';
-import { DetalleOrdenDto } from '../../models/detalle-orden/detalle-orden.dto';
+import { PaymentStateService } from '../../services/payment-state.service';
+import { OrdenConDetallesDto, OrdenDto } from '../../models/orden-venta/ordenventa.dto';
 import { NavbarCajaComponent } from './navbar-caja/navbar-caja.component';
 
-// Enums y DTOs para el pago
+// Enums esenciales para el pago
 export enum TipoMetodo {
   STRIPE = 'STRIPE',
   PAYPAL = 'PAYPAL',
@@ -38,39 +31,7 @@ export enum PaymentStatus {
   FAILED = 'failed'
 }
 
-export interface PaymentIntentRequestDto {
-  amount: number;
-  currency: string;
-  paymentMethodType: TipoMetodo;
-  orderId: number;
-  customerEmail?: string;
-  metadata?: { [key: string]: string };
-}
-
-export interface PaymentIntentResponseDto {
-  clientSecret?: string;
-  paymentIntentId?: string;
-  status?: PaymentStatus;
-  requiresAction?: boolean;
-  nextActionType?: string;
-  errorMessage?: string;
-  additionalData?: { [key: string]: any };
-}
-
-export interface PaymentConfirmationDto {
-  paymentIntentId: string;
-  paymentMethodId?: string;
-  confirmationData?: { [key: string]: any };
-}
-
-// Interfaces del componente
-interface MenuItem {
-  icon: string;
-  text: string;
-  active: boolean;
-  action?: string;
-}
-
+// Interfaces esenciales
 interface CardDetails {
   cardNumber: string;
   cardName: string;
@@ -127,51 +88,30 @@ export class CajaComponent implements OnInit, OnDestroy {
   cardFormValid: boolean = false;
   
   currentOrderDetails: OrderDetails = {
-    seller: 'Juan Pérez',
-    client: 'Cliente Ejemplo',
+    seller: 'Cargando...',
+    client: 'Cargando...',
     date: new Date().toLocaleDateString('es-ES'),
-    status: 'PENDIENTE',
+    status: 'CARGANDO',
     taxes: '$0',
     total: '$0',
     toPay: '$0'
   };
 
-  // Métodos de pago actualizados según el backend
-  metodosPago: MetodoPagoInfo[] = [
-    { 
-      nombre: 'Stripe (Tarjeta)', 
-      icono: 'assets/stripe.png', 
-      tipoMetodo: TipoMetodo.STRIPE, 
-      requiereFormulario: false 
-    },
-    { 
-      nombre: 'PayPal', 
-      icono: 'assets/paypal.png', 
-      tipoMetodo: TipoMetodo.PAYPAL, 
-      requiereFormulario: true 
-    },
-    { 
-      nombre: 'MercadoPago', 
-      icono: 'assets/mercadopago.png', 
-      tipoMetodo: TipoMetodo.MERCADOPAGO, 
-      requiereFormulario: true 
-    },
-    { 
-      nombre: 'Efectivo', 
-      icono: 'assets/efectivo.png', 
-      tipoMetodo: TipoMetodo.STRIPE, // Temporal hasta agregar EFECTIVO al enum
-      requiereFormulario: false 
-    }
-  ];
-
-  menuItems: MenuItem[] = [
-    { icon: 'fa-receipt', text: 'Órdenes de Venta', active: true, action: 'ordenes' },
-    { icon: 'fa-cash-register', text: 'Registrar Pago', active: false, action: 'registrarPago' },
-    { icon: 'fa-history', text: 'Historial de Transacciones', active: false, action: 'listaPagos' },
-    { icon: 'fa-exchange-alt', text: 'Reembolsos', active: false },
-    { icon: 'fa-coins', text: 'Caja Diaria', active: false },
-    { icon: 'fa-cog', text: 'Configuración', active: false }
-  ];
+  // Reemplaza el array metodosPago por este:
+metodosPago: MetodoPagoInfo[] = [
+  { 
+    nombre: 'Stripe (Tarjeta)', 
+    icono: 'assets/stripe.png', 
+    tipoMetodo: TipoMetodo.STRIPE, 
+    requiereFormulario: false 
+  },
+  { 
+    nombre: 'Efectivo', 
+    icono: 'assets/efectivo.png', 
+    tipoMetodo: TipoMetodo.STRIPE,
+    requiereFormulario: false 
+  }
+];
 
   cashAmount: number = 0;
   changeAmount: number = 0;
@@ -180,143 +120,148 @@ export class CajaComponent implements OnInit, OnDestroy {
   errorMessage: string = '';
   cargando: boolean = false;
 
-  // ✅ ELIMINADO: private stripePaymentIntentId: string | null = null;
   private paymentStatusInterval: any;
+  private stripeWindow: Window | null = null;
+  private windowCheckInterval: any;
 
   constructor(
-    private ordenVentaService: OrdenVentaService, 
-    private pagoService: PagoService,
+    private ordenVentaService: OrdenVentaService,
     private stripePaymentService: StripePaymentService,
-    private paymentStateService: PaymentStateService, // ✅ NUEVO
+    private paymentStateService: PaymentStateService,
     private cdRef: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.cargarOrdenQuemada();
+    this.cargarOrdenesDisponiblesParaPago();
     window.addEventListener('message', this.handleStripeMessage.bind(this));
   }
 
   ngOnDestroy(): void {
     this.stopPaymentStatusChecking();
+    this.stopWindowStatusChecking();
     window.removeEventListener('message', this.handleStripeMessage.bind(this));
   }
 
   private handleStripeMessage(event: MessageEvent): void {
+    console.log('🔍 DEBUG handleStripeMessage recibido:', event.data);
+    
     if (event.data?.type === 'STRIPE_PAYMENT_SUCCESS') {
-      this.handleSuccessfulStripePayment(event.data.paymentIntentId);
+      console.log('✅ Stripe payment success con datos:', {
+        paymentIntentId: event.data.paymentIntentId,
+        orderId: event.data.orderId
+      });
+      this.handleSuccessfulStripePayment(event.data.paymentIntentId, event.data.orderId);
     } else if (event.data?.type === 'STRIPE_PAYMENT_FAILED') {
+      console.log('❌ Stripe payment failed con datos:', {
+        error: event.data.error
+      });
       this.handleFailedStripePayment(event.data.error);
+    } else if (event.data?.type === 'STRIPE_PAYMENT_ABORTED') {
+      console.log('🚪 Stripe payment aborted con datos:', {
+        paymentIntentId: event.data.paymentIntentId,
+        reason: event.data.reason
+      });
+      this.handleAbortedStripePayment(event.data.paymentIntentId, event.data.reason);
     }
   }
 
-  private cargarOrdenQuemada(): void {
-    const categoriaComputacion: CategoriaDto = {
-      id: 1,
-      nombre: 'Computación'
-    };
-
-    const productos: ProductoDto[] = [
-      {
-        id: 1,
-        nombre: 'Laptop HP Pavilion 15',
-        codigo: 'LP-HP-PAV-001',
-        descripcion: 'Laptop HP Pavilion 15.6" Intel Core i5, 8GB RAM, 512GB SSD',
-        categoria: categoriaComputacion,
-        precio: 2500000,
-        stock: 10,
-        imagenUrl: 'assets/laptop-hp.jpg',
-        marca: 'HP',
-        garantia: 12,
-        estado: EstadoProducto.ACTIVO
-      },
-      {
-        id: 2,
-        nombre: 'Mouse Inalámbrico Logitech',
-        codigo: 'MS-LOG-WLS-002',
-        descripcion: 'Mouse inalámbrico Logitech M170, 2.4GHz, 12 meses de batería',
-        categoria: categoriaComputacion,
-        precio: 45000,
-        stock: 25,
-        imagenUrl: 'assets/mouse-logitech.jpg',
-        marca: 'Logitech',
-        garantia: 12,
-        estado: EstadoProducto.ACTIVO
-      }
-    ];
-
-    const cliente: ClienteDto = {
-      id: 1,
-      nombre: 'María González Rodríguez',
-      cedula: '123456789',
-      correo: 'maria.gonzalez@email.com',
-      telefono: '+57 300 123 4567',
-      direccion: 'Calle 123 #45-67, Bogotá, Colombia',
-      tipoCliente: 'NATURAL',
-      descuentoAplicable: 5,
-      fechaRegistro: '2024-01-15'
-    };
-
-    const vendedor: UsuarioDto = {
-      id: 1,
-      nombre: 'Carlos Andrés López',
-      cedula: '987654321',
-      correo: 'carlos.lopez@todotech.com',
-      telefono: '+57 301 987 6543',
-      nombreUsuario: 'clopez',
-      contrasena: '********',
-      cambiarContrasena: false,
-      tipoUsuario: 'VENDEDOR',
-      fechaCreacion: new Date('2023-05-10'),
-      estado: true
-    };
-
-    const detalles: DetalleOrdenDto[] = [
-      {
-        id: 1,
-        producto: productos[0],
-        cantidad: 1,
-        precioUnitario: 2500000,
-        subtotal: 2500000
-      },
-      {
-        id: 2,
-        producto: productos[1],
-        cantidad: 2,
-        precioUnitario: 45000,
-        subtotal: 90000
-      }
-    ];
-
-    const subtotal = detalles.reduce((sum, detalle) => sum + detalle.subtotal, 0);
-    const descuento = subtotal * 0.05;
-    const impuestos = (subtotal - descuento) * 0.19;
-    const total = subtotal - descuento + impuestos;
-
-    const ordenQuemada: OrdenConDetallesDto = {
-      id: 1001,
-      numeroOrden: 'ORD-2024-1001',
-      fecha: new Date().toISOString().split('T')[0],
-      cliente: cliente,
-      vendedor: vendedor,
-      productos: detalles,
-      estado: EstadoOrden.DISPONIBLEPARAPAGO,
-      subtotal: subtotal,
-      descuento: descuento,
-      impuestos: impuestos,
-      total: total,
-      observaciones: 'Cliente solicita factura electrónica'
-    };
-
-    this.ordenes = [ordenQuemada];
-    this.totalOrdenes = this.ordenes.length;
-    this.ordenesPendientes = this.ordenes.filter(o => 
-      o.estado === EstadoOrden.PENDIENTE || o.estado === EstadoOrden.DISPONIBLEPARAPAGO
-    ).length;
-    this.ordenesPagadas = this.ordenes.filter(o => o.estado === EstadoOrden.PAGADA).length;
-
-    this.seleccionarOrden(ordenQuemada);
+  // ✅ AGREGADO: Manejar pago abortado
+  private handleAbortedStripePayment(paymentIntentId: string, reason: string): void {
+    console.log('🚪 Pago con Stripe abortado:', {
+      paymentIntentId,
+      reason
+    });
+    
+    this.stopPaymentStatusChecking();
+    this.stopWindowStatusChecking();
+    this.paymentStateService.resetPayment();
+    
+    let mensaje = 'Pago cancelado por el usuario.';
+    if (reason === 'window_closed') {
+      mensaje = 'Ventana de pago cerrada. El pago fue cancelado.';
+    }
+    
+    this.mostrarError(mensaje);
+    this.cargando = false;
+    this.cdRef.detectChanges();
   }
 
+  // ✅ CORREGIDO: Método para cargar todas las órdenes disponibles para pago
+  private cargarOrdenesDisponiblesParaPago(): void {
+    console.log('🔄 Cargando órdenes disponibles para pago desde el servicio...');
+    
+    this.cargando = true;
+    this.ordenVentaService.obtenerOrdenesDisponiblesPago().subscribe({
+      next: (ordenes: OrdenDto[]) => {
+        console.log('✅ Órdenes disponibles para pago recibidas:', ordenes);
+        
+        if (ordenes && ordenes.length > 0) {
+          // Convertir OrdenDto[] a OrdenConDetallesDto[]
+          this.ordenes = ordenes.map(orden => ({
+            ...orden,
+            productos: [] // Por ahora productos vacío, podrías cargarlos si es necesario
+          } as OrdenConDetallesDto));
+          
+          this.actualizarEstadisticas();
+          
+          // Seleccionar automáticamente la primera orden si hay solo una
+          if (this.ordenes.length === 1) {
+            this.seleccionarOrden(this.ordenes[0]);
+          }
+          
+          console.log(`✅ Se cargaron ${this.ordenes.length} órdenes disponibles para pago`);
+        } else {
+          console.log('ℹ️ No hay órdenes disponibles para pago');
+          this.ordenes = [];
+          this.mostrarInfo('No hay órdenes disponibles para pago en este momento.');
+        }
+        
+        this.cargando = false;
+        this.cdRef.detectChanges();
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar órdenes disponibles para pago:', error);
+        this.mostrarError('Error al cargar las órdenes disponibles para pago: ' + error.message);
+        this.cargarOrdenActualComoFallback();
+        this.cargando = false;
+        this.cdRef.detectChanges();
+      }
+    });
+  }
+
+  // ✅ NUEVO: Método de fallback que carga la orden actual si no hay órdenes disponibles
+  private cargarOrdenActualComoFallback(): void {
+    console.log('🔄 Intentando cargar orden actual como fallback...');
+    
+    const ordenActual = this.ordenVentaService.obtenerOrdenActual();
+    
+    if (ordenActual && ordenActual.estado === EstadoOrden.DISPONIBLEPARAPAGO) {
+      console.log('✅ Orden actual disponible para pago encontrada:', ordenActual);
+      
+      const ordenConDetalles: OrdenConDetallesDto = {
+        ...ordenActual,
+        productos: []
+      };
+      
+      this.ordenes = [ordenConDetalles];
+      this.actualizarEstadisticas();
+      this.seleccionarOrden(ordenConDetalles);
+      
+      this.mostrarInfo('Se cargó la orden actual disponible para pago.');
+    } else {
+      console.log('ℹ️ No hay orden actual disponible para pago');
+      this.ordenes = [];
+      this.mostrarInfo('No hay órdenes disponibles para pago. Estado requerido: ' + EstadoOrden.DISPONIBLEPARAPAGO);
+    }
+  }
+
+  // ✅ NUEVO: Método para recargar las órdenes
+  recargarOrdenes(): void {
+    console.log('🔄 Recargando órdenes disponibles para pago...');
+    this.cargarOrdenesDisponiblesParaPago();
+  }
+
+  // Métodos principales de interacción
   onSeccionCambiada(seccion: string): void {
     this.seccionActiva = seccion;
   }
@@ -327,10 +272,429 @@ export class CajaComponent implements OnInit, OnDestroy {
     this.cdRef.detectChanges();
   }
 
+  selectPaymentMethod(method: string): void {
+    this.selectedPaymentMethod = method;
+    
+    const metodoInfo = this.metodosPago.find(m => m.nombre === method);
+    this.showCardForm = metodoInfo?.requiereFormulario || false;
+    
+    this.cashAmount = 0;
+    this.changeAmount = 0;
+    this.resetCardForm();
+    
+    this.cdRef.detectChanges();
+  }
+
+  cancelOrder(): void {
+    if (confirm('¿Está seguro de que desea cancelar esta orden?')) {
+      this.ordenSeleccionada = null;
+      this.selectedPaymentMethod = 'No seleccionado';
+      this.showCardForm = false;
+      this.resetCardForm();
+      this.cashAmount = 0;
+      this.changeAmount = 0;
+      this.stopPaymentStatusChecking();
+      this.stopWindowStatusChecking();
+      this.paymentStateService.resetPayment();
+      this.cdRef.detectChanges();
+    }
+  }
+
+  async processPayment(): Promise<void> {
+    if (!this.puedeProcesarPago()) {
+      this.mostrarError('No se puede procesar el pago. Verifique los datos.');
+      return;
+    }
+
+    // ✅ CORREGIDO: Validación adicional de la orden real
+    if (!this.ordenSeleccionada) {
+      this.mostrarError('No hay orden seleccionada para procesar pago.');
+      return;
+    }
+
+    // Validar que la orden esté disponible para pago
+    if (this.ordenSeleccionada.estado !== EstadoOrden.DISPONIBLEPARAPAGO) {
+      this.mostrarError(`La orden #${this.ordenSeleccionada.numeroOrden} no está disponible para pago. Estado actual: ${this.ordenSeleccionada.estado}`);
+      return;
+    }
+
+    const metodoInfo = this.metodosPago.find(m => m.nombre === this.selectedPaymentMethod);
+    
+    if (metodoInfo?.tipoMetodo === TipoMetodo.STRIPE) {
+      await this.processStripePayment();
+    } else {
+      this.processTraditionalPayment();
+    }
+  }
+
+  // Métodos de validación
+  puedeProcesarPago(): boolean {
+    if (!this.ordenSeleccionada) return false;
+    if (this.selectedPaymentMethod === 'No seleccionado') return false;
+    
+    // Validar estado de la orden
+    if (this.ordenSeleccionada.estado !== EstadoOrden.DISPONIBLEPARAPAGO) {
+      return false;
+    }
+    
+    if (this.selectedPaymentMethod === 'Efectivo') {
+      return this.cashAmount >= this.ordenSeleccionada.total;
+    }
+    
+    if (this.showCardForm) {
+      return this.cardFormValid;
+    }
+    
+    return true;
+  }
+
+  validateCardForm(): void {
+    this.cardFormValid = !!(
+      this.cardDetails.cardNumber && 
+      this.cardDetails.cardName && 
+      this.cardDetails.expiryDate && 
+      this.cardDetails.cvv
+    );
+  }
+
+  calculateChange(): void {
+    if (this.ordenSeleccionada && this.cashAmount > 0) {
+      this.changeAmount = this.cashAmount - this.ordenSeleccionada.total;
+    } else {
+      this.changeAmount = 0;
+    }
+  }
+
+  esMetodoStripe(): boolean {
+    const metodoInfo = this.metodosPago.find(m => m.nombre === this.selectedPaymentMethod);
+    return metodoInfo?.tipoMetodo === TipoMetodo.STRIPE;
+  }
+
+  // Métodos de procesamiento de pagos
+  private async processStripePayment(): Promise<void> {
+    if (!this.ordenSeleccionada) return;
+
+    this.cargando = true;
+    this.mostrarExito('Procesando pago con Stripe...');
+
+    try {
+      this.paymentStateService.resetPayment();
+      
+      console.log('🚀 Iniciando pago Stripe para orden real:', {
+        ordenId: this.ordenSeleccionada.id,
+        numeroOrden: this.ordenSeleccionada.numeroOrden,
+        total: this.ordenSeleccionada.total,
+        cliente: this.ordenSeleccionada.cliente.nombre
+      });
+
+      const result = await this.stripePaymentService.redirectToStripeCheckout(
+        this.ordenSeleccionada.total,
+        this.ordenSeleccionada.id, // ✅ Pasar el ID real de la orden
+        this.ordenSeleccionada.numeroOrden,
+        this.ordenSeleccionada.cliente.correo,
+        this.ordenSeleccionada.cliente.nombre
+      );
+
+      if (!result.success) {
+        this.mostrarError(result.error || 'Error al iniciar el pago con Stripe');
+        this.cargando = false;
+        return;
+      }
+
+      if (!result.paymentIntentId || !result.clientSecret) {
+        this.mostrarError('Error técnico: No se pudo inicializar el pago');
+        this.cargando = false;
+        return;
+      }
+
+      this.paymentStateService.startPayment(
+        result.paymentIntentId,
+        this.ordenSeleccionada.id,
+        result.clientSecret
+      );
+
+      // ✅ CORREGIDO: Pasar el orderId a la ventana de Stripe
+      this.stripeWindow = this.stripePaymentService.openStripeInNewWindow(
+        result.clientSecret,
+        result.paymentIntentId,
+        this.ordenSeleccionada.id // ✅ Pasar el ID de la orden
+      );
+
+      console.log('🔍 DEBUG Ventana de Stripe abierta:', {
+        windowOpened: !!this.stripeWindow,
+        orderId: this.ordenSeleccionada.id,
+        paymentIntentId: result.paymentIntentId
+      });
+      
+      if (this.stripeWindow) {
+        // ✅ AGREGADO: Iniciar verificación de estado de ventana
+        this.startWindowStatusCheck(this.stripeWindow, result.paymentIntentId);
+        
+        setTimeout(() => {
+          this.startPaymentStatusChecking();
+        }, 3000);
+      } else {
+        this.mostrarError('No se pudo abrir la ventana de pago. Verifique los bloqueadores de ventanas emergentes.');
+        this.cargando = false;
+        this.paymentStateService.resetPayment();
+      }
+
+    } catch (error: any) {
+      this.mostrarError('Error al procesar pago con Stripe: ' + error.message);
+      this.cargando = false;
+      this.paymentStateService.resetPayment();
+    }
+  }
+
+  private processTraditionalPayment(): void {
+    this.cargando = true;
+    
+    // ✅ CORREGIDO: Validación de la orden seleccionada
+    if (!this.ordenSeleccionada) {
+      this.mostrarError('No hay orden seleccionada para procesar pago');
+      this.cargando = false;
+      return;
+    }
+
+    const idOrdenAPagar = this.ordenSeleccionada.id;
+    
+    console.log('🔍 DEBUG Procesando pago tradicional para orden:', {
+      id: idOrdenAPagar,
+      numeroOrden: this.ordenSeleccionada.numeroOrden,
+      metodo: this.selectedPaymentMethod
+    });
+
+    setTimeout(() => {
+      // ✅ CORREGIDO: Actualizar el estado de la orden real en el backend
+      this.ordenVentaService.marcarComoPagada(idOrdenAPagar).subscribe({
+        next: (ordenActualizada) => {
+          console.log('✅ Orden marcada como pagada en backend:', ordenActualizada);
+          this.ordenSeleccionada!.estado = EstadoOrden.PAGADA;
+          this.mostrarExito(`Pago en ${this.selectedPaymentMethod} procesado exitosamente. Orden #${this.ordenSeleccionada!.numeroOrden} ha sido pagada.`);
+          this.actualizarEstadisticas();
+          this.removerOrdenDeLista(idOrdenAPagar);
+        },
+        error: (error) => {
+          console.error('❌ Error al marcar orden como pagada:', error);
+          this.mostrarError('Error al actualizar el estado de la orden: ' + error.message);
+        },
+        complete: () => {
+          this.cargando = false;
+          this.resetAfterPayment();
+          this.cdRef.detectChanges();
+        }
+      });
+    }, 2000);
+  }
+
+  // ✅ NUEVO: Método para remover orden de la lista después del pago
+  private removerOrdenDeLista(ordenId: number): void {
+    this.ordenes = this.ordenes.filter(orden => orden.id !== ordenId);
+    if (this.ordenSeleccionada?.id === ordenId) {
+      this.ordenSeleccionada = null;
+    }
+    this.actualizarEstadisticas();
+    this.cdRef.detectChanges();
+  }
+
+  // ✅ AGREGADO: Verificar estado de la ventana
+  private startWindowStatusCheck(stripeWindow: Window, paymentIntentId: string): void {
+    let checkCount = 0;
+    const maxChecks = 60; // 30 segundos máximo
+    
+    this.windowCheckInterval = setInterval(() => {
+      checkCount++;
+      
+      const windowStatus = this.stripePaymentService.checkWindowStatus(stripeWindow);
+      
+      console.log('🪟 Estado de ventana de Stripe:', {
+        checkCount,
+        isOpen: windowStatus.isOpen,
+        isAccessible: windowStatus.isAccessible
+      });
+      
+      // Si la ventana está cerrada y no hemos recibido notificación
+      if (!windowStatus.isOpen && this.paymentStateService.isPaymentInProgress()) {
+        console.log('🚪 Ventana de Stripe cerrada sin notificación - abortando pago');
+        this.handleAbortedStripePayment(paymentIntentId, 'window_closed_abruptly');
+        this.stopWindowStatusChecking();
+        return;
+      }
+      
+      // Si la ventana sigue abierta pero ya pasó el tiempo máximo
+      if (checkCount >= maxChecks) {
+        console.log('⏰ Tiempo máximo de verificación de ventana alcanzado');
+        this.stopWindowStatusChecking();
+        
+        // Si el pago sigue en progreso, asumir que fue abortado
+        if (this.paymentStateService.isPaymentInProgress()) {
+          this.handleAbortedStripePayment(paymentIntentId, 'timeout');
+        }
+        return;
+      }
+      
+      // Si el pago ya fue completado o falló, detener la verificación
+      if (!this.paymentStateService.isPaymentInProgress()) {
+        console.log('✅ Pago completado - deteniendo verificación de ventana');
+        this.stopWindowStatusChecking();
+      }
+      
+    }, 500); // Verificar cada 500ms
+  }
+
+  // ✅ AGREGADO: Detener verificación de ventana
+  private stopWindowStatusChecking(): void {
+    if (this.windowCheckInterval) {
+      clearInterval(this.windowCheckInterval);
+      this.windowCheckInterval = null;
+    }
+    this.stripeWindow = null;
+  }
+
+  // Métodos auxiliares
+  private startPaymentStatusChecking(): void {
+    if (this.paymentStateService.isPaymentInProgress()) {
+      return;
+    }
+
+    const currentPaymentIntentId = this.paymentStateService.getCurrentPaymentIntentId();
+    
+    if (!currentPaymentIntentId) {
+      this.stopPaymentStatusChecking();
+      this.mostrarError('Error: No se pudo iniciar la verificación del pago');
+      return;
+    }
+
+    let checkCount = 0;
+    const maxChecks = 20;
+    
+    this.paymentStatusInterval = setInterval(async () => {
+      const paymentIntentId = this.paymentStateService.getCurrentPaymentIntentId();
+      
+      if (!paymentIntentId) {
+        this.stopPaymentStatusChecking();
+        this.mostrarError('Error: Se perdió la referencia del pago');
+        return;
+      }
+
+      checkCount++;
+      
+      if (checkCount > maxChecks) {
+        this.stopPaymentStatusChecking();
+        this.mostrarError('Tiempo de espera agotado. Verifique el estado del pago manualmente.');
+        return;
+      }
+
+      try {
+        const result = await this.stripePaymentService.checkPaymentStatus(paymentIntentId);
+        
+        if (result.success) {
+          this.handleSuccessfulStripePayment(paymentIntentId, this.ordenSeleccionada?.id || 0);
+          this.stopPaymentStatusChecking();
+        } else if (result.status === PaymentStatus.CANCELED || 
+                  result.status === PaymentStatus.FAILED || 
+                  result.error) {
+          this.handleFailedStripePayment(result.error || 'El pago fue cancelado');
+          this.stopPaymentStatusChecking();
+        }
+      } catch (error) {
+        if (checkCount >= maxChecks) {
+          this.stopPaymentStatusChecking();
+          this.mostrarError('Error al verificar el estado del pago. Contacte soporte.');
+        }
+      }
+    }, 3000);
+  }
+
+  private stopPaymentStatusChecking(): void {
+    if (this.paymentStatusInterval) {
+      clearInterval(this.paymentStatusInterval);
+      this.paymentStatusInterval = null;
+    }
+  }
+
+  private handleSuccessfulStripePayment(paymentIntentId: string, orderId: number): void {
+    this.paymentStateService.markPaymentSuccess();
+    
+    // ✅ SOLUCIÓN: Usar siempre la orden seleccionada actual
+    if (!this.ordenSeleccionada) {
+      console.error('❌ No hay orden seleccionada para marcar como pagada');
+      this.mostrarError('Error: No se encontró la orden a marcar como pagada');
+      this.cargando = false;
+      this.resetAfterPayment();
+      this.cdRef.detectChanges();
+      return;
+    }
+
+    const idOrdenAPagar = this.ordenSeleccionada.id;
+    
+    console.log('🔍 DEBUG Marcando orden como pagada:', {
+      paymentIntentId,
+      orderIdFromEvent: orderId,
+      ordenSeleccionadaId: idOrdenAPagar,
+      numeroOrden: this.ordenSeleccionada.numeroOrden
+    });
+
+    if (!idOrdenAPagar || idOrdenAPagar <= 0) {
+      console.error('❌ ID de orden inválido:', idOrdenAPagar);
+      this.mostrarError('Error: ID de orden inválido');
+      this.cargando = false;
+      this.resetAfterPayment();
+      this.cdRef.detectChanges();
+      return;
+    }
+
+    // ✅ CORREGIDO: Actualizar el estado de la orden real en el backend
+    this.ordenVentaService.marcarComoPagada(idOrdenAPagar).subscribe({
+      next: (ordenActualizada) => {
+        console.log('✅ Orden marcada como pagada exitosamente:', ordenActualizada);
+        
+        // Actualizar la orden en la lista local
+        if (this.ordenSeleccionada) {
+          this.ordenSeleccionada.estado = EstadoOrden.PAGADA;
+          // Reassign a new object with a definite id to satisfy typing and trigger change detection
+          this.ordenSeleccionada = { ...this.ordenSeleccionada, id: this.ordenSeleccionada.id! };
+        }
+        
+        this.mostrarExito(`¡Pago con Stripe procesado exitosamente! Orden #${ordenActualizada.numeroOrden} ha sido pagada.`);
+        this.actualizarEstadisticas();
+        this.removerOrdenDeLista(idOrdenAPagar);
+      },
+      error: (error) => {
+        console.error('❌ Error al marcar orden como pagada:', error);
+        
+        // Mostrar más detalles del error
+        let mensajeError = 'Error al actualizar el estado de la orden: ';
+        if (error.error?.mensaje) {
+          mensajeError += error.error.mensaje;
+        } else {
+          mensajeError += error.message;
+        }
+        
+        // Mostrar la URL que falló para debug
+        console.error('URL que falló:', error.url);
+        
+        this.mostrarError(mensajeError);
+      },
+      complete: () => {
+        this.cargando = false;
+        this.resetAfterPayment();
+        this.cdRef.detectChanges();
+      }
+    });
+  }
+
+  private handleFailedStripePayment(error: string): void {
+    this.paymentStateService.markPaymentFailed();
+    this.mostrarError(`Pago con Stripe fallido: ${error}`);
+    this.cargando = false;
+    this.resetAfterPayment();
+    this.cdRef.detectChanges();
+  }
+
+  // Métodos de utilidad
   private updateOrderDetails(): void {
     if (this.ordenSeleccionada) {
-      const totalConIva = this.ordenSeleccionada.total;
-
       this.currentOrderDetails = {
         seller: this.ordenSeleccionada.vendedor.nombre,
         client: this.ordenSeleccionada.cliente.nombre,
@@ -338,9 +702,74 @@ export class CajaComponent implements OnInit, OnDestroy {
         status: this.obtenerEstadoTexto(this.ordenSeleccionada.estado),
         taxes: this.formatCurrency(this.ordenSeleccionada.impuestos),
         total: this.formatCurrency(this.ordenSeleccionada.subtotal),
-        toPay: this.formatCurrency(totalConIva)
+        toPay: this.formatCurrency(this.ordenSeleccionada.total)
+      };
+    } else {
+      this.currentOrderDetails = {
+        seller: 'No disponible',
+        client: 'No disponible',
+        date: new Date().toLocaleDateString('es-ES'),
+        status: 'NO SELECCIONADA',
+        taxes: '$0',
+        total: '$0',
+        toPay: '$0'
       };
     }
+  }
+
+  private actualizarEstadisticas(): void {
+    this.totalOrdenes = this.ordenes.length;
+    this.ordenesPendientes = this.ordenes.filter(o => 
+      o.estado === EstadoOrden.PENDIENTE || o.estado === EstadoOrden.DISPONIBLEPARAPAGO
+    ).length;
+    this.ordenesPagadas = this.ordenes.filter(o => o.estado === EstadoOrden.PAGADA).length;
+  }
+
+  private resetCardForm(): void {
+    this.cardDetails = {
+      cardNumber: '',
+      cardName: '',
+      expiryDate: '',
+      cvv: '',
+      saveCard: false
+    };
+    this.cardFormValid = false;
+  }
+
+  private resetAfterPayment(): void {
+    this.selectedPaymentMethod = 'No seleccionado';
+    this.showCardForm = false;
+    this.resetCardForm();
+    this.cashAmount = 0;
+    this.changeAmount = 0;
+    
+    setTimeout(() => {
+      this.paymentStateService.resetPayment();
+    }, 2000);
+    
+    this.updateOrderDetails();
+  }
+
+  private mostrarExito(mensaje: string): void {
+    this.successMessage = mensaje;
+    this.errorMessage = '';
+    setTimeout(() => this.successMessage = '', 5000);
+    this.cdRef.detectChanges();
+  }
+
+  private mostrarError(mensaje: string): void {
+    this.errorMessage = mensaje;
+    this.successMessage = '';
+    setTimeout(() => this.errorMessage = '', 5000);
+    this.cdRef.detectChanges();
+  }
+
+  // ✅ NUEVO: Método para mostrar mensajes informativos
+  private mostrarInfo(mensaje: string): void {
+    this.successMessage = mensaje;
+    this.errorMessage = '';
+    setTimeout(() => this.successMessage = '', 5000);
+    this.cdRef.detectChanges();
   }
 
   private formatearFecha(fecha: string): string {
@@ -371,362 +800,14 @@ export class CajaComponent implements OnInit, OnDestroy {
     }).format(value);
   }
 
-  selectItem(selectedItem: MenuItem): void {
-    this.menuItems.forEach(item => item.active = false);
-    selectedItem.active = true;
-    
-    if (selectedItem.action) {
-      this.seccionActiva = selectedItem.action;
-    }
-  }
-
-  selectPaymentMethod(method: string): void {
-    this.selectedPaymentMethod = method;
-    
-    const metodoInfo = this.metodosPago.find(m => m.nombre === method);
-    this.showCardForm = metodoInfo?.requiereFormulario || false;
-    
-    this.cashAmount = 0;
-    this.changeAmount = 0;
-    this.resetCardForm();
-    
-    this.cdRef.detectChanges();
-  }
-
-  private resetCardForm(): void {
-    this.cardDetails = {
-      cardNumber: '',
-      cardName: '',
-      expiryDate: '',
-      cvv: '',
-      saveCard: false
-    };
-    this.cardFormValid = false;
-  }
-
-  cancelOrder(): void {
-    if (confirm('¿Está seguro de que desea cancelar esta orden?')) {
-      this.ordenSeleccionada = null;
-      this.selectedPaymentMethod = 'No seleccionado';
-      this.showCardForm = false;
-      this.resetCardForm();
-      this.cashAmount = 0;
-      this.changeAmount = 0;
-      this.stopPaymentStatusChecking();
-      this.paymentStateService.resetPayment(); // ✅ NUEVO
-      this.cdRef.detectChanges();
-    }
-  }
-
-  async processPayment(): Promise<void> {
-    if (!this.puedeProcesarPago()) {
-      this.mostrarError('No se puede procesar el pago. Verifique los datos.');
-      return;
-    }
-
-    const metodoInfo = this.metodosPago.find(m => m.nombre === this.selectedPaymentMethod);
-    
-    if (metodoInfo?.tipoMetodo === TipoMetodo.STRIPE) {
-      await this.processStripePayment();
-    } else {
-      this.processTraditionalPayment();
-    }
-  }
-
-  private async processStripePayment(): Promise<void> {
-    if (!this.ordenSeleccionada) return;
-
-    this.cargando = true;
-    this.mostrarExito('Procesando pago con Stripe...');
-    console.log('💳 Iniciando pago con Stripe para orden:', this.ordenSeleccionada.numeroOrden);
-
-    try {
-      // ✅ CORREGIDO: Resetear estado anterior usando el servicio
-      this.paymentStateService.resetPayment();
-      
-      const result = await this.stripePaymentService.redirectToStripeCheckout(
-        this.ordenSeleccionada.total,
-        this.ordenSeleccionada.id,
-        this.ordenSeleccionada.numeroOrden,
-        this.ordenSeleccionada.cliente.correo,
-        this.ordenSeleccionada.cliente.nombre
-      );
-
-      console.log('📋 Resultado de redirectToStripeCheckout:', {
-        success: result.success,
-        paymentIntentId: result.paymentIntentId,
-        clientSecret: result.clientSecret ? '***' : 'No disponible',
-        error: result.error
-      });
-
-      if (!result.success) {
-        console.error('❌ Error al crear payment intent:', result.error);
-        this.mostrarError(result.error || 'Error al iniciar el pago con Stripe');
-        this.cargando = false;
-        return;
-      }
-
-      // ✅ CORREGIDO: Verificación más robusta
-      if (!result.paymentIntentId || result.paymentIntentId.trim() === '') {
-        console.error('❌ No se recibió paymentIntentId válido del servicio');
-        this.mostrarError('Error: No se pudo generar el ID de pago');
-        this.cargando = false;
-        return;
-      }
-
-      if (!result.clientSecret) {
-        console.error('❌ No se recibió clientSecret del servicio');
-        this.mostrarError('Error técnico: No se pudo inicializar el pago');
-        this.cargando = false;
-        return;
-      }
-
-      // ✅ CORREGIDO: Guardar en el servicio de estado
-      this.paymentStateService.startPayment(
-        result.paymentIntentId,
-        this.ordenSeleccionada.id,
-        result.clientSecret
-      );
-
-      console.log('✅ Payment Intent guardado en servicio:', result.paymentIntentId);
-
-      console.log('🪟 Abriendo ventana de Stripe con clientSecret');
-      
-      const windowOpened = this.stripePaymentService.openStripeInNewWindow(
-        result.clientSecret,
-        result.paymentIntentId
-      );
-      
-      if (windowOpened) {
-        // ✅ CORREGIDO: Iniciar verificación después de un breve delay
-        setTimeout(() => {
-          this.startPaymentStatusChecking();
-        }, 3000);
-      } else {
-        console.error('❌ No se pudo abrir la ventana de Stripe');
-        this.mostrarError('No se pudo abrir la ventana de pago. Verifique los bloqueadores de ventanas emergentes.');
-        this.cargando = false;
-        this.paymentStateService.resetPayment();
-      }
-
-    } catch (error: any) {
-      console.error('❌ Error en processStripePayment:', error);
-      this.mostrarError('Error al procesar pago con Stripe: ' + error.message);
-      this.cargando = false;
-      this.paymentStateService.resetPayment();
-    }
-  }
-
-  private startPaymentStatusChecking(): void {
-    // ✅ CORREGIDO: Verificar usando el servicio
-    if (this.paymentStateService.isPaymentInProgress()) {
-      console.log('⏸️ Ya hay una verificación en curso, omitiendo...');
-      return;
-    }
-
-    const currentPaymentIntentId = this.paymentStateService.getCurrentPaymentIntentId();
-    
-    if (!currentPaymentIntentId || currentPaymentIntentId.trim() === '') {
-      console.error('❌ No hay paymentIntentId válido para verificar. Deteniendo verificación.');
-      this.stopPaymentStatusChecking();
-      this.mostrarError('Error: No se pudo iniciar la verificación del pago');
-      return;
-    }
-
-    console.log('🔄 Iniciando verificación de estado para:', currentPaymentIntentId);
-    
-    let checkCount = 0;
-    const maxChecks = 20;
-    
-    this.paymentStatusInterval = setInterval(async () => {
-      // ✅ CORREGIDO: Obtener del servicio en cada iteración
-      const paymentIntentId = this.paymentStateService.getCurrentPaymentIntentId();
-      
-      if (!paymentIntentId) {
-        console.error('❌ paymentIntentId no disponible en el servicio');
-        this.stopPaymentStatusChecking();
-        this.mostrarError('Error: Se perdió la referencia del pago');
-        return;
-      }
-
-      checkCount++;
-      
-      if (checkCount > maxChecks) {
-        console.warn('⏰ Límite de verificaciones alcanzado. Deteniendo...');
-        this.stopPaymentStatusChecking();
-        this.mostrarError('Tiempo de espera agotado. Verifique el estado del pago manualmente.');
-        return;
-      }
-
-      try {
-        console.log(`📡 Verificando estado del pago (intento ${checkCount}/${maxChecks})...`);
-        
-        const result = await this.stripePaymentService.checkPaymentStatus(paymentIntentId);
-        
-        console.log('📊 Resultado del estado:', {
-          success: result.success,
-          status: result.status,
-          paymentIntentId: result.paymentIntentId,
-          error: result.error
-        });
-        
-        if (result.success) {
-          console.log('✅ Pago exitoso detectado');
-          this.handleSuccessfulStripePayment(paymentIntentId);
-          this.stopPaymentStatusChecking();
-        } else if (result.status === PaymentStatus.CANCELED || 
-                  result.status === PaymentStatus.FAILED || 
-                  result.error) {
-          console.error('❌ Pago fallido o cancelado:', result.error);
-          this.handleFailedStripePayment(result.error || 'El pago fue cancelado');
-          this.stopPaymentStatusChecking();
-        } else {
-          console.log('⏳ Pago aún en proceso, estado:', result.status || 'desconocido');
-        }
-      } catch (error) {
-        console.error('❌ Error al verificar estado:', error);
-        
-        if (checkCount >= maxChecks) {
-          this.stopPaymentStatusChecking();
-          this.mostrarError('Error al verificar el estado del pago. Contacte soporte.');
-        }
-      }
-    }, 3000);
-  }
-
-  private stopPaymentStatusChecking(): void {
-    if (this.paymentStatusInterval) {
-      console.log('🛑 Deteniendo verificación de estado');
-      clearInterval(this.paymentStatusInterval);
-      this.paymentStatusInterval = null;
-    }
-  }
-
-  private handleSuccessfulStripePayment(paymentIntentId: string): void {
-    console.log('🎉 Pago exitoso procesado:', paymentIntentId);
-    
-    // ✅ CORREGIDO: Marcar como exitoso en el servicio PRIMERO
-    this.paymentStateService.markPaymentSuccess();
-    
-    if (this.ordenSeleccionada) {
-      this.ordenSeleccionada.estado = EstadoOrden.PAGADA;
-      this.mostrarExito(`¡Pago con Stripe procesado exitosamente! Orden #${this.ordenSeleccionada.numeroOrden} ha sido pagada.`);
-      this.actualizarEstadisticas();
-    }
-    
-    this.cargando = false;
-    this.resetAfterPayment();
-    this.cdRef.detectChanges();
-  }
-
-  private handleFailedStripePayment(error: string): void {
-    console.error('💥 Pago fallido:', error);
-    
-    // ✅ CORREGIDO: Marcar como fallido en el servicio
-    this.paymentStateService.markPaymentFailed();
-    
-    this.mostrarError(`Pago con Stripe fallido: ${error}`);
-    this.cargando = false;
-    this.resetAfterPayment();
-    this.cdRef.detectChanges();
-  }
-
-  private processTraditionalPayment(): void {
-    this.cargando = true;
-    
-    setTimeout(() => {
-      if (this.ordenSeleccionada) {
-        this.ordenSeleccionada.estado = EstadoOrden.PAGADA;
-        this.mostrarExito(`Pago en ${this.selectedPaymentMethod} procesado exitosamente. Orden #${this.ordenSeleccionada.numeroOrden} ha sido pagada.`);
-        this.actualizarEstadisticas();
-      }
-      
-      this.cargando = false;
-      this.resetAfterPayment();
-      this.cdRef.detectChanges();
-    }, 2000);
-  }
-
-  private actualizarEstadisticas(): void {
-    this.ordenesPendientes = this.ordenes.filter(o => 
-      o.estado === EstadoOrden.PENDIENTE || o.estado === EstadoOrden.DISPONIBLEPARAPAGO
-    ).length;
-    this.ordenesPagadas = this.ordenes.filter(o => o.estado === EstadoOrden.PAGADA).length;
-  }
-
-  puedeProcesarPago(): boolean {
-    if (!this.ordenSeleccionada) return false;
-    if (this.selectedPaymentMethod === 'No seleccionado') return false;
-    
-    const metodoInfo = this.metodosPago.find(m => m.nombre === this.selectedPaymentMethod);
-    
-    if (this.selectedPaymentMethod === 'Efectivo') {
-      return this.cashAmount >= this.ordenSeleccionada.total;
-    }
-    
-    if (this.showCardForm) {
-      return this.cardFormValid;
-    }
-    
-    return true;
-  }
-
-  validateCardForm(): void {
-    this.cardFormValid = !!(
-      this.cardDetails.cardNumber && 
-      this.cardDetails.cardName && 
-      this.cardDetails.expiryDate && 
-      this.cardDetails.cvv
-    );
-  }
-
-  calculateChange(): void {
-    if (this.ordenSeleccionada && this.cashAmount > 0) {
-      this.changeAmount = this.cashAmount - this.ordenSeleccionada.total;
-    } else {
-      this.changeAmount = 0;
-    }
-  }
-
-  private resetAfterPayment(): void {
-    this.selectedPaymentMethod = 'No seleccionado';
-    this.showCardForm = false;
-    this.resetCardForm();
-    this.cashAmount = 0;
-    this.changeAmount = 0;
-    
-    // ✅ CORREGIDO: Resetear el servicio después de un delay seguro
-    setTimeout(() => {
-      this.paymentStateService.resetPayment();
-      console.log('🧹 Estado de pago reseteado completamente');
-    }, 2000);
-    
-    this.updateOrderDetails();
-  }
-
-  private mostrarExito(mensaje: string): void {
-    this.successMessage = mensaje;
-    this.errorMessage = '';
-    setTimeout(() => this.successMessage = '', 5000);
-  }
-
-  private mostrarError(mensaje: string): void {
-    this.errorMessage = mensaje;
-    this.successMessage = '';
-    setTimeout(() => this.errorMessage = '', 5000);
-  }
-
-  esMetodoStripe(): boolean {
-    const metodoInfo = this.metodosPago.find(m => m.nombre === this.selectedPaymentMethod);
-    return metodoInfo?.tipoMetodo === TipoMetodo.STRIPE;
-  }
-
-  getTotalConIva(): number {
-    return this.ordenSeleccionada?.total || 0;
-  }
-
-  // ✅ NUEVO: Método para debug del estado
-  debugPaymentState(): void {
-    this.paymentStateService.debugState();
+  // ✅ NUEVO: Método para debug
+  debugOrdenes(): void {
+    console.group('🔍 DEBUG - Órdenes Disponibles para Pago');
+    console.log('Órdenes cargadas:', this.ordenes);
+    console.log('Orden seleccionada:', this.ordenSeleccionada);
+    console.log('Total de órdenes:', this.totalOrdenes);
+    console.log('Órdenes pendientes:', this.ordenesPendientes);
+    console.log('Órdenes pagadas:', this.ordenesPagadas);
+    console.groupEnd();
   }
 }

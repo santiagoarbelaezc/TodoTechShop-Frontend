@@ -1,13 +1,13 @@
-import { Component, OnInit, OnDestroy, inject, AfterViewInit, HostListener } from '@angular/core'; // ✅ AÑADIR HostListener
+import { Component, OnInit, OnDestroy, inject, AfterViewInit, HostListener } from '@angular/core';
 import { CommonModule, ViewportScroller } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { NavbarInicioComponent } from '../navbar-inicio/navbar-inicio.component';
-import { CarritoComponent } from '../carrito/carrito.component'; // ✅ IMPORTAR CARRITO COMPONENT
+import { CarritoComponent } from '../carrito/carrito.component';
 
 import { ProductoService } from '../../../services/producto.service';
-import { CarritoService } from '../../../services/carrito.service';
+import { CarritoService, ResultadoOperacion } from '../../../services/carrito.service';
 import { ProductoDto } from '../../../models/producto/producto.dto';
 
 // Interfaz extendida para incluir la propiedad imagen
@@ -18,7 +18,7 @@ interface ProductoConImagen extends ProductoDto {
 @Component({
   selector: 'app-descripcionproducto',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarInicioComponent, CarritoComponent], // ✅ AÑADIR CarritoComponent
+  imports: [CommonModule, FormsModule, NavbarInicioComponent, CarritoComponent],
   templateUrl: './descripcionproducto.component.html',
   styleUrls: ['./descripcionproducto.component.css']
 })
@@ -38,6 +38,9 @@ export class DescripcionproductoComponent implements OnInit, OnDestroy, AfterVie
   // ✅ PROPIEDADES PARA EL CARRITO
   mostrarCarrito = false;
   carritoVisible = false;
+
+  // 🔥 NUEVO: Estados para manejo de carga al agregar productos
+  agregandoProducto: boolean = false;
 
   private subscriptions: Subscription = new Subscription();
 
@@ -226,28 +229,96 @@ export class DescripcionproductoComponent implements OnInit, OnDestroy, AfterVie
     }
   }
 
-  // ✅ MÉTODO AGREGAR AL CARRITO ACTUALIZADO
-  addToCart(): void {
+  // 🔥 CORREGIDO: Agregar producto al carrito con manejo asíncrono y validación (MISMA LÓGICA QUE INICIO COMPONENT)
+  async addToCart(): Promise<void> {
     if (!this.producto) return;
 
+    console.log('🛒 === AGREGANDO PRODUCTO AL CARRITO DESDE DESCRIPCIÓN PRODUCTO ===');
+    console.log('📦 Producto:', this.producto.nombre, 'Stock actual:', this.producto.stock, 'Cantidad:', this.quantity);
+
+    // Validación básica inicial
     if (this.producto.stock <= 0) {
-      alert('Producto sin stock disponible.');
+      this.mostrarError('Producto sin stock disponible.');
       return;
     }
 
-    // ✅ AGREGAR LA CANTIDAD SELECCIONADA AL CARRITO
-    for (let i = 0; i < this.quantity; i++) {
-      this.carritoService.agregarProducto(this.producto);
+    if (this.quantity > this.producto.stock) {
+      this.mostrarError(`No hay suficiente stock. Stock disponible: ${this.producto.stock}`);
+      return;
     }
 
-    // ✅ ACTUALIZAR STOCK (si es necesario)
-    // Nota: En una aplicación real, esto debería manejarse en el backend
-    this.producto.stock -= this.quantity;
+    // 🔥 NUEVO: Estado de carga para evitar múltiples clics
+    this.agregandoProducto = true;
 
-    alert(`${this.quantity} ${this.producto.nombre} agregado(s) al carrito`);
+    try {
+      let todosExitosos = true;
+      let mensajeError = '';
 
-    // ✅ RESETEAR CANTIDAD A 1 DESPUÉS DE AGREGAR
-    this.quantity = 1;
+      // 🔥 CORREGIDO: Agregar cada unidad individualmente con validación
+      for (let i = 0; i < this.quantity; i++) {
+        const resultado: ResultadoOperacion = await this.carritoService.agregarProducto(this.producto);
+
+        if (!resultado.exito) {
+          todosExitosos = false;
+          mensajeError = resultado.mensaje || 'Error al agregar uno o más productos al carrito';
+          console.error(`❌ Error agregando unidad ${i + 1}:`, mensajeError);
+          break; // Detener si hay un error
+        }
+      }
+
+      if (todosExitosos) {
+        console.log(`✅ ${this.quantity} producto(s) agregado(s) exitosamente al carrito`);
+        
+        // 🔥 CORREGIDO: Actualizar stock local solo si todas las operaciones fueron exitosas
+        this.producto.stock -= this.quantity;
+        
+        this.mostrarExito(`${this.quantity} ${this.producto.nombre} agregado(s) al carrito`);
+        
+        // ✅ RESETEAR CANTIDAD A 1 DESPUÉS DE AGREGAR
+        this.quantity = 1;
+      } else {
+        console.error('❌ Error al agregar productos:', mensajeError);
+        this.mostrarErrorStock(mensajeError);
+        
+        // 🔥 NUEVO: Recargar información actualizada del producto
+        await this.actualizarInfoProducto();
+      }
+
+    } catch (error: any) {
+      console.error('❌ Error inesperado al agregar producto:', error);
+      this.mostrarError('Error inesperado. Intente nuevamente.');
+      
+      // 🔥 NUEVO: Recargar información actualizada del producto en caso de error
+      await this.actualizarInfoProducto();
+    } finally {
+      // 🔥 NUEVO: Limpiar estado de carga
+      this.agregandoProducto = false;
+    }
+  }
+
+  // 🔥 NUEVO: Actualizar información del producto desde el backend
+  private async actualizarInfoProducto(): Promise<void> {
+    if (!this.producto) return;
+
+    try {
+      const productoActualizado = await this.productoService.obtenerProductoPorId(this.producto.id).toPromise();
+      if (productoActualizado) {
+        this.producto = this.convertirProductoConImagen(productoActualizado);
+        console.log('🔄 Información del producto actualizada desde backend');
+        
+        // Ajustar la cantidad si es necesario
+        if (this.quantity > this.producto.stock) {
+          this.quantity = Math.max(1, this.producto.stock);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error actualizando información del producto:', error);
+    }
+  }
+
+  // 🔥 NUEVO: Verificar si se está agregando un producto
+  estaAgregandoProducto(): boolean {
+    return this.agregandoProducto;
   }
 
   viewProduct(producto: ProductoConImagen): void {
@@ -274,5 +345,21 @@ export class DescripcionproductoComponent implements OnInit, OnDestroy, AfterVie
   // Método para recargar en caso de error
   reload(): void {
     this.loadProduct();
+  }
+
+  // 🔥 NUEVO: Métodos para mostrar mensajes al usuario (MISMA LÓGICA QUE INICIO COMPONENT)
+  private mostrarError(mensaje: string): void {
+    console.error('❌ Error:', mensaje);
+    alert(`❌ ${mensaje}`);
+  }
+
+  private mostrarErrorStock(mensaje: string): void {
+    console.error('🚨 Error de stock:', mensaje);
+    alert(`⚠️ ${mensaje}`);
+  }
+
+  private mostrarExito(mensaje: string): void {
+    console.log('✅ Éxito:', mensaje);
+    alert(`✅ ${mensaje}`);
   }
 }

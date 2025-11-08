@@ -6,9 +6,8 @@
   <title>Sistema de Caja - TodoTech</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="caja.component.css" />
+
   
-  <!-- ❌ ELIMINADO: Stripe.js ya se carga a través de @stripe/stripe-js -->
-  <!-- <script src="https://js.stripe.com/v3/"></script> -->
 </head>
 <body>
   <div class="overlay"></div>
@@ -153,46 +152,84 @@
           <div class="pago-col izquierda">
             <!-- Información de la Orden -->
             <div class="info-section">
-              <h4 class="section-title">
-                <i class="fas fa-info-circle"></i>
-                Información de la Orden
-              </h4>
-              <div class="info-grid">
-                <div class="info-item">
-                  <label>Cliente:</label>
-                  <span class="cliente-dato">{{ordenSeleccionada.cliente.nombre}}</span>
-                </div>
-                <div class="info-item">
-                  <label>Cédula/NIT:</label>
-                  <span class="cliente-dato">{{ordenSeleccionada.cliente.cedula}}</span>
-                </div>
-                <div class="info-item">
-                  <label>Vendedor:</label>
-                  <span class="cliente-dato">{{ordenSeleccionada.vendedor.nombre}}</span>
-                </div>
-                <div class="info-item">
-                  <label>Fecha:</label>
-                  <span class="cliente-dato">{{ordenSeleccionada.fecha | date:'dd/MM/yyyy'}}</span>
-                </div>
-              </div>
+    <h4 class="section-title">
+        <i class="fas fa-info-circle"></i>
+        Información de la Orden
+    </h4>
+    
+    <!-- Información de la orden -->
+    <div class="info-subsection">
+        <h5 class="subsection-title">
+            <i class="fas fa-receipt"></i>
+            Datos de la Orden
+        </h5>
+        <div class="info-grid">
+            <div class="info-item">
+                <label>Número de Orden:</label>
+                <span class="cliente-dato">{{ordenSeleccionada.numeroOrden}}</span>
             </div>
+            <div class="info-item">
+                <label>Fecha:</label>
+                <span class="cliente-dato">{{ordenSeleccionada.fecha | date:'dd/MM/yyyy'}}</span>
+            </div>
+            
+            <div class="info-item">
+                <label>Vendedor:</label>
+                <span class="cliente-dato">{{ordenSeleccionada.vendedor.nombre}}</span>
+            </div>
+        </div>
+    </div>
 
-            <!-- Productos de la Orden -->
-            <div class="productos-section">
-              <h4 class="section-title">
-                <i class="fas fa-boxes"></i>
-                Productos
-              </h4>
-              <div class="productos-list">
-                <div *ngFor="let producto of ordenSeleccionada.productos" class="producto-item">
-                  <div class="producto-info">
-                    <span class="producto-nombre">{{producto.producto.nombre}}</span>
-                    <span class="producto-precio">{{producto.precioUnitario | currency:'COP':'symbol':'1.0-0'}} x {{producto.cantidad}}</span>
-                  </div>
-                  <span class="producto-subtotal">{{producto.subtotal | currency:'COP':'symbol':'1.0-0'}}</span>
-                </div>
-              </div>
+    <!-- Información del cliente -->
+    <div class="info-subsection">
+        <h5 class="subsection-title">
+            <i class="fas fa-user"></i>
+            Datos del Cliente
+        </h5>
+        <div class="info-grid">
+            <div class="info-item">
+                <label>Nombre:</label>
+                <span class="cliente-dato">{{ordenSeleccionada.cliente.nombre}}</span>
             </div>
+            <div class="info-item">
+                <label>Cédula/NIT:</label>
+                <span class="cliente-dato">{{ordenSeleccionada.cliente.cedula}}</span>
+            </div>
+            <div class="info-item">
+                <label>Tipo de Cliente:</label>
+                <span class="cliente-dato">{{ordenSeleccionada.cliente.tipoCliente === 'NATURAL' ? 'Natural' : 'Jurídico'}}</span>
+            </div>
+            
+            <div class="info-item" *ngIf="ordenSeleccionada.cliente.correo">
+                <label>Email:</label>
+                <span class="cliente-dato">{{ordenSeleccionada.cliente.correo}}</span>
+            </div>
+            <div class="info-item" *ngIf="ordenSeleccionada.cliente.telefono">
+                <label>Teléfono:</label>
+                <span class="cliente-dato">{{ordenSeleccionada.cliente.telefono}}</span>
+            </div>
+            <div class="info-item" *ngIf="ordenSeleccionada.cliente.direccion">
+                <label>Dirección:</label>
+                <span class="cliente-dato">{{ordenSeleccionada.cliente.direccion}}</span>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Observaciones -->
+    <div class="info-subsection" *ngIf="ordenSeleccionada.observaciones">
+        <h5 class="subsection-title">
+            <i class="fas fa-sticky-note"></i>
+            Observaciones
+        </h5>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="cliente-dato">{{ordenSeleccionada.observaciones}}</span>
+            </div>
+        </div>
+    </div>
+</div>       
+            
           </div>
 
           <!-- Columna Derecha: Totales y Métodos de Pago -->
@@ -209,8 +246,8 @@
                   <span>{{ordenSeleccionada.subtotal | currency:'COP':'symbol':'1.0-0'}}</span>
                 </div>
                 <div class="total-item">
-                  <span>Descuento ({{ordenSeleccionada.cliente.descuentoAplicable || 0}}%):</span>
-                  <span class="descuento">-{{ordenSeleccionada.descuento | currency:'COP':'symbol':'1.0-0'}}</span>
+                    <span>Descuento ({{ordenSeleccionada.cliente.descuentoAplicable || 0}}%):</span>
+                    <span class="descuento">{{ordenSeleccionada.cliente.descuentoAplicable || 0}}%</span>
                 </div>
                 <div class="total-item">
                   <span>IVA (19%):</span>
@@ -276,44 +313,6 @@
                     <i class="fas fa-globe"></i>
                     <span>Conversión automática a USD</span>
                   </div>
-                </div>
-              </div>
-
-              <!-- Formulario para PayPal/MercadoPago -->
-              <div *ngIf="showCardForm" class="card-form-section">
-                <div class="form-group">
-                  <label for="cardNumber">Número de Tarjeta</label>
-                  <input type="text" id="cardNumber" [(ngModel)]="cardDetails.cardNumber" 
-                         (input)="validateCardForm()" placeholder="1234 5678 9012 3456" 
-                         class="form-input" />
-                </div>
-                
-                <div class="form-group">
-                  <label for="cardName">Nombre en la Tarjeta</label>
-                  <input type="text" id="cardName" [(ngModel)]="cardDetails.cardName" 
-                         (input)="validateCardForm()" placeholder="JUAN PEREZ" 
-                         class="form-input" />
-                </div>
-                
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="expiryDate">Fecha de Expiración</label>
-                    <input type="text" id="expiryDate" [(ngModel)]="cardDetails.expiryDate" 
-                           (input)="validateCardForm()" placeholder="MM/AA" 
-                           class="form-input" />
-                  </div>
-                  
-                  <div class="form-group">
-                    <label for="cvv">CVV</label>
-                    <input type="text" id="cvv" [(ngModel)]="cardDetails.cvv" 
-                           (input)="validateCardForm()" placeholder="123" 
-                           class="form-input" />
-                  </div>
-                </div>
-                
-                <div class="form-checkbox">
-                  <input type="checkbox" id="saveCard" [(ngModel)]="cardDetails.saveCard" />
-                  <label for="saveCard">Guardar tarjeta para futuras compras</label>
                 </div>
               </div>
 

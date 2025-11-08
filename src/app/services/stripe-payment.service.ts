@@ -252,10 +252,12 @@ export class StripePaymentService {
     }
   }
 
-  openStripeInNewWindow(clientSecret: string, paymentIntentId: string): Window | null {
+  // ✅ CORREGIDO: Método actualizado para aceptar orderId
+  openStripeInNewWindow(clientSecret: string, paymentIntentId: string, orderId: number): Window | null {
     console.log('🪟 Abriendo ventana de Stripe...', {
         paymentIntentId: paymentIntentId?.substring(0, 20) + '...',
-        clientSecretPrefix: clientSecret?.substring(0, 20) + '...'
+        clientSecretPrefix: clientSecret?.substring(0, 20) + '...',
+        orderId: orderId
     });
 
     // Validación más estricta
@@ -269,7 +271,13 @@ export class StripePaymentService {
         return null;
     }
 
-    const stripeUrl = this.buildStripePaymentUrl(clientSecret, paymentIntentId);
+    if (!orderId || orderId <= 0) {
+        console.error('❌ orderId inválido:', orderId);
+        return null;
+    }
+
+    // ✅ CORREGIDO: Pasar orderId a la URL
+    const stripeUrl = this.buildStripePaymentUrl(clientSecret, paymentIntentId, orderId);
     console.log('📍 URL de Stripe generada:', stripeUrl);
     
     const windowFeatures = 'width=600,height=700,scrollbars=yes,resizable=yes,top=100,left=100';
@@ -321,7 +329,8 @@ export class StripePaymentService {
     }
   }
 
-  private buildStripePaymentUrl(clientSecret: string, paymentIntentId: string): string {
+  // ✅ CORREGIDO: Método actualizado para incluir orderId
+  private buildStripePaymentUrl(clientSecret: string, paymentIntentId: string, orderId: number): string {
     // Usar ruta absoluta para evitar problemas de routing
     const baseUrl = window.location.origin;
     const checkoutPath = '/checkout'; 
@@ -329,6 +338,7 @@ export class StripePaymentService {
     const params = new URLSearchParams({
         clientSecret: clientSecret,
         paymentIntentId: paymentIntentId,
+        orderId: orderId.toString(), // ✅ NUEVO: Incluir orderId
         timestamp: Date.now().toString(), // Evitar cache
         source: 'stripe-checkout-window'
     });

@@ -266,12 +266,14 @@
                   <div class="acciones-buttons">
                     <!-- Botón Continuar con Orden -->
                     <button 
-                      (click)="continuarConOrden(orden)" 
-                      class="btn-action btn-continue"
-                      title="Continuar con esta orden">
-                      <i class="fas fa-arrow-right"></i>
-                      Continuar
-                    </button>
+                    (click)="continuarConOrden(orden)" 
+                    class="btn-action btn-continue"
+                    [disabled]="!puedeContinuarOrden(orden)"
+                    [title]="!puedeContinuarOrden(orden) ? getMensajeErrorContinuar(orden) : 'Continuar con esta orden'"
+                    [class.btn-disabled]="!puedeContinuarOrden(orden)">
+                    <i class="fas" [class.fa-arrow-right]="puedeContinuarOrden(orden)" [class.fa-lock]="!puedeContinuarOrden(orden)"></i>
+                    {{ puedeContinuarOrden(orden) ? 'Continuar' : 'No disponible' }}
+                  </button>
                     
                     <!-- Botones existentes -->
                     <button 

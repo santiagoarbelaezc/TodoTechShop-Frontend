@@ -309,4 +309,13 @@ actualizarTotalOrden(id: number, total: number): Observable<OrdenDto> {
   );
 }
 
+
+
+obtenerOrdenesDisponiblesPago(): Observable<OrdenDto[]> {
+  return this.http.get<MensajeDto<OrdenDto[]>>(`${this.apiUrl}/disponibles-pago`).pipe(
+    map(response => response.data!)
+  );
+}
+
+
 }

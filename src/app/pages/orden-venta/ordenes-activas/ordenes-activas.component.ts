@@ -203,20 +203,54 @@ export class OrdenesActivasComponent implements OnInit {
 /**
  * ✅ MÉTODO ACTUALIZADO: Continuar con una orden seleccionada
  */
+/**
+ * ✅ MÉTODO AUXILIAR: Verificar si una orden puede continuarse
+ */
+puedeContinuarOrden(orden: OrdenConDetallesDto): boolean {
+  // Estados que NO permiten continuar
+  const estadosNoPermitidos = [
+    EstadoOrden.DISPONIBLEPARAPAGO,
+    EstadoOrden.PAGADA,
+    EstadoOrden.ENTREGADA,
+    EstadoOrden.CERRADA
+  ];
+  
+  return !estadosNoPermitidos.includes(orden.estado) && 
+         orden.vendedor.id === this.vendedorActualId;
+}
+
+/**
+ * ✅ MÉTODO AUXILIAR: Obtener mensaje de error para orden no continuable
+ */
+getMensajeErrorContinuar(orden: OrdenConDetallesDto): string {
+  if (orden.vendedor.id !== this.vendedorActualId) {
+    return 'No puedes continuar con una orden que no te pertenece.';
+  }
+  
+  const mensajesEstados: Record<EstadoOrden, string> = {
+    [EstadoOrden.DISPONIBLEPARAPAGO]: 'disponible para pago',
+    [EstadoOrden.PAGADA]: 'pagada', 
+    [EstadoOrden.ENTREGADA]: 'entregada',
+    [EstadoOrden.CERRADA]: 'cerrada',
+    [EstadoOrden.PENDIENTE]: 'pendiente',
+    [EstadoOrden.AGREGANDOPRODUCTOS]: 'agregando productos'
+  };
+  
+  return mensajesEstados[orden.estado] 
+    ? `No se puede continuar con una orden que ya está ${mensajesEstados[orden.estado]}.`
+    : 'No se puede continuar con esta orden en su estado actual.';
+}
+
+/**
+ * ✅ MÉTODO ACTUALIZADO: Continuar con una orden seleccionada
+ */
 continuarConOrden(orden: OrdenConDetallesDto): void {
   console.log('=== 🚀 CONTINUANDO CON ORDEN EXISTENTE ===');
   console.log('📋 Orden seleccionada:', orden);
   
-  // ✅ VALIDACIÓN PRINCIPAL: No permitir continuar con órdenes en estado DISPONIBLEPARAPAGO
-  if (orden.estado === EstadoOrden.DISPONIBLEPARAPAGO) {
-    this.errorMessage = 'No se puede continuar con una orden que ya está disponible para pago.';
-    this.limpiarMensajes();
-    return;
-  }
-
-  // Validar que la orden pertenece al vendedor actual
-  if (orden.vendedor.id !== this.vendedorActualId) {
-    this.errorMessage = 'No puedes continuar con una orden que no te pertenece.';
+  // ✅ USAR MÉTODO AUXILIAR para validación
+  if (!this.puedeContinuarOrden(orden)) {
+    this.errorMessage = this.getMensajeErrorContinuar(orden);
     this.limpiarMensajes();
     return;
   }

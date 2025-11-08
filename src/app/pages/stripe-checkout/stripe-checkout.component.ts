@@ -42,6 +42,9 @@ export class StripeCheckoutComponent implements OnInit, OnDestroy, AfterViewInit
   async ngOnInit() {
     console.log('🔄 StripeCheckoutComponent - Inicializando componente...');
     
+    // ✅ AGREGADO: Agregar event listener para beforeunload
+    window.addEventListener('beforeunload', this.handleWindowClose.bind(this));
+    
     // Obtener parámetros de la URL
     this.clientSecret = this.route.snapshot.queryParamMap.get('clientSecret') || '';
     this.paymentIntentId = this.route.snapshot.queryParamMap.get('paymentIntentId') || '';
@@ -434,6 +437,51 @@ export class StripeCheckoutComponent implements OnInit, OnDestroy, AfterViewInit
     }
   }
 
+  // ✅ AGREGADO: Manejar cierre de ventana
+  private handleWindowClose(event?: BeforeUnloadEvent) {
+    console.log('🚪 Ventana de pago cerrándose...');
+    
+    // Notificar a la ventana padre que el pago fue abortado
+    this.notificarPagoAbortado();
+    
+    // Opcional: Mostrar mensaje de confirmación (solo en algunos navegadores)
+    if (event) {
+      event.returnValue = '¿Estás seguro de que quieres salir? El pago se cancelará.';
+    }
+  }
+
+  // ✅ AGREGADO: Notificar que el pago fue abortado
+  private notificarPagoAbortado() {
+    if (window.opener && !window.opener.closed) {
+      try {
+        window.opener.postMessage({
+          type: 'STRIPE_PAYMENT_ABORTED',
+          paymentIntentId: this.paymentIntentId,
+          reason: 'window_closed',
+          timestamp: new Date().toISOString()
+        }, '*');
+        console.log('📨 Notificación de pago abortado enviada a ventana padre');
+      } catch (error) {
+        console.error('❌ Error enviando notificación de aborto:', error);
+      }
+    } else {
+      console.warn('⚠️ Ventana padre no disponible para notificar aborto');
+    }
+  }
+
+  // ✅ MODIFICADO: Método cerrar mejorado
+  cerrar() {
+    console.log('❌ Cerrando ventana de pago manualmente...');
+    
+    // Notificar aborto antes de cerrar
+    this.notificarPagoAbortado();
+    
+    // Pequeño delay para asegurar que el mensaje se envíe
+    setTimeout(() => {
+      window.close();
+    }, 100);
+  }
+
   reintentar() {
     console.log('🔄 Reintentando pago...');
     this.error = null;
@@ -445,12 +493,6 @@ export class StripeCheckoutComponent implements OnInit, OnDestroy, AfterViewInit
     }
     
     this.cdRef.detectChanges();
-  }
-
-  cerrar() {
-    console.log('❌ Cerrando ventana de pago...');
-    this.notificarError('Pago cancelado por el usuario');
-    window.close();
   }
 
   puedeProcesarPago(): boolean {
@@ -486,6 +528,14 @@ export class StripeCheckoutComponent implements OnInit, OnDestroy, AfterViewInit
 
   ngOnDestroy() {
     console.log('🧹 StripeCheckoutComponent - Destruyendo componente');
+    
+    // ✅ AGREGADO: Remover event listener
+    window.removeEventListener('beforeunload', this.handleWindowClose.bind(this));
+    
+    // ✅ AGREGADO: Notificar aborto si el componente se destruye sin éxito
+    if (!this.procesando && this.paymentIntentId) {
+      this.notificarPagoAbortado();
+    }
     
     if (this.card) {
       try {
