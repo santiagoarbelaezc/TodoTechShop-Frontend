@@ -4,6 +4,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CarritoService, ItemCarrito, ResultadoOperacion } from '../../../services/carrito.service';
+import { ProductoService } from '../../../services/producto.service';
+import { ProductoDto } from '../../../models/producto/producto.dto';
+import { EstadoProducto } from '../../../models/enums/estado-producto.enum';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -21,6 +24,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
   @Output() carritoVisibleChange = new EventEmitter<boolean>();
 
   private carritoService = inject(CarritoService);
+  private productoService = inject(ProductoService);
   private router = inject(Router);
 
   carrito: ItemCarrito[] = [];
@@ -85,8 +89,6 @@ export class CarritoComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  // 🔥 ELIMINADO: Métodos relacionados con infoStock que ya no existen
-
   // 🔹 TOGGLE CARRITO
   toggleCarrito(): void {
     console.log('🔄 Toggle carrito');
@@ -124,9 +126,18 @@ export class CarritoComponent implements OnInit, OnDestroy {
     }
   }
 
-  // 🔥 AJUSTAR CANTIDAD
+  // 🔥 AJUSTAR CANTIDAD - CORREGIDO CON VALIDACIÓN DE ESTADO Y STOCK
   async ajustarCantidad(productoId: number, cambio: number): Promise<void> {
     console.log('⚖️ Ajustando cantidad - Producto:', productoId, 'Cambio:', cambio);
+    
+    // 🔥 CORREGIDO: Verificar si puede incrementar antes de proceder
+    if (cambio > 0) {
+      const puedeIncrementar = await this.puedeIncrementar(productoId);
+      if (!puedeIncrementar.puede) {
+        this.mostrarErrorStock(puedeIncrementar.mensaje || 'No se puede incrementar la cantidad');
+        return;
+      }
+    }
     
     this.ajustandoCantidad = productoId;
     
@@ -273,6 +284,134 @@ export class CarritoComponent implements OnInit, OnDestroy {
     this.mostrarInputDescuento = false;
     this.codigoDescuento = '';
     this.errorDescuento = '';
+  }
+
+  // 🔥 CORREGIDO: Verificar si un producto puede incrementarse usando ProductoService
+  async puedeIncrementar(productoId: number): Promise<{ puede: boolean; mensaje?: string }> {
+    try {
+      // Obtener información actualizada del producto desde el servicio
+      const producto = await this.productoService.obtenerProductoPorIdPublico(productoId).toPromise();
+      
+      if (!producto) {
+        return { puede: false, mensaje: 'Producto no encontrado' };
+      }
+
+      // Verificar estado del producto
+      if (producto.estado !== EstadoProducto.ACTIVO) {
+        let mensaje = '';
+        switch (producto.estado) {
+          case EstadoProducto.INACTIVO:
+            mensaje = 'Producto inactivo';
+            break;
+          case EstadoProducto.DESCONTINUADO:
+            mensaje = 'Producto descontinuado';
+            break;
+          case EstadoProducto.AGOTADO:
+            mensaje = 'Producto agotado';
+            break;
+          default:
+            mensaje = 'Producto no disponible';
+        }
+        return { puede: false, mensaje };
+      }
+
+      // Verificar stock disponible considerando la cantidad actual en carrito
+      const itemEnCarrito = this.carrito.find(item => item.producto.id === productoId);
+      const cantidadActual = itemEnCarrito ? itemEnCarrito.cantidad : 0;
+      const stockDisponible = producto.stock - cantidadActual;
+
+      if (stockDisponible <= 0) {
+        return { 
+          puede: false, 
+          mensaje: `Stock insuficiente. Máximo disponible: ${producto.stock} unidades` 
+        };
+      }
+
+      return { puede: true };
+
+    } catch (error) {
+      console.error('❌ Error verificando disponibilidad del producto:', error);
+      // En caso de error, usar la información local del carrito como fallback
+      const itemEnCarrito = this.carrito.find(item => item.producto.id === productoId);
+      if (itemEnCarrito) {
+        const producto = itemEnCarrito.producto;
+        
+        // Verificar estado usando la información local
+        if (producto.estado !== EstadoProducto.ACTIVO) {
+          return { puede: false, mensaje: 'Producto no disponible' };
+        }
+
+        // Verificar stock usando la información local
+        const stockDisponible = producto.stock - itemEnCarrito.cantidad;
+        if (stockDisponible <= 0) {
+          return { 
+            puede: false, 
+            mensaje: `Stock insuficiente. Máximo disponible: ${producto.stock} unidades` 
+          };
+        }
+      }
+      
+      return { puede: false, mensaje: 'Error al verificar disponibilidad' };
+    }
+  }
+
+  // 🔥 CORREGIDO: Obtener clase CSS para el botón basado en disponibilidad
+  getClaseBotonIncrementar(productoId: number): string {
+    const baseClass = 'quantity-btn bounce-entrance';
+    
+    // Verificación síncrona para la clase CSS (usamos información local)
+    const item = this.carrito.find(item => item.producto.id === productoId);
+    if (item) {
+      const producto = item.producto;
+      const stockDisponible = producto.stock - item.cantidad;
+      
+      if (producto.estado !== EstadoProducto.ACTIVO || stockDisponible <= 0) {
+        return `${baseClass} disabled`;
+      }
+    }
+    
+    return baseClass;
+  }
+
+  // 🔥 CORREGIDO: Obtener tooltip para el botón deshabilitado
+  getTooltipIncrementar(productoId: number): string {
+    const item = this.carrito.find(item => item.producto.id === productoId);
+    if (!item) {
+      return 'Producto no encontrado';
+    }
+
+    const producto = item.producto;
+    
+    // Verificar estado del producto
+    if (producto.estado !== EstadoProducto.ACTIVO) {
+      switch (producto.estado) {
+        case EstadoProducto.INACTIVO:
+          return 'Producto inactivo';
+        case EstadoProducto.DESCONTINUADO:
+          return 'Producto descontinuado';
+        case EstadoProducto.AGOTADO:
+          return 'Producto agotado';
+        default:
+          return 'Producto no disponible';
+      }
+    }
+
+    // Verificar stock disponible
+    const stockDisponible = producto.stock - item.cantidad;
+    if (stockDisponible <= 0) {
+      return `Sin stock disponible (máximo: ${producto.stock})`;
+    }
+
+    return `Aumentar cantidad (${stockDisponible} disponibles)`;
+  }
+
+  // 🔥 CORREGIDO: Verificar si hay productos no disponibles en el carrito
+  hayProductosNoDisponibles(): boolean {
+    return this.carrito.some(item => {
+      const producto = item.producto;
+      const stockDisponible = producto.stock - item.cantidad;
+      return producto.estado !== EstadoProducto.ACTIVO || stockDisponible <= 0;
+    });
   }
 
   // 🔹 MÉTODOS DE CONVENIENCIA

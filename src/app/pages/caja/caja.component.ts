@@ -12,6 +12,8 @@ import { StripePaymentService } from '../../services/stripe-payment.service';
 import { PaymentStateService } from '../../services/payment-state.service';
 import { OrdenConDetallesDto, OrdenDto } from '../../models/orden-venta/ordenventa.dto';
 import { NavbarCajaComponent } from './navbar-caja/navbar-caja.component';
+// ✅ AGREGADO: Importar el servicio de facturación
+import { InvoiceService, FacturaDto } from '../../services/invoice.service';
 
 // Enums esenciales para el pago
 export enum TipoMetodo {
@@ -128,12 +130,18 @@ metodosPago: MetodoPagoInfo[] = [
     private ordenVentaService: OrdenVentaService,
     private stripePaymentService: StripePaymentService,
     private paymentStateService: PaymentStateService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    // ✅ AGREGADO: Inyectar el servicio de facturación
+    private invoiceService: InvoiceService
   ) {}
 
   ngOnInit(): void {
     this.cargarOrdenesDisponiblesParaPago();
     window.addEventListener('message', this.handleStripeMessage.bind(this));
+    
+    // ✅ AGREGADO: Cargar facturas desde localStorage si es necesario
+    this.invoiceService.cargarFacturasDesdeStorage();
+    console.log('🔄 InvoiceService inicializado en CajaComponent');
   }
 
   ngOnDestroy(): void {
@@ -470,6 +478,14 @@ metodosPago: MetodoPagoInfo[] = [
         next: (ordenActualizada) => {
           console.log('✅ Orden marcada como pagada en backend:', ordenActualizada);
           this.ordenSeleccionada!.estado = EstadoOrden.PAGADA;
+          
+          // ✅ AGREGADO: Generar factura para pago tradicional
+          const ordenConDetalles: OrdenConDetallesDto = {
+            ...ordenActualizada,
+            productos: []
+          };
+          this.generarFacturaParaPagoTradicional(ordenConDetalles);
+          
           this.mostrarExito(`Pago en ${this.selectedPaymentMethod} procesado exitosamente. Orden #${this.ordenSeleccionada!.numeroOrden} ha sido pagada.`);
           this.actualizarEstadisticas();
           this.removerOrdenDeLista(idOrdenAPagar);
@@ -485,6 +501,36 @@ metodosPago: MetodoPagoInfo[] = [
         }
       });
     }, 2000);
+  }
+
+  // ✅ NUEVO: Método para generar factura para pagos tradicionales
+  private generarFacturaParaPagoTradicional(orden: OrdenConDetallesDto): void {
+    try {
+      console.log('🧾 Iniciando generación de factura para pago tradicional:', {
+        ordenId: orden.id,
+        numeroOrden: orden.numeroOrden,
+        metodoPago: this.selectedPaymentMethod
+      });
+
+      const factura = this.invoiceService.generarFactura(
+        orden, 
+        this.selectedPaymentMethod
+      );
+
+      console.log('✅ Factura generada exitosamente:', {
+        numeroFactura: factura.numeroFactura,
+        total: factura.total,
+        productos: factura.productos.length
+      });
+
+      // ✅ AGREGADO: Descargar automáticamente el PDF
+      this.invoiceService.descargarPDF(factura);
+      console.log('📄 PDF de factura descargado automáticamente');
+
+    } catch (error) {
+      console.error('❌ Error al generar factura para pago tradicional:', error);
+      // No mostramos error al usuario para no interrumpir el flujo de pago
+    }
   }
 
   // ✅ NUEVO: Método para remover orden de la lista después del pago
@@ -656,6 +702,13 @@ metodosPago: MetodoPagoInfo[] = [
           this.ordenSeleccionada = { ...this.ordenSeleccionada, id: this.ordenSeleccionada.id! };
         }
         
+        // ✅ AGREGADO: Generar factura después del pago exitoso con Stripe
+        const ordenConDetalles: OrdenConDetallesDto = {
+          ...ordenActualizada,
+          productos: []
+        };
+        this.generarFacturaParaPagoStripe(ordenConDetalles, paymentIntentId);
+        
         this.mostrarExito(`¡Pago con Stripe procesado exitosamente! Orden #${ordenActualizada.numeroOrden} ha sido pagada.`);
         this.actualizarEstadisticas();
         this.removerOrdenDeLista(idOrdenAPagar);
@@ -682,6 +735,46 @@ metodosPago: MetodoPagoInfo[] = [
         this.cdRef.detectChanges();
       }
     });
+  }
+
+  // ✅ NUEVO: Método para generar factura para pagos con Stripe
+  private generarFacturaParaPagoStripe(orden: OrdenConDetallesDto, paymentIntentId: string): void {
+    try {
+      console.log('🧾 Iniciando generación de factura para pago Stripe:', {
+        ordenId: orden.id,
+        numeroOrden: orden.numeroOrden,
+        paymentIntentId: paymentIntentId
+      });
+
+      const metodoPagoCompleto = `Stripe - ${this.selectedPaymentMethod}`;
+      const referenciaPago = `PI:${paymentIntentId}`;
+
+      const factura = this.invoiceService.generarFactura(
+        orden, 
+        metodoPagoCompleto,
+        referenciaPago
+      );
+
+      console.log('✅ Factura generada exitosamente para Stripe:', {
+        numeroFactura: factura.numeroFactura,
+        total: factura.total,
+        productos: factura.productos.length,
+        metodoPago: factura.metodoPago
+      });
+
+      // ✅ AGREGADO: Descargar automáticamente el PDF después de cerrar la ventana
+      setTimeout(() => {
+        this.invoiceService.descargarPDF(factura);
+        console.log('📄 PDF de factura descargado automáticamente después de pago Stripe');
+        
+        // ✅ AGREGADO: Mostrar mensaje informativo al usuario
+        this.mostrarInfo(`Factura ${factura.numeroFactura} generada y descargada automáticamente`);
+      }, 1000);
+
+    } catch (error) {
+      console.error('❌ Error al generar factura para pago Stripe:', error);
+      // No mostramos error al usuario para no interrumpir el flujo de pago
+    }
   }
 
   private handleFailedStripePayment(error: string): void {

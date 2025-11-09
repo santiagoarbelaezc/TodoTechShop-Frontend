@@ -58,6 +58,18 @@ export class CreacionComponent implements OnInit {
     hasSpecialChar: false
   };
 
+  // ✅ NUEVO: Variables de paginación para Gestión de Usuarios
+  paginaActual: number = 1;
+  itemsPorPagina: number = 10;
+  totalPaginas: number = 1;
+  usuariosPaginados: UsuarioDto[] = [];
+
+  // ✅ NUEVO: Variables de paginación para Usuarios Filtrados
+  paginaActualFiltros: number = 1;
+  itemsPorPaginaFiltros: number = 10;
+  totalPaginasFiltros: number = 1;
+  usuariosFiltradosPaginados: UsuarioDto[] = [];
+
   ngOnInit(): void {
     this.cargarUsuarios();
   }
@@ -91,6 +103,8 @@ export class CreacionComponent implements OnInit {
       next: (usuarios: UsuarioDto[]) => {
         this.usuarios = usuarios;
         this.usuariosFiltrados = [...usuarios];
+        this.aplicarPaginacion(); // ✅ Aplicar paginación después de cargar
+        this.aplicarPaginacionFiltros(); // ✅ Aplicar paginación para filtros
       },
       error: (error) => {
         console.error('Error al cargar usuarios:', error);
@@ -105,6 +119,126 @@ export class CreacionComponent implements OnInit {
         }
       }
     });
+  }
+
+  // ✅ NUEVO: Aplicar paginación para Gestión de Usuarios
+  aplicarPaginacion(): void {
+    // Calcular total de páginas
+    this.totalPaginas = Math.ceil(this.usuarios.length / this.itemsPorPagina);
+    
+    // Asegurar que la página actual sea válida
+    if (this.paginaActual > this.totalPaginas && this.totalPaginas > 0) {
+      this.paginaActual = this.totalPaginas;
+    } else if (this.totalPaginas === 0) {
+      this.paginaActual = 1;
+    }
+    
+    // Calcular índices para el slice
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    
+    // Obtener usuarios para la página actual
+    this.usuariosPaginados = this.usuarios.slice(inicio, fin);
+  }
+
+  // ✅ NUEVO: Aplicar paginación para Usuarios Filtrados
+  aplicarPaginacionFiltros(): void {
+    // Calcular total de páginas
+    this.totalPaginasFiltros = Math.ceil(this.usuariosFiltrados.length / this.itemsPorPaginaFiltros);
+    
+    // Asegurar que la página actual sea válida
+    if (this.paginaActualFiltros > this.totalPaginasFiltros && this.totalPaginasFiltros > 0) {
+      this.paginaActualFiltros = this.totalPaginasFiltros;
+    } else if (this.totalPaginasFiltros === 0) {
+      this.paginaActualFiltros = 1;
+    }
+    
+    // Calcular índices para el slice
+    const inicio = (this.paginaActualFiltros - 1) * this.itemsPorPaginaFiltros;
+    const fin = inicio + this.itemsPorPaginaFiltros;
+    
+    // Obtener usuarios filtrados para la página actual
+    this.usuariosFiltradosPaginados = this.usuariosFiltrados.slice(inicio, fin);
+  }
+
+  // ✅ NUEVO: Cambiar página para Gestión de Usuarios
+  cambiarPagina(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginas && pagina !== this.paginaActual) {
+      this.paginaActual = pagina;
+      this.aplicarPaginacion();
+      
+      // Scroll suave hacia la parte superior de la tabla
+      const tablaSection = document.querySelector('.tabla-section');
+      if (tablaSection) {
+        tablaSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }
+
+  // ✅ NUEVO: Cambiar página para Usuarios Filtrados
+  cambiarPaginaFiltros(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginasFiltros && pagina !== this.paginaActualFiltros) {
+      this.paginaActualFiltros = pagina;
+      this.aplicarPaginacionFiltros();
+      
+      // Scroll suave hacia la parte superior de la tabla
+      const tablaSection = document.querySelector('.tabla-section');
+      if (tablaSection) {
+        tablaSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }
+
+  // ✅ NUEVO: Cambiar cantidad de items por página para Gestión de Usuarios
+  cambiarItemsPorPagina(): void {
+    this.paginaActual = 1;
+    this.aplicarPaginacion();
+  }
+
+  // ✅ NUEVO: Cambiar cantidad de items por página para Usuarios Filtrados
+  cambiarItemsPorPaginaFiltros(): void {
+    this.paginaActualFiltros = 1;
+    this.aplicarPaginacionFiltros();
+  }
+
+  // ✅ NUEVO: Obtener rango de páginas para Gestión de Usuarios
+  obtenerRangoPaginas(): number[] {
+    const paginas: number[] = [];
+    const paginasAMostrar = 5; // Número máximo de páginas a mostrar
+    
+    let inicio = Math.max(1, this.paginaActual - Math.floor(paginasAMostrar / 2));
+    let fin = Math.min(this.totalPaginas, inicio + paginasAMostrar - 1);
+    
+    // Ajustar inicio si estamos cerca del final
+    if (fin - inicio + 1 < paginasAMostrar) {
+      inicio = Math.max(1, fin - paginasAMostrar + 1);
+    }
+    
+    for (let i = inicio; i <= fin; i++) {
+      paginas.push(i);
+    }
+    
+    return paginas;
+  }
+
+  // ✅ NUEVO: Obtener rango de páginas para Usuarios Filtrados
+  obtenerRangoPaginasFiltros(): number[] {
+    const paginas: number[] = [];
+    const paginasAMostrar = 5; // Número máximo de páginas a mostrar
+    
+    let inicio = Math.max(1, this.paginaActualFiltros - Math.floor(paginasAMostrar / 2));
+    let fin = Math.min(this.totalPaginasFiltros, inicio + paginasAMostrar - 1);
+    
+    // Ajustar inicio si estamos cerca del final
+    if (fin - inicio + 1 < paginasAMostrar) {
+      inicio = Math.max(1, fin - paginasAMostrar + 1);
+    }
+    
+    for (let i = inicio; i <= fin; i++) {
+      paginas.push(i);
+    }
+    
+    return paginas;
   }
 
   // Métodos para estadísticas
@@ -429,24 +563,32 @@ export class CreacionComponent implements OnInit {
     this.fechaInicioFiltro = '';
     this.fechaFinFiltro = '';
     this.fechaEspecificaFiltro = '';
+    this.paginaActualFiltros = 1; // ✅ Resetear paginación al cambiar filtro
+    this.aplicarPaginacionFiltros();
   }
 
   // Búsquedas y filtros
   buscarPorNombre(): void {
     if (!this.terminoBusquedaNombre.trim()) {
       this.usuariosFiltrados = [...this.usuarios];
+      this.paginaActualFiltros = 1; // ✅ Resetear paginación
+      this.aplicarPaginacionFiltros();
       return;
     }
 
     this.usuarioService.buscarUsuariosPorNombre(this.terminoBusquedaNombre).subscribe({
       next: (usuarios) => {
         this.usuariosFiltrados = usuarios;
+        this.paginaActualFiltros = 1; // ✅ Resetear paginación
+        this.aplicarPaginacionFiltros();
       },
       error: (error) => {
         console.error('Error en búsqueda por nombre:', error);
         this.usuariosFiltrados = this.usuarios.filter(u => 
           u.nombre.toLowerCase().includes(this.terminoBusquedaNombre.toLowerCase())
         );
+        this.paginaActualFiltros = 1; // ✅ Resetear paginación
+        this.aplicarPaginacionFiltros();
       }
     });
   }
@@ -454,18 +596,24 @@ export class CreacionComponent implements OnInit {
   buscarPorCedula(): void {
     if (!this.terminoBusquedaCedula.trim()) {
       this.usuariosFiltrados = [...this.usuarios];
+      this.paginaActualFiltros = 1; // ✅ Resetear paginación
+      this.aplicarPaginacionFiltros();
       return;
     }
 
     this.usuarioService.buscarUsuariosPorCedula(this.terminoBusquedaCedula).subscribe({
       next: (usuarios) => {
         this.usuariosFiltrados = usuarios;
+        this.paginaActualFiltros = 1; // ✅ Resetear paginación
+        this.aplicarPaginacionFiltros();
       },
       error: (error) => {
         console.error('Error en búsqueda por cédula:', error);
         this.usuariosFiltrados = this.usuarios.filter(u => 
           u.cedula.includes(this.terminoBusquedaCedula)
         );
+        this.paginaActualFiltros = 1; // ✅ Resetear paginación
+        this.aplicarPaginacionFiltros();
       }
     });
   }
@@ -473,18 +621,24 @@ export class CreacionComponent implements OnInit {
   filtrarPorTipo(): void {
     if (this.tipoUsuarioFiltro === 'TODOS') {
       this.usuariosFiltrados = [...this.usuarios];
+      this.paginaActualFiltros = 1; // ✅ Resetear paginación
+      this.aplicarPaginacionFiltros();
       return;
     }
 
     this.usuarioService.obtenerUsuariosPorTipo(this.tipoUsuarioFiltro).subscribe({
       next: (usuarios) => {
         this.usuariosFiltrados = usuarios;
+        this.paginaActualFiltros = 1; // ✅ Resetear paginación
+        this.aplicarPaginacionFiltros();
       },
       error: (error) => {
         console.error('Error al filtrar por tipo:', error);
         this.usuariosFiltrados = this.usuarios.filter(u => 
           u.tipoUsuario === this.tipoUsuarioFiltro
         );
+        this.paginaActualFiltros = 1; // ✅ Resetear paginación
+        this.aplicarPaginacionFiltros();
       }
     });
   }
@@ -492,6 +646,8 @@ export class CreacionComponent implements OnInit {
   filtrarPorEstado(): void {
     if (this.estadoFiltro === 'TODOS') {
       this.usuariosFiltrados = [...this.usuarios];
+      this.paginaActualFiltros = 1; // ✅ Resetear paginación
+      this.aplicarPaginacionFiltros();
       return;
     }
 
@@ -501,20 +657,28 @@ export class CreacionComponent implements OnInit {
       this.usuarioService.obtenerUsuariosActivos().subscribe({
         next: (usuarios: UsuarioDto[]) => {
           this.usuariosFiltrados = usuarios;
+          this.paginaActualFiltros = 1; // ✅ Resetear paginación
+          this.aplicarPaginacionFiltros();
         },
         error: (error: any) => {
           console.error('Error al filtrar por estado activo:', error);
           this.usuariosFiltrados = this.usuarios.filter(u => u.estado === estado);
+          this.paginaActualFiltros = 1; // ✅ Resetear paginación
+          this.aplicarPaginacionFiltros();
         }
       });
     } else {
       this.usuarioService.obtenerUsuariosInactivos().subscribe({
         next: (usuarios: UsuarioDto[]) => {
           this.usuariosFiltrados = usuarios;
+          this.paginaActualFiltros = 1; // ✅ Resetear paginación
+          this.aplicarPaginacionFiltros();
         },
         error: (error: any) => {
           console.error('Error al filtrar por estado inactivo:', error);
           this.usuariosFiltrados = this.usuarios.filter(u => u.estado === estado);
+          this.paginaActualFiltros = 1; // ✅ Resetear paginación
+          this.aplicarPaginacionFiltros();
         }
       });
     }
@@ -528,6 +692,8 @@ export class CreacionComponent implements OnInit {
       this.usuarioService.obtenerUsuariosPorFechaCreacion(fechaInicio, fechaFin).subscribe({
         next: (usuarios) => {
           this.usuariosFiltrados = usuarios;
+          this.paginaActualFiltros = 1; // ✅ Resetear paginación
+          this.aplicarPaginacionFiltros();
         },
         error: (error) => {
           console.error('Error al filtrar por rango de fechas:', error);
@@ -541,6 +707,8 @@ export class CreacionComponent implements OnInit {
         this.usuarioService.obtenerUsuariosCreadosDespuesDe(fecha).subscribe({
           next: (usuarios) => {
             this.usuariosFiltrados = usuarios;
+            this.paginaActualFiltros = 1; // ✅ Resetear paginación
+            this.aplicarPaginacionFiltros();
           },
           error: (error) => {
             console.error('Error al filtrar por fecha posterior:', error);
@@ -551,6 +719,8 @@ export class CreacionComponent implements OnInit {
         this.usuarioService.obtenerUsuariosCreadosAntesDe(fecha).subscribe({
           next: (usuarios) => {
             this.usuariosFiltrados = usuarios;
+            this.paginaActualFiltros = 1; // ✅ Resetear paginación
+            this.aplicarPaginacionFiltros();
           },
           error: (error) => {
             console.error('Error al filtrar por fecha anterior:', error);
@@ -579,6 +749,9 @@ export class CreacionComponent implements OnInit {
       const fecha = new Date(this.fechaEspecificaFiltro);
       this.usuariosFiltrados = this.usuarios.filter(u => new Date(u.fechaCreacion) <= fecha);
     }
+    
+    this.paginaActualFiltros = 1; // ✅ Resetear paginación
+    this.aplicarPaginacionFiltros();
   }
 
   limpiarFiltros(): void {
@@ -591,6 +764,8 @@ export class CreacionComponent implements OnInit {
     this.fechaEspecificaFiltro = '';
     this.tipoFiltroFecha = '';
     this.usuariosFiltrados = [...this.usuarios];
+    this.paginaActualFiltros = 1; // ✅ Resetear paginación
+    this.aplicarPaginacionFiltros();
   }
 
   // Método para formatear fecha (opcional)
@@ -600,5 +775,10 @@ export class CreacionComponent implements OnInit {
       month: 'short',
       day: 'numeric'
     });
+  }
+
+  // ✅ NUEVO: Método auxiliar para Math.min en template
+  get Math(): Math {
+    return Math;
   }
 }

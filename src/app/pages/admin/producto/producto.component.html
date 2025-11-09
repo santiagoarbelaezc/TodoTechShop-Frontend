@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestión de Productos - TodoTech</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="producto.component.css" />
 </head>
 <body>
 
@@ -241,7 +242,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let p of productos" class="producto-row">
+              <tr *ngFor="let p of productosPaginados" class="producto-row">
                 <td class="producto-id">{{ p.id }}</td>
                 <td class="producto-codigo">
                   <strong>{{ p.codigo }}</strong>
@@ -293,6 +294,437 @@
             </tbody>
           </table>
         </div>
+
+        <!-- ✅ PAGINACIÓN PARA GESTIÓN DE PRODUCTOS -->
+        <div *ngIf="productos.length > 0 && totalPaginas > 1" class="paginacion-container">
+          <div class="paginacion-info">
+            Página {{ paginaActual }} de {{ totalPaginas }}
+          </div>
+          <div class="paginacion-controls">
+            <button 
+              (click)="cambiarPagina(paginaActual - 1)" 
+              [disabled]="paginaActual === 1"
+              class="btn-paginacion">
+              <i class="fas fa-chevron-left"></i>
+              Anterior
+            </button>
+            
+            <div class="paginacion-numeros">
+              <button 
+                *ngFor="let pagina of obtenerRangoPaginas()"
+                (click)="cambiarPagina(pagina)"
+                [class.active]="pagina === paginaActual"
+                class="btn-pagina">
+                {{ pagina }}
+              </button>
+            </div>
+            
+            <button 
+              (click)="cambiarPagina(paginaActual + 1)" 
+              [disabled]="paginaActual === totalPaginas"
+              class="btn-paginacion">
+              Siguiente
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="paginacion-items">
+            <label>Mostrar:</label>
+            <select 
+              [(ngModel)]="itemsPorPagina" 
+              (change)="cambiarItemsPorPagina()"
+              class="select-items">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+            <span>ítems por página</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN DE BÚSQUEDA AVANZADA -->
+  <section *ngIf="seccionActiva === 'busquedaAvanzada'" class="seccion-activa">
+    <!-- Header de la página -->
+    <header class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <i class="fas fa-search-plus"></i>
+          Búsqueda Avanzada
+        </h1>
+        <p class="page-subtitle">Encuentra productos utilizando filtros específicos y búsquedas avanzadas</p>
+      </div>
+      
+      <!-- Estadísticas de búsqueda -->
+      <div class="stats-container">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ resultadosBusqueda.length }}</span>
+            <span class="stat-label">Resultados</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon activos">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ getResultadosActivos() }}</span>
+            <span class="stat-label">Activos</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stock-bajo">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-number">{{ getResultadosStockBajo() }}</span>
+            <span class="stat-label">Stock Bajo</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Panel de Búsqueda Avanzada -->
+    <div class="filtros-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-filter"></i>
+          Filtros de Búsqueda Avanzada
+        </h3>
+        <div class="section-actions">
+          <button (click)="ejecutarBusquedaAvanzada()" class="btn-primary">
+            <i class="fas fa-search"></i>
+            Buscar
+          </button>
+          <button (click)="limpiarBusquedaAvanzada()" class="btn-secondary">
+            <i class="fas fa-broom"></i>
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <div class="filtros-avanzados-container">
+        <!-- Búsqueda por Texto -->
+        <div class="filtro-avanzado-group">
+          <h4 class="filtro-subtitle">
+            <i class="fas fa-font"></i>
+            Búsqueda por Texto
+          </h4>
+          <div class="filtro-grid">
+            <div class="filtro-item">
+              <label for="busquedaNombre">Nombre del Producto</label>
+              <div class="input-with-icon">
+                <i class="fas fa-tag"></i>
+                <input type="text" id="busquedaNombre" 
+                       [(ngModel)]="filtrosBusqueda.nombre" 
+                       placeholder="Buscar por nombre..."
+                       (keyup.enter)="ejecutarBusquedaAvanzada()">
+              </div>
+            </div>
+            
+            <div class="filtro-item">
+              <label for="busquedaCodigo">Código del Producto</label>
+              <div class="input-with-icon">
+                <i class="fas fa-barcode"></i>
+                <input type="text" id="busquedaCodigo" 
+                       [(ngModel)]="filtrosBusqueda.codigo" 
+                       placeholder="Buscar por código..."
+                       (keyup.enter)="ejecutarBusquedaAvanzada()">
+              </div>
+            </div>
+            
+            <div class="filtro-item">
+              <label for="busquedaMarca">Marca</label>
+              <div class="input-with-icon">
+                <i class="fas fa-industry"></i>
+                <input type="text" id="busquedaMarca" 
+                       [(ngModel)]="filtrosBusqueda.marca" 
+                       placeholder="Filtrar por marca..."
+                       (keyup.enter)="ejecutarBusquedaAvanzada()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtros por Categoría y Estado -->
+        <div class="filtro-avanzado-group">
+          <h4 class="filtro-subtitle">
+            <i class="fas fa-sliders-h"></i>
+            Filtros por Categoría y Estado
+          </h4>
+          <div class="filtro-grid">
+            <div class="filtro-item">
+              <label for="filtroCategoria">Categoría</label>
+              <select id="filtroCategoria" [(ngModel)]="filtrosBusqueda.categoriaId">
+                <option value="">Todas las categorías</option>
+                <option *ngFor="let cat of categorias" [value]="cat.id">
+                  {{ cat.nombre }}
+                </option>
+              </select>
+            </div>
+            
+            <div class="filtro-item">
+              <label for="filtroEstado">Estado del Producto</label>
+              <select id="filtroEstado" [(ngModel)]="filtrosBusqueda.estado">
+                <option value="">Todos los estados</option>
+                <option *ngFor="let estado of estadosProducto" [value]="estado">
+                  {{ estado }}
+                </option>
+              </select>
+            </div>
+            
+            <div class="filtro-item">
+              <label for="filtroDisponibilidad">Disponibilidad</label>
+              <select id="filtroDisponibilidad" [(ngModel)]="filtrosBusqueda.disponibilidad">
+                <option value="">Todos los productos</option>
+                <option value="activos">Solo activos</option>
+                <option value="disponibles">Solo disponibles</option>
+                <option value="stock-bajo">Stock bajo (≤ 5)</option>
+                <option value="sin-stock">Sin stock</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtros por Precio y Stock -->
+        <div class="filtro-avanzado-group">
+          <h4 class="filtro-subtitle">
+            <i class="fas fa-chart-line"></i>
+            Filtros por Precio y Stock
+          </h4>
+          <div class="filtro-grid">
+            <div class="filtro-item">
+              <label for="precioMin">Precio Mínimo</label>
+              <div class="input-with-icon">
+                <i class="fas fa-dollar-sign"></i>
+                <input type="number" id="precioMin" 
+                       [(ngModel)]="filtrosBusqueda.precioMin" 
+                       placeholder="0" min="0" step="0.01">
+              </div>
+            </div>
+            
+            <div class="filtro-item">
+              <label for="precioMax">Precio Máximo</label>
+              <div class="input-with-icon">
+                <i class="fas fa-dollar-sign"></i>
+                <input type="number" id="precioMax" 
+                       [(ngModel)]="filtrosBusqueda.precioMax" 
+                       placeholder="999999" min="0" step="0.01">
+              </div>
+            </div>
+            
+            <div class="filtro-item">
+              <label for="stockMin">Stock Mínimo</label>
+              <div class="input-with-icon">
+                <i class="fas fa-boxes"></i>
+                <input type="number" id="stockMin" 
+                       [(ngModel)]="filtrosBusqueda.stockMin" 
+                       placeholder="0" min="0">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Búsquedas Específicas -->
+        <div class="filtro-avanzado-group">
+          <h4 class="filtro-subtitle">
+            <i class="fas fa-bolt"></i>
+            Búsquedas Específicas
+          </h4>
+          <div class="busquedas-rapidas">
+            <button (click)="buscarProductosActivos()" class="btn-rapido">
+              <i class="fas fa-check-circle"></i>
+              Productos Activos
+            </button>
+            <button (click)="buscarProductosDisponibles()" class="btn-rapido">
+              <i class="fas fa-shopping-cart"></i>
+              Productos Disponibles
+            </button>
+            <button (click)="buscarStockBajo()" class="btn-rapido">
+              <i class="fas fa-exclamation-triangle"></i>
+              Stock Bajo
+            </button>
+            <button (click)="buscarSinStock()" class="btn-rapido">
+              <i class="fas fa-times-circle"></i>
+              Sin Stock
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información de resultados -->
+      <div class="resultados-info" *ngIf="resultadosBusqueda.length > 0">
+        <span class="resultados-text">
+          Mostrando <strong>{{ (resultadosPaginados.length > 0 ? (paginaActualBusqueda - 1) * itemsPorPaginaBusqueda + 1 : 0) }} - {{ Math.min(paginaActualBusqueda * itemsPorPaginaBusqueda, resultadosBusqueda.length) }}</strong> de <strong>{{ resultadosBusqueda.length }}</strong> productos encontrados
+          <span *ngIf="hayFiltrosActivos()" class="filtros-activos">
+            (filtros aplicados)
+          </span>
+        </span>
+        <button (click)="exportarResultados()" class="btn-exportar">
+          <i class="fas fa-file-export"></i>
+          Exportar Resultados
+        </button>
+      </div>
+    </div>
+
+    <!-- Resultados de Búsqueda -->
+    <div class="tabla-section" *ngIf="resultadosBusqueda.length > 0">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-list-alt"></i>
+          Resultados de Búsqueda
+        </h3>
+        <div class="section-actions">
+          <button (click)="ejecutarBusquedaAvanzada()" class="btn-refresh">
+            <i class="fas fa-sync-alt"></i>
+            Actualizar
+          </button>
+        </div>
+      </div>
+
+      <div class="tabla-container">
+        <div class="table-responsive">
+          <table class="productos-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Marca</th>
+                <th>Garantía</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of resultadosPaginados" class="producto-row">
+                <td class="producto-id">{{ p.id }}</td>
+                <td class="producto-codigo">
+                  <strong>{{ p.codigo }}</strong>
+                </td>
+                <td class="producto-nombre">
+                  <div class="nombre-content">
+                    <strong>{{ p.nombre }}</strong>
+                    <small *ngIf="p.descripcion" class="producto-desc" [title]="p.descripcion">
+                      {{ p.descripcion | truncate:50 }}
+                    </small>
+                  </div>
+                </td>
+                <td class="producto-categoria">
+                  <span class="categoria-badge">{{ p.categoria.nombre }}</span>
+                </td>
+                <td class="producto-precio">
+                  <strong>{{ p.precio | currency:'COP':'$':'1.0-0' }}</strong>
+                </td>
+                <td class="producto-stock">
+                  <span [class]="getStockClass(p.stock)">
+                    {{ p.stock }}
+                    <i *ngIf="p.stock <= 5" class="fas fa-exclamation-circle"></i>
+                  </span>
+                </td>
+                <td class="producto-marca">
+                  {{ p.marca || 'N/A' }}
+                </td>
+                <td class="producto-garantia">
+                  <span *ngIf="p.garantia" class="garantia-badge">
+                    {{ p.garantia }} meses
+                  </span>
+                  <span *ngIf="!p.garantia" class="sin-garantia">N/A</span>
+                </td>
+                <td class="producto-estado">
+                  <span [class]="'badge badge-' + p.estado.toLowerCase()">
+                    {{ p.estado }}
+                  </span>
+                </td>
+                <td class="producto-acciones">
+                  <div class="acciones-buttons">
+                    <button (click)="editarProducto(p)" class="btn-action btn-edit" title="Editar producto">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button (click)="cambiarEstadoProducto(p)" 
+                            [class]="p.estado === 'ACTIVO' ? 'btn-action btn-deactivate' : 'btn-action btn-activate'" 
+                            [title]="p.estado === 'ACTIVO' ? 'Desactivar producto' : 'Activar producto'">
+                      <i [class]="p.estado === 'ACTIVO' ? 'fas fa-toggle-off' : 'fas fa-toggle-on'"></i>
+                    </button>
+                    <button (click)="verDetalles(p)" class="btn-action btn-info" title="Ver detalles">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- PAGINACIÓN PARA RESULTADOS DE BÚSQUEDA -->
+        <div *ngIf="resultadosBusqueda.length > 0 && totalPaginasBusqueda > 1" class="paginacion-container">
+          <div class="paginacion-info">
+            Página {{ paginaActualBusqueda }} de {{ totalPaginasBusqueda }}
+          </div>
+          <div class="paginacion-controls">
+            <button 
+              (click)="cambiarPaginaBusqueda(paginaActualBusqueda - 1)" 
+              [disabled]="paginaActualBusqueda === 1"
+              class="btn-paginacion">
+              <i class="fas fa-chevron-left"></i>
+              Anterior
+            </button>
+            
+            <div class="paginacion-numeros">
+              <button 
+                *ngFor="let pagina of obtenerRangoPaginasBusqueda()"
+                (click)="cambiarPaginaBusqueda(pagina)"
+                [class.active]="pagina === paginaActualBusqueda"
+                class="btn-pagina">
+                {{ pagina }}
+              </button>
+            </div>
+            
+            <button 
+              (click)="cambiarPaginaBusqueda(paginaActualBusqueda + 1)" 
+              [disabled]="paginaActualBusqueda === totalPaginasBusqueda"
+              class="btn-paginacion">
+              Siguiente
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="paginacion-items">
+            <label>Mostrar:</label>
+            <select 
+              [(ngModel)]="itemsPorPaginaBusqueda" 
+              (change)="cambiarItemsPorPaginaBusqueda()"
+              class="select-items">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+            <span>ítems por página</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div class="tabla-section" *ngIf="resultadosBusqueda.length === 0 && busquedaEjecutada">
+      <div class="empty-state">
+        <i class="fas fa-search"></i>
+        <h3>No se encontraron productos</h3>
+        <p>No hay productos que coincidan con los criterios de búsqueda especificados.</p>
+        <button (click)="limpiarBusquedaAvanzada()" class="btn-primary">
+          <i class="fas fa-broom"></i>
+          Limpiar Filtros
+        </button>
       </div>
     </div>
   </section>
@@ -413,7 +845,7 @@
       <!-- Información de resultados -->
       <div class="resultados-info">
         <span class="resultados-text">
-          Mostrando <strong>{{ productosFiltrados.length }}</strong> de <strong>{{ productos.length }}</strong> productos
+          Mostrando <strong>{{ (productosFiltradosPaginados.length > 0 ? (paginaActualFiltros - 1) * itemsPorPaginaFiltros + 1 : 0) }} - {{ Math.min(paginaActualFiltros * itemsPorPaginaFiltros, productosFiltrados.length) }}</strong> de <strong>{{ productosFiltrados.length }}</strong> productos
           <span *ngIf="terminoBusquedaNombre || terminoBusquedaCodigo || categoriaFiltro || estadoFiltro || stockFiltro" 
                 class="filtros-activos">
             (filtros aplicados)
@@ -470,7 +902,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let p of productosFiltrados" class="producto-row">
+              <tr *ngFor="let p of productosFiltradosPaginados" class="producto-row">
                 <td class="producto-id">{{ p.id }}</td>
                 <td class="producto-codigo">
                   <strong>{{ p.codigo }}</strong>
@@ -527,6 +959,54 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- ✅ PAGINACIÓN PARA PRODUCTOS FILTRADOS -->
+        <div *ngIf="productosFiltrados.length > 0 && totalPaginasFiltros > 1" class="paginacion-container">
+          <div class="paginacion-info">
+            Página {{ paginaActualFiltros }} de {{ totalPaginasFiltros }}
+          </div>
+          <div class="paginacion-controls">
+            <button 
+              (click)="cambiarPaginaFiltros(paginaActualFiltros - 1)" 
+              [disabled]="paginaActualFiltros === 1"
+              class="btn-paginacion">
+              <i class="fas fa-chevron-left"></i>
+              Anterior
+            </button>
+            
+            <div class="paginacion-numeros">
+              <button 
+                *ngFor="let pagina of obtenerRangoPaginasFiltros()"
+                (click)="cambiarPaginaFiltros(pagina)"
+                [class.active]="pagina === paginaActualFiltros"
+                class="btn-pagina">
+                {{ pagina }}
+              </button>
+            </div>
+            
+            <button 
+              (click)="cambiarPaginaFiltros(paginaActualFiltros + 1)" 
+              [disabled]="paginaActualFiltros === totalPaginasFiltros"
+              class="btn-paginacion">
+              Siguiente
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="paginacion-items">
+            <label>Mostrar:</label>
+            <select 
+              [(ngModel)]="itemsPorPaginaFiltros" 
+              (change)="cambiarItemsPorPaginaFiltros()"
+              class="select-items">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+            <span>ítems por página</span>
+          </div>
         </div>
       </div>
     </div>

@@ -120,7 +120,7 @@
       <!-- Información de resultados -->
       <div class="resultados-info">
         <span class="resultados-text">
-          Mostrando <strong>{{ totalFiltrados }}</strong> de <strong>{{ totalClientes }}</strong> clientes
+          Mostrando <strong>{{ (clientesFiltradosPaginados.length > 0 ? (paginaActual - 1) * itemsPorPagina + 1 : 0) }} - {{ Math.min(paginaActual * itemsPorPagina, totalFiltrados) }}</strong> de <strong>{{ totalFiltrados }}</strong> clientes
           <span *ngIf="filtroTexto || filtroTipo !== 'TODOS'" class="filtros-activos">
             (filtros aplicados)
           </span>
@@ -153,7 +153,7 @@
         </div>
 
         <!-- Tabla de Clientes -->
-        <div *ngIf="!cargando && hayResultados" class="table-responsive" [class.has-more-rows]="clientesFiltrados.length > 8">
+        <div *ngIf="!cargando && hayResultados" class="table-responsive">
           <table class="clientes-table">
             <thead>
               <tr>
@@ -167,7 +167,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let cliente of clientesFiltrados" class="cliente-row">
+              <tr *ngFor="let cliente of clientesFiltradosPaginados" class="cliente-row">
                 <td class="cliente-nombre">
                   <strong>{{ cliente.nombre }}</strong>
                   <small *ngIf="cliente.direccion" class="cliente-direccion">
@@ -197,7 +197,8 @@
                 </td>
                 <td class="cliente-descuento">
                   <span class="descuento-valor">
-                    {{ cliente.descuentoAplicable || 0 }}%
+                    {{ obtenerDescuentoFormateado(cliente) }}
+                    <i *ngIf="esDescuentoPersonalizado(cliente)" class="fas fa-star custom-discount" title="Descuento personalizado"></i>
                   </span>
                 </td>
                 <td class="cliente-fecha">
@@ -230,6 +231,54 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Paginación -->
+        <div *ngIf="!cargando && hayResultados && totalPaginas > 1" class="paginacion-container">
+          <div class="paginacion-info">
+            Página {{ paginaActual }} de {{ totalPaginas }}
+          </div>
+          <div class="paginacion-controls">
+            <button 
+              (click)="cambiarPagina(paginaActual - 1)" 
+              [disabled]="paginaActual === 1"
+              class="btn-paginacion">
+              <i class="fas fa-chevron-left"></i>
+              Anterior
+            </button>
+            
+            <div class="paginacion-numeros">
+              <button 
+                *ngFor="let pagina of obtenerRangoPaginas()"
+                (click)="cambiarPagina(pagina)"
+                [class.active]="pagina === paginaActual"
+                class="btn-pagina">
+                {{ pagina }}
+              </button>
+            </div>
+            
+            <button 
+              (click)="cambiarPagina(paginaActual + 1)" 
+              [disabled]="paginaActual === totalPaginas"
+              class="btn-paginacion">
+              Siguiente
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="paginacion-items">
+            <label>Mostrar:</label>
+            <select 
+              [(ngModel)]="itemsPorPagina" 
+              (change)="cambiarItemsPorPagina()"
+              class="select-items">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+            <span>ítems por página</span>
+          </div>
         </div>
       </div>
     </section>
@@ -322,6 +371,7 @@
                 name="descuentoAplicable"
                 min="0"
                 max="100"
+                step="0.1"
                 class="form-input"
                 placeholder="0">
             </div>
@@ -377,7 +427,7 @@
                 </div>
                 <div class="detalle-item">
                   <span class="detalle-label">Descuento</span>
-                  <span class="detalle-valor">{{ clienteSeleccionado.descuentoAplicable || 0 }}%</span>
+                  <span class="detalle-valor">{{ obtenerDescuentoFormateado(clienteSeleccionado) }}</span>
                 </div>
               </div>
             </div>

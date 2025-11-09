@@ -342,7 +342,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let u of usuarios" class="usuario-row">
+              <tr *ngFor="let u of usuariosPaginados" class="usuario-row">
                 <td class="usuario-id">{{ u.id }}</td>
                 <td class="usuario-cedula">
                   <strong>{{ u.cedula }}</strong>
@@ -387,6 +387,54 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- ✅ PAGINACIÓN PARA GESTIÓN DE USUARIOS -->
+        <div *ngIf="usuarios.length > 0 && totalPaginas > 1" class="paginacion-container">
+          <div class="paginacion-info">
+            Página {{ paginaActual }} de {{ totalPaginas }}
+          </div>
+          <div class="paginacion-controls">
+            <button 
+              (click)="cambiarPagina(paginaActual - 1)" 
+              [disabled]="paginaActual === 1"
+              class="btn-paginacion">
+              <i class="fas fa-chevron-left"></i>
+              Anterior
+            </button>
+            
+            <div class="paginacion-numeros">
+              <button 
+                *ngFor="let pagina of obtenerRangoPaginas()"
+                (click)="cambiarPagina(pagina)"
+                [class.active]="pagina === paginaActual"
+                class="btn-pagina">
+                {{ pagina }}
+              </button>
+            </div>
+            
+            <button 
+              (click)="cambiarPagina(paginaActual + 1)" 
+              [disabled]="paginaActual === totalPaginas"
+              class="btn-paginacion">
+              Siguiente
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="paginacion-items">
+            <label>Mostrar:</label>
+            <select 
+              [(ngModel)]="itemsPorPagina" 
+              (change)="cambiarItemsPorPagina()"
+              class="select-items">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+            <span>ítems por página</span>
+          </div>
         </div>
       </div>
     </div>
@@ -538,7 +586,7 @@
       <!-- Información de resultados -->
       <div class="resultados-info">
         <span class="resultados-text">
-          Mostrando <strong>{{ usuariosFiltrados.length }}</strong> de <strong>{{ usuarios.length }}</strong> usuarios
+          Mostrando <strong>{{ (usuariosFiltradosPaginados.length > 0 ? (paginaActualFiltros - 1) * itemsPorPaginaFiltros + 1 : 0) }} - {{ Math.min(paginaActualFiltros * itemsPorPaginaFiltros, usuariosFiltrados.length) }}</strong> de <strong>{{ usuariosFiltrados.length }}</strong> usuarios
           <span *ngIf="terminoBusquedaNombre || terminoBusquedaCedula || tipoUsuarioFiltro !== 'TODOS' || estadoFiltro !== 'TODOS' || tipoFiltroFecha" 
                 class="filtros-activos">
             (filtros aplicados)
@@ -594,7 +642,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let u of usuariosFiltrados" class="usuario-row">
+              <tr *ngFor="let u of usuariosFiltradosPaginados" class="usuario-row">
                 <td class="usuario-id">{{ u.id }}</td>
                 <td class="usuario-cedula">
                   <strong>{{ u.cedula }}</strong>
@@ -639,6 +687,54 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- ✅ PAGINACIÓN PARA USUARIOS FILTRADOS -->
+        <div *ngIf="usuariosFiltrados.length > 0 && totalPaginasFiltros > 1" class="paginacion-container">
+          <div class="paginacion-info">
+            Página {{ paginaActualFiltros }} de {{ totalPaginasFiltros }}
+          </div>
+          <div class="paginacion-controls">
+            <button 
+              (click)="cambiarPaginaFiltros(paginaActualFiltros - 1)" 
+              [disabled]="paginaActualFiltros === 1"
+              class="btn-paginacion">
+              <i class="fas fa-chevron-left"></i>
+              Anterior
+            </button>
+            
+            <div class="paginacion-numeros">
+              <button 
+                *ngFor="let pagina of obtenerRangoPaginasFiltros()"
+                (click)="cambiarPaginaFiltros(pagina)"
+                [class.active]="pagina === paginaActualFiltros"
+                class="btn-pagina">
+                {{ pagina }}
+              </button>
+            </div>
+            
+            <button 
+              (click)="cambiarPaginaFiltros(paginaActualFiltros + 1)" 
+              [disabled]="paginaActualFiltros === totalPaginasFiltros"
+              class="btn-paginacion">
+              Siguiente
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="paginacion-items">
+            <label>Mostrar:</label>
+            <select 
+              [(ngModel)]="itemsPorPaginaFiltros" 
+              (change)="cambiarItemsPorPaginaFiltros()"
+              class="select-items">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+            <span>ítems por página</span>
+          </div>
         </div>
       </div>
     </div>

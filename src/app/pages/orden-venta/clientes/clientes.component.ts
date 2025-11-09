@@ -46,6 +46,12 @@ export class ClientesComponent implements OnInit {
   totalJuridicos: number = 0;
   totalClientes: number = 0;
 
+  // ✅ NUEVO: Variables de paginación
+  paginaActual: number = 1;
+  itemsPorPagina: number = 10;
+  totalPaginas: number = 1;
+  clientesFiltradosPaginados: ClienteDto[] = [];
+
   constructor(
     private router: Router,
     private clienteService: ClienteService,
@@ -78,6 +84,7 @@ export class ClientesComponent implements OnInit {
             this.clientes = response.data || [];
             this.clientesFiltrados = [...this.clientes];
             this.calcularEstadisticas();
+            this.aplicarPaginacion(); // ✅ Aplicar paginación después de cargar
           } else {
             this.errorMessage = response.mensaje || 'Error al cargar los clientes';
           }
@@ -115,6 +122,68 @@ export class ClientesComponent implements OnInit {
     }
 
     this.clientesFiltrados = clientesFiltrados;
+    this.paginaActual = 1; // ✅ Resetear a primera página al aplicar filtros
+    this.aplicarPaginacion();
+  }
+
+  // ✅ NUEVO: Aplicar paginación a los clientes filtrados
+  aplicarPaginacion(): void {
+    // Calcular total de páginas
+    this.totalPaginas = Math.ceil(this.clientesFiltrados.length / this.itemsPorPagina);
+    
+    // Asegurar que la página actual sea válida
+    if (this.paginaActual > this.totalPaginas && this.totalPaginas > 0) {
+      this.paginaActual = this.totalPaginas;
+    } else if (this.totalPaginas === 0) {
+      this.paginaActual = 1;
+    }
+    
+    // Calcular índices para el slice
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    
+    // Obtener clientes para la página actual
+    this.clientesFiltradosPaginados = this.clientesFiltrados.slice(inicio, fin);
+  }
+
+  // ✅ NUEVO: Cambiar de página
+  cambiarPagina(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginas && pagina !== this.paginaActual) {
+      this.paginaActual = pagina;
+      this.aplicarPaginacion();
+      
+      // Scroll suave hacia la parte superior de la tabla
+      const tablaSection = document.querySelector('.tabla-section');
+      if (tablaSection) {
+        tablaSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }
+
+  // ✅ NUEVO: Cambiar cantidad de items por página
+  cambiarItemsPorPagina(): void {
+    this.paginaActual = 1;
+    this.aplicarPaginacion();
+  }
+
+  // ✅ NUEVO: Obtener rango de páginas para mostrar
+  obtenerRangoPaginas(): number[] {
+    const paginas: number[] = [];
+    const paginasAMostrar = 5; // Número máximo de páginas a mostrar
+    
+    let inicio = Math.max(1, this.paginaActual - Math.floor(paginasAMostrar / 2));
+    let fin = Math.min(this.totalPaginas, inicio + paginasAMostrar - 1);
+    
+    // Ajustar inicio si estamos cerca del final
+    if (fin - inicio + 1 < paginasAMostrar) {
+      inicio = Math.max(1, fin - paginasAMostrar + 1);
+    }
+    
+    for (let i = inicio; i <= fin; i++) {
+      paginas.push(i);
+    }
+    
+    return paginas;
   }
 
   // Limpiar filtros
@@ -122,6 +191,8 @@ export class ClientesComponent implements OnInit {
     this.filtroTexto = '';
     this.filtroTipo = 'TODOS';
     this.clientesFiltrados = [...this.clientes];
+    this.paginaActual = 1; // ✅ Resetear a primera página
+    this.aplicarPaginacion();
     this.errorMessage = '';
     this.successMessage = '';
   }
@@ -154,8 +225,12 @@ export class ClientesComponent implements OnInit {
         next: (response) => {
           if (response.data && response.data.id) {
             this.clientesFiltrados = [response.data];
+            this.paginaActual = 1;
+            this.aplicarPaginacion();
           } else {
             this.clientesFiltrados = [];
+            this.paginaActual = 1;
+            this.aplicarPaginacion();
             this.errorMessage = 'No se encontró ningún cliente con esa cédula';
           }
         }
@@ -184,6 +259,8 @@ export class ClientesComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.clientesFiltrados = response.data || [];
+          this.paginaActual = 1;
+          this.aplicarPaginacion();
           if (this.clientesFiltrados.length === 0) {
             this.errorMessage = 'No se encontraron clientes con ese nombre';
           }
@@ -490,7 +567,6 @@ export class ClientesComponent implements OnInit {
             
             // Cerrar el modal de confirmación
             this.mostrarConfirmacionContinuar = false;
-            const clienteNombre = this.clienteSeleccionado!.nombre;
             this.clienteSeleccionado = null;
             
             // ✅ ACTUALIZAR ESTADO DE LA ORDEN A AGREGANDOPRODUCTOS
@@ -562,5 +638,10 @@ export class ClientesComponent implements OnInit {
     return cliente.descuentoAplicable !== undefined && 
            cliente.descuentoAplicable !== null && 
            cliente.descuentoAplicable > 0;
+  }
+
+  // ✅ NUEVO: Método auxiliar para Math.min en template
+  get Math(): Math {
+    return Math;
   }
 }

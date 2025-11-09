@@ -28,18 +28,24 @@
         <span class="cart-col product-name">{{ item.producto.nombre }}</span>
         <span class="cart-col">
           <div class="quantity-controls">
+            <!-- Botón disminuir (siempre habilitado mientras haya al menos 1) -->
             <button 
               class="quantity-btn bounce-entrance" 
               (click)="ajustarCantidad(item.producto.id, -1)"
               [disabled]="estaAjustandoCantidad(item.producto.id)"
+              [title]="'Disminuir cantidad'"
             >
               {{ estaAjustandoCantidad(item.producto.id) ? '⏳' : '−' }}
             </button>
+            
             <span class="quantity-number fade-in-entrance">{{ item.cantidad }}</span>
+            
+            <!-- Botón incrementar (deshabilitado si no hay stock disponible o producto no activo) -->
             <button 
-              class="quantity-btn bounce-entrance" 
+              [class]="getClaseBotonIncrementar(item.producto.id)"
               (click)="ajustarCantidad(item.producto.id, 1)"
-              [disabled]="estaAjustandoCantidad(item.producto.id)"
+              [disabled]="estaAjustandoCantidad(item.producto.id) || getClaseBotonIncrementar(item.producto.id).includes('disabled')"
+              [title]="getTooltipIncrementar(item.producto.id)"
             >
               {{ estaAjustandoCantidad(item.producto.id) ? '⏳' : '+' }}
             </button>
@@ -71,6 +77,12 @@
         <div class="total-content">
           <span class="total-label">Total:</span>
           <span class="total-amount">{{ formatearPrecio(obtenerTotal()) }}</span>
+        </div>
+        
+        <!-- 🔥 CORREGIDO: Advertencia si hay productos no disponibles -->
+        <div *ngIf="hayProductosNoDisponibles()" class="warning-message fade-in-entrance">
+          <span class="warning-icon">⚠️</span>
+          <span class="warning-text">Algunos productos han alcanzado el stock máximo o no están disponibles</span>
         </div>
       </div>
 
