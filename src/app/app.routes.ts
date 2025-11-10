@@ -30,6 +30,8 @@ import { ResumenOrdenComponent } from './pages/orden-venta/resumen-orden/resumen
 import { CajaInicioComponent } from './pages/caja/caja-inicio/caja-inicio.component';
 import { CatalogoComponent } from './pages/cliente/catalogo/catalogo.component';
 import { StripeCheckoutComponent } from './pages/stripe-checkout/stripe-checkout.component';
+import { TerminosCondicionesComponent } from './pages/terminos-condiciones/terminos-condiciones.component';
+import { PoliticaPrivacidadComponent } from './pages/politica-privacidad/politica-privacidad.component';
 
 export const routes: Routes = [
   // 🔓 RUTAS PÚBLICAS
@@ -56,6 +58,14 @@ export const routes: Routes = [
   { 
     path: 'catalogo-cliente', 
     component: CatalogoComponent
+  },
+  { 
+    path: 'terminos-condiciones', 
+    component: TerminosCondicionesComponent
+  },
+  { 
+    path: 'politica-privacidad', 
+    component: PoliticaPrivacidadComponent
   },
   { 
     path: 'acceso-denegado', 

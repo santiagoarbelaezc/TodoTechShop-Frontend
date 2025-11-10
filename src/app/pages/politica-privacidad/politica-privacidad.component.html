@@ -1,0 +1,337 @@
+<div class="terminos-container">
+  <!-- Header Mejorado -->
+  <div class="terminos-header">
+    <div class="header-content">
+      <div class="logo-section">
+        <img src="assets/TigreCircle.png" alt="TodoTech Shop" class="header-logo">
+        <div class="header-text">
+          <h1>Política de Privacidad</h1>
+          <p class="fecha-actualizacion">Última actualización: {{fechaActual | date:'dd/MM/yyyy'}}</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-download-small" (click)="descargarPDF()" title="Descargar PDF">
+          <i class="fas fa-download"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="terminos-content">
+    <!-- Navegación Lateral Mejorada -->
+    <nav class="terminos-nav">
+      <div class="nav-header">
+        <h3>Contenido</h3>
+      </div>
+      <ul>
+        <li *ngFor="let seccion of secciones" 
+            [class.active]="seccionActiva === seccion.id"
+            (click)="scrollToSeccion(seccion.id)">
+          <span class="nav-icon">{{seccion.icon}}</span>
+          <span class="nav-text">{{seccion.titulo}}</span>
+        </li>
+      </ul>
+      <div class="nav-footer">
+        <p>Protección de sus datos personales</p>
+      </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <div class="terminos-main">
+      <!-- Sección 1: Información que Recopilamos -->
+      <section id="informacion" class="seccion-terminos">
+        <div class="seccion-header">
+          <span class="seccion-icon">📊</span>
+          <h2>Información que Recopilamos</h2>
+        </div>
+        
+        <div class="seccion-content">
+          <div class="info-card">
+            <h3>1.1 Información Personal</h3>
+            <p>Recopilamos información que usted nos proporciona directamente cuando:</p>
+            <ul class="feature-list">
+              <li>🔹 Crea una cuenta en nuestra plataforma</li>
+              <li>🔹 Realiza una compra o transacción</li>
+              <li>🔹 Se contacta con nuestro servicio al cliente</li>
+              <li>🔹 Participa en encuestas o promociones</li>
+            </ul>
+          </div>
+
+          <div class="info-card">
+            <h3>1.2 Datos Recopilados</h3>
+            <div class="data-types-grid">
+              <div class="data-type">
+                <span class="data-icon">👤</span>
+                <div class="data-content">
+                  <strong>Información de Identificación</strong>
+                  <p>Nombre completo, documento de identidad, fecha de nacimiento</p>
+                </div>
+              </div>
+              <div class="data-type">
+                <span class="data-icon">📧</span>
+                <div class="data-content">
+                  <strong>Información de Contacto</strong>
+                  <p>Correo electrónico, teléfono, dirección física</p>
+                </div>
+              </div>
+              <div class="data-type">
+                <span class="data-icon">💳</span>
+                <div class="data-content">
+                  <strong>Información de Pago</strong>
+                  <p>Datos de tarjetas (procesados de forma segura), historial de transacciones</p>
+                </div>
+              </div>
+              <div class="data-type">
+                <span class="data-icon">🌐</span>
+                <div class="data-content">
+                  <strong>Datos Técnicos</strong>
+                  <p>Dirección IP, tipo de navegador, dispositivo, cookies</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-card warning">
+            <h3>⚠️ Consentimiento Informado</h3>
+            <p>Al utilizar nuestros servicios, usted otorga su consentimiento expreso para la recolección y tratamiento de sus datos personales de acuerdo con esta política y la Ley 1581 de 2012 de Colombia.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección 2: Uso de la Información -->
+      <section id="uso" class="seccion-terminos">
+        <div class="seccion-header">
+          <span class="seccion-icon">🎯</span>
+          <h2>Uso de la Información</h2>
+        </div>
+        
+        <div class="seccion-content">
+          <div class="info-card">
+            <h3>2.1 Finalidades del Tratamiento</h3>
+            <p>Utilizamos su información para los siguientes propósitos:</p>
+            
+            <div class="purposes-grid">
+              <div class="purpose-item primary">
+                <span class="purpose-icon">🛒</span>
+                <div class="purpose-content">
+                  <strong>Procesar Transacciones</strong>
+                  <p>Gestionar sus compras, pagos y entregas</p>
+                </div>
+              </div>
+              <div class="purpose-item primary">
+                <span class="purpose-icon">🔒</span>
+                <div class="purpose-content">
+                  <strong>Seguridad y Prevención</strong>
+                  <p>Detectar y prevenir fraudes y actividades ilegales</p>
+                </div>
+              </div>
+              <div class="purpose-item secondary">
+                <span class="purpose-icon">📱</span>
+                <div class="purpose-content">
+                  <strong>Mejora del Servicio</strong>
+                  <p>Personalizar y mejorar su experiencia</p>
+                </div>
+              </div>
+              <div class="purpose-item secondary">
+                <span class="purpose-icon">📞</span>
+                <div class="purpose-content">
+                  <strong>Soporte al Cliente</strong>
+                  <p>Atender sus consultas y requerimientos</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3>2.2 Comunicaciones</h3>
+            <p>Podemos contactarle para:</p>
+            <ul class="communication-list">
+              <li>✅ Confirmaciones de pedidos y actualizaciones de envío</li>
+              <li>✅ Notificaciones importantes sobre su cuenta</li>
+              <li>✅ Ofertas y promociones (si ha dado su consentimiento)</li>
+              <li>✅ Encuestas de satisfacción</li>
+            </ul>
+          </div>
+
+          <div class="info-card important">
+            <h3>📌 Base Legal del Tratamiento</h3>
+            <p>El tratamiento de sus datos se basa en: <strong>consentimiento expreso</strong>, <strong>ejecución de contrato</strong>, <strong>interés legítimo</strong> y <strong>cumplimiento de obligaciones legales</strong> según la legislación colombiana.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección 3: Protección de Datos -->
+      <section id="proteccion" class="seccion-terminos">
+        <div class="seccion-header">
+          <span class="seccion-icon">🛡️</span>
+          <h2>Protección de Datos</h2>
+        </div>
+        
+        <div class="seccion-content">
+          <div class="info-card">
+            <h3>3.1 Medidas de Seguridad</h3>
+            <p>Implementamos medidas técnicas y organizativas para proteger sus datos:</p>
+            
+            <div class="security-measures">
+              <div class="security-item">
+                <span class="security-icon">🔐</span>
+                <div class="security-content">
+                  <strong>Encriptación SSL</strong>
+                  <p>Datos transmitidos de forma segura mediante encriptación de 256 bits</p>
+                </div>
+              </div>
+              <div class="security-item">
+                <span class="security-icon">🏢</span>
+                <div class="security-content">
+                  <strong>Control de Acceso</strong>
+                  <p>Acceso restringido solo al personal autorizado</p>
+                </div>
+              </div>
+              <div class="security-item">
+                <span class="security-icon">📋</span>
+                <div class="security-content">
+                  <strong>Políticas Internas</strong>
+                  <p>Protocolos estrictos de manejo de información confidencial</p>
+                </div>
+              </div>
+              <div class="security-item">
+                <span class="security-icon">🔍</span>
+                <div class="security-content">
+                  <strong>Auditorías Regulares</strong>
+                  <p>Revisiones periódicas de nuestros sistemas de seguridad</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3>3.2 Almacenamiento y Retención</h3>
+            <p>Conservamos sus datos personales únicamente durante el tiempo necesario para cumplir con las finalidades descritas:</p>
+            <ul class="retention-list">
+              <li>📅 <strong>Datos de transacciones:</strong> 10 años (obligación legal)</li>
+              <li>📅 <strong>Datos de cuenta activa:</strong> Mientras mantenga su cuenta activa</li>
+              <li>📅 <strong>Datos de contacto:</strong> Hasta que solicite su eliminación</li>
+              <li>📅 <strong>Cookies:</strong> Según la configuración de su navegador</li>
+            </ul>
+          </div>
+
+          <div class="info-card warning">
+            <h3>🚫 Compartir Información</h3>
+            <p><strong>No vendemos, comerciamos ni transferimos</strong> su información personal a terceros sin su consentimiento, excepto cuando sea necesario para:</p>
+            <ul class="sharing-list">
+              <li>🔸 Procesar pagos (proveedores de pago certificados)</li>
+              <li>🔸 Cumplir con requerimientos legales</li>
+              <li>🔸 Prevenir fraudes o proteger nuestra plataforma</li>
+              <li>🔸 Proveer servicios logísticos (empresas de transporte)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección 4: Derechos del Titular -->
+      <section id="derechos" class="seccion-terminos">
+        <div class="seccion-header">
+          <span class="seccion-icon">⚖️</span>
+          <h2>Derechos del Titular</h2>
+        </div>
+        
+        <div class="seccion-content">
+          <div class="info-card">
+            <h3>4.1 Sus Derechos</h3>
+            <p>De acuerdo con la Ley 1581 de 2012, usted tiene derecho a:</p>
+            
+            <div class="rights-grid">
+              <div class="right-item">
+                <span class="right-icon">👁️</span>
+                <div class="right-content">
+                  <strong>Acceso</strong>
+                  <p>Conocer la información que tenemos sobre usted</p>
+                </div>
+              </div>
+              <div class="right-item">
+                <span class="right-icon">✏️</span>
+                <div class="right-content">
+                  <strong>Rectificación</strong>
+                  <p>Actualizar o corregir datos inexactos</p>
+                </div>
+              </div>
+              <div class="right-item">
+                <span class="right-icon">🚫</span>
+                <div class="right-content">
+                  <strong>Cancelación</strong>
+                  <p>Solicitar la eliminación de sus datos</p>
+                </div>
+              </div>
+              <div class="right-item">
+                <span class="right-icon">🔒</span>
+                <div class="right-content">
+                  <strong>Revocación</strong>
+                  <p>Retirar su consentimiento en cualquier momento</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3>4.2 Ejercicio de Derechos</h3>
+            <p>Para ejercer cualquiera de estos derechos, puede:</p>
+            <ul class="exercise-list">
+              
+              <li>📞 Contactar a nuestro Oficial de Protección de Datos</li>
+              <li>📝 Utilizar el formulario disponible en su cuenta</li>
+              <li>✉️ Enviar comunicación escrita a nuestra dirección física</li>
+            </ul>
+            <p class="response-time">⏱️ <strong>Tiempo de respuesta:</strong> Máximo 10 días hábiles</p>
+          </div>
+
+          <div class="info-card contact-info">
+            <h3>4.3 Contacto y Soporte</h3>
+            <p>Para consultas sobre protección de datos:</p>
+            <div class="contact-details">
+              <div class="contact-item">
+                <i class="fas fa-user-shield"></i>
+                <span>Oficial de Protección de Datos</span>
+              </div>
+              
+              <div class="contact-item">
+                <i class="fas fa-phone"></i>
+                <span>+57 1 123 4567 (Ext. 2)</span>
+              </div>
+              <div class="contact-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Cra 45 # 26-85, Bogotá, Colombia</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Botones de Acción Mejorados -->
+      <div class="terminos-actions">
+        <div class="actions-header">
+          <h3>¿Está de acuerdo con nuestra política de privacidad?</h3>
+          <p>Al aceptar, confirma que ha leído y comprendido cómo protegemos y tratamos sus datos personales.</p>
+        </div>
+        
+        <div class="actions-buttons">
+          <button class="btn btn-primary" (click)="aceptarPolitica()">
+            <i class="fas fa-check-circle"></i>
+            Aceptar Política de Privacidad
+          </button>
+          <button class="btn btn-secondary" (click)="rechazarPolitica()">
+            <i class="fas fa-times-circle"></i>
+            Rechazar
+          </button>
+          <button class="btn btn-outline" (click)="descargarPDF()">
+            <i class="fas fa-download"></i>
+            Descargar PDF
+          </button>
+        </div>
+        
+        <div class="actions-footer">
+          <p><small>Al aceptar, usted reconoce haber sido informado sobre el tratamiento de sus datos personales de acuerdo con la Ley 1581 de 2012 de Colombia.</small></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

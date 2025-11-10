@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - TodoTech Shop</title>
   <link rel="stylesheet" href="login.component.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <!-- Botón de ayuda/manual de usuario -->
@@ -26,7 +27,7 @@
           <p>{{ errorMessage }}</p>
         </div>
 
-        <form (ngSubmit)="onLogin()">
+        <form (ngSubmit)="onLogin()" #loginForm="ngForm">
           <div class="input-group">
             <input 
               type="text" 
@@ -45,9 +46,9 @@
             </div>
           </div>
   
-          <div class="input-group">
+          <div class="input-group password-group">
             <input 
-              type="password" 
+              [type]="showPassword ? 'text' : 'password'" 
               id="contrasena" 
               name="contrasena" 
               required 
@@ -59,7 +60,12 @@
               [disabled]="isLoading">
             <label for="contrasena">Contraseña</label>
             
-            <!-- Nuevo: Indicadores de requisitos de contraseña -->
+            <!-- Botón para mostrar/ocultar contraseña -->
+            <button type="button" class="toggle-password" (click)="togglePasswordVisibility()">
+              <i class="fas" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+            
+            <!-- Indicadores de requisitos de contraseña -->
             <div *ngIf="contrasena" class="password-requirements">
               <div class="requirement" [class.valid]="passwordRequirements.minLength">
                 ✓ Mínimo 8 caracteres
@@ -76,11 +82,37 @@
               Requiere: {{ getPasswordValidationMessage() }}
             </div>
           </div>
+
+          <!-- Checkbox de Términos y Condiciones -->
+          <div class="terms-section">
+            <label class="terms-checkbox">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="terminosAceptados" 
+                name="terminosAceptados"
+                [disabled]="isLoading">
+              <span class="checkmark"></span>
+              <span class="terms-text">
+                Acepto los 
+                <a href="#" class="terms-link" (click)="openTerminos($event)">
+                  Términos y Condiciones
+                </a>
+                y la 
+                <a href="#" class="terms-link" (click)="openPoliticaPrivacidad($event)">
+                  Política de Privacidad
+                </a>
+              </span>
+            </label>
+            <div *ngIf="showTermsError" class="validation-hint">
+              Debe aceptar los términos y condiciones para continuar
+            </div>
+          </div>
   
           <button 
             type="submit" 
-            [disabled]="!isFormValid()"
-            [class.loading]="isLoading">
+            [disabled]="!isFormValid() || !terminosAceptados"
+            [class.loading]="isLoading"
+            class="login-btn">
             <span *ngIf="!isLoading">Ingresar</span>
             <span *ngIf="isLoading">Iniciando sesión...</span>
           </button>
@@ -92,30 +124,13 @@
           <p>Verificando credenciales...</p>
         </div>
 
-        <!-- Botón para ingresar al catálogo -->
-        <div class="catalog-section">
-          <div class="catalog-divider">
-            <span>O</span>
-          </div>
-          <button 
-            class="catalog-btn"
-            (click)="goToCatalog()"
-            [disabled]="isLoading">
-            <i class="fas fa-store"></i>
-            <span>Ingresar a Catálogo</span>
-          </button>
-          <p class="catalog-description">
-            Explora nuestros productos sin iniciar sesión
-          </p>
-        </div>
-
         <!-- Enlace para recuperar contraseña -->
         <div class="forgot-password">
           <a href="#" (click)="goToRecoverPassword($event)">¿Olvidaste tu contraseña?</a>
         </div>
 
-        <!-- Botones de login rápido (solo para desarrollo - ocultos por defecto) -->
-        <div class="quick-login-buttons" *ngIf="false">
+        <!-- Botones de login rápido (solo para desarrollo) -->
+        <div class="quick-login-buttons" *ngIf="showQuickLogin">
           <h4>Acceso rápido (Desarrollo):</h4>
           <div class="quick-buttons-grid">
             <button class="quick-login-btn admin" (click)="quickLogin('admin')">
@@ -134,18 +149,15 @@
         </div>
       </div>
       
-      <!-- Sección del logo con fondo negro -->
+      <!-- Sección del logo -->
       <div class="logo-section">
         <div class="logo-wrapper">
           <img src="assets/TigreCircle.png" alt="Logo TodoTech Shop" class="logo">
-          <!-- Contenedor de ondas -->
           <div class="wave-container">
             <div class="wave-circle"></div>
             <div class="wave-circle"></div>
             <div class="wave-circle"></div>
           </div>
-  
-          <!-- Puntos orbitales -->
           <div class="orbit-dots">
             <div class="dot"></div>
             <div class="dot"></div>
@@ -157,9 +169,24 @@
           <h2>TodoTech Shop</h2>
           <p>La mejor tecnología a tu alcance</p>
         </div>
+        
+        <!-- Botón para ingresar al catálogo (MOVIDO AQUÍ) -->
+        <div class="catalog-section">
+          <div class="catalog-divider">
+            
+          </div>
+          <button 
+            class="catalog-btn"
+            (click)="goToCatalog()"
+            [disabled]="isLoading">
+            <i class="fas fa-store"></i>
+            <span>Ingresar a Catálogo</span>
+          </button>
+          <p class="catalog-description">
+            Explora nuestros productos sin iniciar sesión
+          </p>
+        </div>
       </div>
-
-      
     </main>
 </body>
 </html>

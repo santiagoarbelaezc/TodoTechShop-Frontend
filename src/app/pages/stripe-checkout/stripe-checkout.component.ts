@@ -42,8 +42,11 @@ export class StripeCheckoutComponent implements OnInit, OnDestroy, AfterViewInit
   async ngOnInit() {
     console.log('🔄 StripeCheckoutComponent - Inicializando componente...');
     
-    // ✅ AGREGADO: Agregar event listener para beforeunload
-    window.addEventListener('beforeunload', this.handleWindowClose.bind(this));
+    // ✅ AGREGADO: Escuchar mensajes de cierre automático
+    window.addEventListener('message', this.handleCloseWindowMessage.bind(this));
+    
+    // ✅ MODIFICADO: Remover beforeunload para evitar diálogos de confirmación
+    // window.addEventListener('beforeunload', this.handleWindowClose.bind(this));
     
     // Obtener parámetros de la URL
     this.clientSecret = this.route.snapshot.queryParamMap.get('clientSecret') || '';
@@ -333,10 +336,10 @@ export class StripeCheckoutComponent implements OnInit, OnDestroy, AfterViewInit
         
         this.mostrarMensajeExito('¡Pago exitoso! Esta ventana se cerrará automáticamente...');
         
-        // Cerrar ventana después de 3 segundos
+        // ✅ MODIFICADO: Cerrar ventana más rápido sin diálogos de confirmación
         setTimeout(() => {
-          window.close();
-        }, 3000);
+          this.cerrarVentanaSilenciosamente();
+        }, 1500);
       }
 
     } catch (err: any) {
@@ -437,17 +440,53 @@ export class StripeCheckoutComponent implements OnInit, OnDestroy, AfterViewInit
     }
   }
 
-  // ✅ AGREGADO: Manejar cierre de ventana
+  // ✅ AGREGADO: Manejar mensajes de cierre automático desde la ventana padre
+  private handleCloseWindowMessage = (event: MessageEvent) => {
+    if (event.data?.type === 'CLOSE_WINDOW_AUTOMATICALLY') {
+      console.log('🔄 Recibida solicitud de cierre automático:', event.data.reason);
+      
+      // Cerrar ventana automáticamente sin preguntar
+      setTimeout(() => {
+        this.cerrarVentanaSilenciosamente();
+      }, 500);
+    }
+  }
+
+  // ✅ AGREGADO: Método para cerrar ventana silenciosamente sin diálogos
+  private cerrarVentanaSilenciosamente(): void {
+    try {
+      // Limpiar cualquier event listener que pueda interferir
+      window.removeEventListener('beforeunload', this.handleWindowClose.bind(this));
+      
+      // Intentar cerrar la ventana
+      window.close();
+      console.log('✅ Ventana cerrada automáticamente sin diálogos');
+    } catch (error) {
+      console.warn('⚠️ No se pudo cerrar automáticamente:', error);
+      
+      // Fallback: redirigir a una página de éxito si no se puede cerrar
+      this.router.navigate(['/payment-success'], {
+        queryParams: { 
+          paymentIntentId: this.paymentIntentId,
+          autoClose: 'true'
+        }
+      });
+    }
+  }
+
+  // ✅ MODIFICADO: Manejar cierre de ventana sin diálogos de confirmación
   private handleWindowClose(event?: BeforeUnloadEvent) {
     console.log('🚪 Ventana de pago cerrándose...');
     
-    // Notificar a la ventana padre que el pago fue abortado
-    this.notificarPagoAbortado();
-    
-    // Opcional: Mostrar mensaje de confirmación (solo en algunos navegadores)
-    if (event) {
-      event.returnValue = '¿Estás seguro de que quieres salir? El pago se cancelará.';
+    // Solo notificar aborto si no estamos procesando un pago exitoso
+    if (!this.procesando) {
+      this.notificarPagoAbortado();
     }
+    
+    // ❌ REMOVIDO: No mostrar mensaje de confirmación para evitar diálogos
+    // if (event) {
+    //   event.returnValue = '¿Estás seguro de que quieres salir? El pago se cancelará.';
+    // }
   }
 
   // ✅ AGREGADO: Notificar que el pago fue abortado
@@ -469,17 +508,15 @@ export class StripeCheckoutComponent implements OnInit, OnDestroy, AfterViewInit
     }
   }
 
-  // ✅ MODIFICADO: Método cerrar mejorado
+  // ✅ MODIFICADO: Método cerrar mejorado sin diálogos
   cerrar() {
     console.log('❌ Cerrando ventana de pago manualmente...');
     
     // Notificar aborto antes de cerrar
     this.notificarPagoAbortado();
     
-    // Pequeño delay para asegurar que el mensaje se envíe
-    setTimeout(() => {
-      window.close();
-    }, 100);
+    // Cerrar silenciosamente
+    this.cerrarVentanaSilenciosamente();
   }
 
   reintentar() {
@@ -529,8 +566,9 @@ export class StripeCheckoutComponent implements OnInit, OnDestroy, AfterViewInit
   ngOnDestroy() {
     console.log('🧹 StripeCheckoutComponent - Destruyendo componente');
     
-    // ✅ AGREGADO: Remover event listener
-    window.removeEventListener('beforeunload', this.handleWindowClose.bind(this));
+    // ✅ AGREGADO: Remover event listeners
+    window.removeEventListener('message', this.handleCloseWindowMessage.bind(this));
+    // window.removeEventListener('beforeunload', this.handleWindowClose.bind(this));
     
     // ✅ AGREGADO: Notificar aborto si el componente se destruye sin éxito
     if (!this.procesando && this.paymentIntentId) {

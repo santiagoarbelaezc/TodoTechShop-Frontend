@@ -1,4 +1,3 @@
-// src/app/components/login/login.component.ts
 import { Component, ElementRef, AfterViewInit, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, NavigationStart } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -19,8 +18,11 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   isLoading: boolean = false;
   errorMessage: string = '';
   showError: boolean = false;
+  showPassword: boolean = false;
+  terminosAceptados: boolean = false;
+  showTermsError: boolean = false;
+  showQuickLogin: boolean = false; // Cambiar a true para desarrollo
   
-  // Nuevas propiedades para mostrar requisitos de contraseña
   passwordRequirements = {
     minLength: false,
     hasUpperCase: false,
@@ -30,6 +32,8 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   private hasSwapped: boolean = false;
   private returnUrl: string = '';
   private routerSubscription: Subscription;
+  private animationFrameId: number | null = null;
+  private particleData: { x: number; y: number; vx: number; vy: number; opacity: number; size: number; baseX: number; baseY: number }[] = [];
 
   constructor(
     private authService: AuthService,
@@ -37,11 +41,9 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     private elementRef: ElementRef,
     private route: ActivatedRoute
   ) {
-    // Suscribirse a eventos de navegación para detectar cuando se vuelve al login
     this.routerSubscription = this.router.events.subscribe(event => {
       if (event instanceof NavigationStart) {
         if (event.url.includes('/login')) {
-          // Limpiar estado cuando se navega al login
           this.clearError();
         }
       }
@@ -49,14 +51,11 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Limpieza garantizada al entrar al login
     this.authService.logout();
     
-    // Obtener returnUrl de los query params si existe
     this.route.queryParams.subscribe(params => {
       this.returnUrl = params['returnUrl'] || '';
       
-      // Mostrar mensaje si fue redirigido por expiración de sesión
       if (params['sessionExpired']) {
         this.showErrorAlert('Su sesión ha expirado. Por favor ingrese nuevamente.');
       }
@@ -66,23 +65,152 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    // Limpiar cualquier error previo
+    // Verificar si ya aceptó términos anteriormente
+    this.verificarTerminosPrevios();
     this.clearError();
   }
 
   ngOnDestroy() {
-    // Limpiar la suscripción para evitar memory leaks
     if (this.routerSubscription) {
       this.routerSubscription.unsubscribe();
     }
+    this.stopParticleAnimation();
   }
 
   ngAfterViewInit(): void {
     setTimeout(() => {
       this.initSmoothSwap();
+      this.initParticleSystem();
+      this.startParticleAnimation();
     }, 500);
   }
 
+  // ========== SISTEMA DE PARTÍCULAS MEJORADO ==========
+  private initParticleSystem(): void {
+    const particles = this.elementRef.nativeElement.querySelectorAll('.particle');
+    
+    if (particles.length === 0) {
+      console.log('No se encontraron partículas para animar');
+      return;
+    }
+
+    console.log(`Inicializando sistema de partículas para ${particles.length} partículas`);
+    
+    // Inicializar datos de partículas con movimientos más variados
+    particles.forEach((particle: HTMLElement, index: number) => {
+      const rect = particle.getBoundingClientRect();
+      const speed = this.getParticleSpeed(index);
+      
+      this.particleData[index] = {
+        x: rect.left,
+        y: rect.top,
+        vx: (Math.random() - 0.5) * speed.x * 0.8,
+        vy: (Math.random() - 0.5) * speed.y * 0.6,
+        opacity: 0.7 + Math.random() * 0.3,
+        size: this.getParticleSize(index),
+        baseX: rect.left,
+        baseY: rect.top
+      };
+
+      // Configuración inicial de estilo
+      particle.style.willChange = 'transform, opacity';
+      particle.style.transform = 'translate(0, 0)';
+    });
+  }
+
+  private startParticleAnimation(): void {
+    const particles = this.elementRef.nativeElement.querySelectorAll('.particle');
+    const startTime = Date.now();
+    
+    if (particles.length === 0) return;
+
+    const animate = () => {
+      const currentTime = Date.now();
+      const elapsed = (currentTime - startTime) / 1000;
+      
+      particles.forEach((particle: HTMLElement, index: number) => {
+        if (!this.particleData[index]) return;
+
+        const data = this.particleData[index];
+        const speed = this.getParticleSpeed(index);
+        
+        // Movimiento orgánico con múltiples frecuencias
+        const wave1 = Math.sin(elapsed * speed.x) * 25;
+        const wave2 = Math.cos(elapsed * speed.y * 0.7) * 15;
+        const wave3 = Math.sin(elapsed * speed.x * 1.3 + index) * 10;
+        
+        const x = wave1 + wave3 + data.vx * elapsed * 20;
+        const y = wave2 + data.vy * elapsed * 15;
+        
+        // Rotación dinámica
+        const rotation = elapsed * speed.rotation * 15 + index * 45;
+        
+        // Efectos de opacidad complejos
+        const opacityWave1 = Math.sin(elapsed * speed.opacity) * 0.2;
+        const opacityWave2 = Math.cos(elapsed * speed.opacity * 1.5 + index) * 0.15;
+        const baseOpacity = 0.6 + (index % 3) * 0.1;
+        const opacity = Math.max(0.3, Math.min(0.9, baseOpacity + opacityWave1 + opacityWave2));
+        
+        // Efecto de escala sutil
+        const scale = 1 + Math.sin(elapsed * speed.x * 2 + index) * 0.1;
+        
+        // Aplicar transformaciones
+        particle.style.transform = `
+          translate(${x}px, ${y}px) 
+          rotate(${rotation}deg) 
+          scale(${scale})
+        `;
+        
+        particle.style.opacity = opacity.toString();
+        
+        // Efecto de brillo dinámico
+        const brightness = 100 + Math.sin(elapsed * speed.opacity * 2) * 20;
+        particle.style.filter = `brightness(${brightness}%) blur(${0.3 + Math.sin(elapsed) * 0.2}px)`;
+      });
+      
+      this.animationFrameId = requestAnimationFrame(animate);
+    };
+    
+    animate();
+  }
+
+  private stopParticleAnimation(): void {
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+      console.log('Animación de partículas detenida');
+    }
+  }
+
+  private getParticleSpeed(index: number): { x: number; y: number; rotation: number; opacity: number } {
+    const speeds = [
+      { x: 0.18, y: 0.12, rotation: 0.05, opacity: 0.8 },
+      { x: 0.15, y: 0.18, rotation: 0.08, opacity: 0.6 },
+      { x: 0.22, y: 0.10, rotation: 0.03, opacity: 1.0 },
+      { x: 0.12, y: 0.15, rotation: 0.06, opacity: 0.7 },
+      { x: 0.20, y: 0.14, rotation: 0.10, opacity: 0.9 },
+      { x: 0.10, y: 0.20, rotation: 0.04, opacity: 0.5 },
+      { x: 0.16, y: 0.13, rotation: 0.07, opacity: 0.8 },
+      { x: 0.14, y: 0.16, rotation: 0.09, opacity: 0.6 },
+      { x: 0.19, y: 0.11, rotation: 0.05, opacity: 0.9 },
+      { x: 0.13, y: 0.19, rotation: 0.08, opacity: 0.7 },
+      { x: 0.21, y: 0.12, rotation: 0.06, opacity: 0.8 },
+      { x: 0.11, y: 0.17, rotation: 0.07, opacity: 0.6 },
+      { x: 0.17, y: 0.15, rotation: 0.04, opacity: 0.9 },
+      { x: 0.15, y: 0.14, rotation: 0.09, opacity: 0.7 },
+      { x: 0.18, y: 0.13, rotation: 0.05, opacity: 0.8 },
+      { x: 0.14, y: 0.18, rotation: 0.08, opacity: 0.6 }
+    ];
+    
+    return speeds[index] || speeds[0];
+  }
+
+  private getParticleSize(index: number): number {
+    const sizes = [4, 6, 3, 5, 7, 2, 4, 6, 3, 5, 4, 6, 3, 5, 4, 6];
+    return sizes[index] || 4;
+  }
+
+  // ========== ANIMACIÓN DEL LOGIN CONTAINER ==========
   private initSmoothSwap(): void {
     const loginContainer = this.elementRef.nativeElement.querySelector('.login-container');
     
@@ -127,7 +255,15 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // ========== MÉTODOS DE LOGIN EXISTENTES ==========
   onLogin(): void {
+    // Validar términos y condiciones
+    if (!this.terminosAceptados) {
+      this.showTermsError = true;
+      this.showErrorAlert('Debe aceptar los términos y condiciones para continuar');
+      return;
+    }
+
     // Validaciones básicas
     if (!this.nombreUsuario.trim() || !this.contrasena.trim()) {
       this.showErrorAlert('Por favor ingresa usuario y contraseña');
@@ -139,7 +275,6 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Nueva validación mejorada de contraseña
     if (!this.validatePassword()) {
       this.showErrorAlert('La contraseña no cumple con los requisitos mínimos de seguridad');
       return;
@@ -147,8 +282,8 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.isLoading = true;
     this.clearError();
+    this.showTermsError = false;
 
-    // Limpiar espacios en blanco
     const usuarioLimpio = this.nombreUsuario.trim();
     const contrasenaLimpia = this.contrasena.trim();
 
@@ -158,7 +293,6 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!success) {
           this.showErrorAlert('Usuario o contraseña incorrectos');
         } else {
-          // Login exitoso - manejar returnUrl si existe
           this.handleLoginSuccess();
         }
       },
@@ -170,15 +304,15 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private handleLoginSuccess(): void {
-    // Mostrar mensaje de éxito brevemente
+    // Guardar aceptación de términos
+    this.guardarAceptacionTerminos();
+    
     this.showSuccessAlert('¡Bienvenido! Redirigiendo...');
     
-    // Pequeño delay para mostrar el mensaje de éxito
     setTimeout(() => {
       if (this.returnUrl) {
         this.router.navigateByUrl(this.returnUrl);
       }
-      // La redirección por rol se maneja automáticamente en el AuthService
     }, 1000);
   }
 
@@ -206,14 +340,12 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     this.errorMessage = message;
     this.showError = true;
     
-    // Auto-ocultar el error después de 5 segundos
     setTimeout(() => {
       this.clearError();
     }, 5000);
   }
 
   private showSuccessAlert(message: string): void {
-    // Podrías implementar un mensaje de éxito aquí
     console.log('Login exitoso:', message);
   }
 
@@ -229,12 +361,14 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onInputChange(): void {
-    // Limpiar error cuando el usuario empiece a escribir
     if (this.showError) {
       this.clearError();
     }
     
-    // Actualizar requisitos de contraseña en tiempo real
+    if (this.showTermsError && this.terminosAceptados) {
+      this.showTermsError = false;
+    }
+    
     if (this.contrasena) {
       this.updatePasswordRequirements(this.contrasena);
     }
@@ -245,13 +379,25 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigate(['/recuperar-contrasena']);
   }
 
-  // Método para forzar el cierre de sesión (útil para testing)
+  // Método para abrir términos y condiciones
+  openTerminos(event: Event): void {
+    event.preventDefault();
+    // Abrir en nueva pestaña o modal
+    window.open('/terminos-condiciones', '_blank');
+  }
+
+  // Método para abrir política de privacidad
+  openPoliticaPrivacidad(event: Event): void {
+    event.preventDefault();
+    // Abrir en nueva pestaña o modal
+    window.open('/politica-privacidad', '_blank');
+  }
+
   forceLogout(): void {
     this.authService.logout();
     this.showSuccessAlert('Sesión cerrada correctamente');
   }
 
-  // Método para simular diferentes tipos de usuarios (solo desarrollo)
   quickLogin(role: string): void {
     const users = {
       'admin': { user: 'admin1', pass: 'Tech123!' },
@@ -264,55 +410,43 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     if (selectedUser) {
       this.nombreUsuario = selectedUser.user;
       this.contrasena = selectedUser.pass;
-      // Actualizar requisitos después de asignar la contraseña
+      this.terminosAceptados = true; // Auto-aceptar términos en login rápido
       this.updatePasswordRequirements(this.contrasena);
-      // Auto-login después de un breve delay
       setTimeout(() => this.onLogin(), 100);
     }
   }
 
-  // Método para mostrar/ocultar contraseña
   togglePasswordVisibility(): void {
-    const passwordInput = this.elementRef.nativeElement.querySelector('#contrasena');
-    if (passwordInput) {
-      const type = passwordInput.getAttribute('type');
-      passwordInput.setAttribute('type', type === 'password' ? 'text' : 'password');
-    }
+    this.showPassword = !this.showPassword;
   }
 
-  // Validación en tiempo real del usuario
   validateUsername(): boolean {
     return this.nombreUsuario.trim().length >= 3;
   }
 
-  // Validación mejorada de la contraseña
   validatePassword(): boolean {
     const password = this.contrasena;
-    
-    // Actualizar los requisitos para mostrar en la UI
     this.updatePasswordRequirements(password);
-    
-    // Verificar que cumpla todos los requisitos
     return this.passwordRequirements.minLength && 
            this.passwordRequirements.hasUpperCase && 
            this.passwordRequirements.hasSpecialChar;
   }
 
-  // Método para actualizar los requisitos de la contraseña
   private updatePasswordRequirements(password: string): void {
     this.passwordRequirements = {
-      minLength: password.length >= 8, // Aumenté a 8 caracteres mínimo
+      minLength: password.length >= 8,
       hasUpperCase: /[A-Z]/.test(password),
       hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
     };
   }
 
-  // Verificar si el formulario es válido
   isFormValid(): boolean {
-    return this.validateUsername() && this.validatePassword() && !this.isLoading;
+    return this.validateUsername() && 
+           this.validatePassword() && 
+           this.terminosAceptados && 
+           !this.isLoading;
   }
 
-  // Método para obtener el mensaje de validación de contraseña
   getPasswordValidationMessage(): string {
     const req = this.passwordRequirements;
     const messages = [];
@@ -327,16 +461,39 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   openUserManual(): void {
     this.router.navigate(['/manual-usuario']);
   }
-goToCatalog(): void {
-  console.log('🔍 Navegando al catálogo público...');
-  this.router.navigate(['/catalogo-cliente']).then(success => {
-    if (success) {
-      console.log('✅ Navegación exitosa al catálogo');
-    } else {
-      console.error('❌ Error en la navegación al catálogo');
+
+  goToCatalog(): void {
+    console.log('🔍 Navegando al catálogo público...');
+    this.router.navigate(['/catalogo-cliente']).then(success => {
+      if (success) {
+        console.log('✅ Navegación exitosa al catálogo');
+      } else {
+        console.error('❌ Error en la navegación al catálogo');
+      }
+    }).catch(error => {
+      console.error('❌ Error al navegar:', error);
+    });
+  }
+
+  // Métodos para manejar términos y condiciones
+  private verificarTerminosPrevios(): void {
+    const terminosAceptados = localStorage.getItem('terminosAceptados');
+    const fechaAceptacion = localStorage.getItem('fechaAceptacionTerminos');
+    
+    if (terminosAceptados === 'true' && fechaAceptacion) {
+      // Verificar si fue aceptado en los últimos 30 días
+      const fechaAceptacionDate = new Date(fechaAceptacion);
+      const hoy = new Date();
+      const diferenciaDias = (hoy.getTime() - fechaAceptacionDate.getTime()) / (1000 * 3600 * 24);
+      
+      if (diferenciaDias <= 30) {
+        this.terminosAceptados = true;
+      }
     }
-  }).catch(error => {
-    console.error('❌ Error al navegar:', error);
-  });
-}
+  }
+
+  private guardarAceptacionTerminos(): void {
+    localStorage.setItem('terminosAceptados', 'true');
+    localStorage.setItem('fechaAceptacionTerminos', new Date().toISOString());
+  }
 }

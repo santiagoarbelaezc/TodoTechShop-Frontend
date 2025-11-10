@@ -1,0 +1,248 @@
+<div class="terminos-container">
+  <!-- Header Mejorado -->
+  <div class="terminos-header">
+    <div class="header-content">
+      <div class="logo-section">
+        <img src="assets/TigreCircle.png" alt="TodoTech Shop" class="header-logo">
+        <div class="header-text">
+          <h1>Términos y Condiciones</h1>
+          <p class="fecha-actualizacion">Última actualización: {{fechaActual | date:'dd/MM/yyyy'}}</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-download-small" (click)="descargarPDF()" title="Descargar PDF">
+          <i class="fas fa-download"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="terminos-content">
+    <!-- Navegación Lateral Mejorada -->
+    <nav class="terminos-nav">
+      <div class="nav-header">
+        <h3>Contenido</h3>
+      </div>
+      <ul>
+        <li *ngFor="let seccion of secciones" 
+            [class.active]="seccionActiva === seccion.id"
+            (click)="scrollToSeccion(seccion.id)">
+          <span class="nav-icon">{{seccion.icon}}</span>
+          <span class="nav-text">{{seccion.titulo}}</span>
+        </li>
+      </ul>
+      <div class="nav-footer">
+        <p>Lea atentamente antes de aceptar</p>
+      </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <div class="terminos-main">
+      <!-- Sección 1: Uso del Servicio -->
+      <section id="uso" class="seccion-terminos">
+        <div class="seccion-header">
+          <span class="seccion-icon">📱</span>
+          <h2>Uso del Servicio</h2>
+        </div>
+        
+        <div class="seccion-content">
+          <div class="info-card">
+            <h3>1.1 Aceptación de los Términos</h3>
+            <p>Al acceder y utilizar los servicios de <strong>TodoTech Shop</strong>, usted acepta estar sujeto a estos términos y condiciones de uso, todas las leyes y regulaciones aplicables.</p>
+          </div>
+
+          <div class="info-card warning">
+            <h3>⚠️ Condición de Uso</h3>
+            <p>Si no está de acuerdo con alguno de estos términos, tiene prohibido usar o acceder a este sitio y a nuestros servicios.</p>
+          </div>
+
+          <div class="info-card">
+            <h3>1.2 Uso Aceptable</h3>
+            <p>Usted se compromete a utilizar la plataforma de manera responsable y de acuerdo con:</p>
+            <ul class="feature-list">
+              <li>🔹 Las leyes y regulaciones colombianas aplicables</li>
+              <li>🔹 Los derechos de propiedad intelectual</li>
+              <li>🔹 Las políticas de seguridad de la plataforma</li>
+              <li>🔹 Las normas de conducta y ética digital</li>
+            </ul>
+          </div>
+
+          <div class="info-card">
+            <h3>1.3 Restricciones de Uso</h3>
+            <p>Queda estrictamente prohibido:</p>
+            <ul class="restriction-list">
+              <li>❌ Realizar actividades fraudulentas o ilegales</li>
+              <li>❌ Vulnerar la seguridad de la plataforma</li>
+              <li>❌ Utilizar bots o scripts automatizados</li>
+              <li>❌ Suplantar la identidad de otros usuarios</li>
+              <li>❌ Distribuir contenido malicioso o spam</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección 2: Cuenta y Registro -->
+      <section id="cuenta" class="seccion-terminos">
+        <div class="seccion-header">
+          <span class="seccion-icon">👤</span>
+          <h2>Cuenta y Registro</h2>
+        </div>
+        
+        <div class="seccion-content">
+          <div class="info-card">
+            <h3>2.1 Creación de Cuenta</h3>
+            <p>Para acceder a todas las funcionalidades de TodoTech Shop, deberá registrarse proporcionando información veraz, exacta y completa.</p>
+            
+            <div class="requirements-grid">
+              <div class="requirement-item">
+                <span class="req-icon">🎯</span>
+                <div class="req-content">
+                  <strong>Información Veraz</strong>
+                  <p>Debe proporcionar datos reales y actualizados</p>
+                </div>
+              </div>
+              <div class="requirement-item">
+                <span class="req-icon">📧</span>
+                <div class="req-content">
+                  <strong>Email Válido</strong>
+                  <p>Dirección de correo electrónico activa</p>
+                </div>
+              </div>
+              <div class="requirement-item">
+                <span class="req-icon">🔒</span>
+                <div class="req-content">
+                  <strong>Contraseña Segura</strong>
+                  <p>Mínimo 8 caracteres con mayúsculas y símbolos</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3>2.2 Responsabilidades de la Cuenta</h3>
+            <p>Usted es responsable de mantener la seguridad y confidencialidad de su cuenta:</p>
+            <ul class="responsibility-list">
+              <li>✅ Mantener la confidencialidad de su contraseña</li>
+              <li>✅ Supervisar toda actividad en su cuenta</li>
+              <li>✅ Notificar inmediatamente usos no autorizados</li>
+              <li>✅ Cerrar sesión al finalizar cada uso</li>
+            </ul>
+          </div>
+
+          <div class="info-card important">
+            <h3>📌 Edad Mínima Requerida</h3>
+            <p>Debe tener al menos <strong>18 años</strong> para crear una cuenta y realizar compras en TodoTech Shop. Los menores de edad deben contar con autorización de sus padres o representantes legales.</p>
+          </div>
+
+          <div class="info-card">
+            <h3>2.3 Suspensión de Cuenta</h3>
+            <p>Nos reservamos el derecho de suspender o cancelar cuentas que:</p>
+            <ul class="suspension-list">
+              <li>🔸 Violen estos términos y condiciones</li>
+              <li>🔸 Realicen actividades fraudulentas</li>
+              <li>🔸 Proporcionen información falsa</li>
+              <li>🔸 Incumplan políticas de seguridad</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección 3: Condiciones Generales -->
+      <section id="condiciones" class="seccion-terminos">
+        <div class="seccion-header">
+          <span class="seccion-icon">📋</span>
+          <h2>Condiciones Generales</h2>
+        </div>
+        
+        <div class="seccion-content">
+          <div class="info-card">
+            <h3>3.1 Propiedad Intelectual</h3>
+            <p>Todo el contenido de TodoTech Shop, incluyendo textos, gráficos, logotipos, y software, es propiedad exclusiva y está protegido por las leyes de propiedad intelectual.</p>
+            
+            <div class="legal-notice">
+              <h4>🚫 Prohibiciones</h4>
+              <p>Queda prohibido reproducir, distribuir, modificar o crear obras derivadas sin autorización expresa por escrito de TodoTech Shop.</p>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3>3.2 Limitación de Responsabilidad</h3>
+            <p>TodoTech Shop no será responsable por:</p>
+            <ul class="liability-list">
+              <li>📉 Daños indirectos o consecuentes</li>
+              <li>🌐 Interrupciones del servicio por causas ajenas</li>
+              <li>🔧 Errores técnicos fuera de nuestro control</li>
+              <li>👤 Uso indebido de la plataforma por parte del usuario</li>
+            </ul>
+          </div>
+
+          <div class="info-card">
+            <h3>3.3 Modificaciones de los Términos</h3>
+            <p>Nos reservamos el derecho de modificar estos términos en cualquier momento. Las actualizaciones serán notificadas mediante:</p>
+            
+            <div class="notification-methods">
+              <div class="method">
+                <span class="method-icon">📧</span>
+                <span>Email registrado</span>
+              </div>
+              <div class="method">
+                <span class="method-icon">🔔</span>
+                <span>Notificaciones en la plataforma</span>
+              </div>
+              <div class="method">
+                <span class="method-icon">🌐</span>
+                <span>Publicación en nuestro sitio web</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-card contact-info">
+            <h3>3.4 Contacto y Soporte</h3>
+            <p>Para consultas sobre estos términos y condiciones:</p>
+            <div class="contact-details">
+              <div class="contact-item">
+                <i class="fas fa-phone"></i>
+                <span>+57 1 123 4567</span>
+              </div>
+              <div class="contact-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Cra 45 # 26-85, Bogotá, Colombia</span>
+              </div>
+              <div class="contact-item">
+                <i class="fas fa-clock"></i>
+                <span>Lunes a Viernes 8:00 AM - 6:00 PM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Botones de Acción Mejorados -->
+      <div class="terminos-actions">
+        <div class="actions-header">
+          <h3>¿Está de acuerdo con nuestros términos?</h3>
+          <p>Al aceptar, confirma que ha leído y comprendido completamente estos términos y condiciones.</p>
+        </div>
+        
+        <div class="actions-buttons">
+          <button class="btn btn-primary" (click)="aceptarTerminos()">
+            <i class="fas fa-check-circle"></i>
+            Aceptar Términos y Condiciones
+          </button>
+          <button class="btn btn-secondary" (click)="rechazarTerminos()">
+            <i class="fas fa-times-circle"></i>
+            Rechazar
+          </button>
+          <button class="btn btn-outline" (click)="descargarPDF()">
+            <i class="fas fa-download"></i>
+            Descargar PDF
+          </button>
+        </div>
+        
+        <div class="actions-footer">
+          <p><small>Al aceptar, usted reconoce que estos términos constituyen un acuerdo legalmente vinculante entre usted y TodoTech Shop.</small></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

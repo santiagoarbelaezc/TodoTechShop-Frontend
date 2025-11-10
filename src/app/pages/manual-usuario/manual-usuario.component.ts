@@ -53,10 +53,15 @@ export class ManualUsuarioComponent implements OnInit {
   // Método auxiliar para obtener el texto de la sección
   private getSectionText(sectionId: string): string {
     const sections: { [key: string]: string } = {
-      'cliente-catalogo': 'Soy cliente, ¿cómo puedo ver el catálogo?',
-      'problema-ingreso': 'No me está dejando ingresar',
-      'recuperar-contrasena': 'Cómo recuperar mi contraseña',
-      'descargar-manual': 'Descargar Manual'
+      'cliente-catalogo': '1. Ver Catálogo de Productos',
+      'proceso-compra': '2. Proceso de Compra',
+      'pago-caja': '3. Pago en Caja',
+      'recuperar-contrasena': '4. Recuperar Contraseña',
+      'verificar-stock': '5. Verificar Stock',
+      'gestion-admin': '6. Gestión Administrativa',
+      'reportes-analitica': '7. Reportes y Análitica',
+      'soporte-tecnico': '8. Soporte Técnico',
+      'descargar-manual': 'Descargar Manual Completo'
     };
     return sections[sectionId] || '';
   }
@@ -107,22 +112,101 @@ export class ManualUsuarioComponent implements OnInit {
             background: white;
             line-height: 1.6;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             color: #333;
         }
         
         .manual-page {
             background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
             padding: 40px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 0;
             min-height: 297mm;
             position: relative;
             page-break-after: always;
         }
         
+        /* Portada */
+        .cover-page {
+            background: linear-gradient(135deg, #1421cf 0%, #db1f1f 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 297mm;
+            padding: 60px;
+        }
+        
+        .cover-logo {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: #1421cf;
+        }
+        
+        .cover-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .cover-subtitle {
+            font-size: 24px;
+            font-weight: 300;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        
+        .cover-version {
+            font-size: 16px;
+            margin-top: 60px;
+            opacity: 0.8;
+        }
+        
+        /* Tabla de Contenidos */
+        .toc-page {
+            background: #f8f9fa;
+        }
+        
+        .toc-title {
+            color: #1421cf;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .toc-list {
+            list-style: none;
+            margin: 0 auto;
+            max-width: 600px;
+        }
+        
+        .toc-item {
+            margin: 15px 0;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #1421cf;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .toc-number {
+            font-weight: 600;
+            color: #1421cf;
+            margin-right: 10px;
+        }
+        
+        /* Contenido Principal */
         .header {
             text-align: center;
             border-bottom: 2px solid #1421cf;
@@ -131,20 +215,6 @@ export class ManualUsuarioComponent implements OnInit {
             background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
             padding: 30px;
             border-radius: 10px;
-        }
-        
-        .logo-container {
-            margin-bottom: 20px;
-        }
-        
-        .logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            padding: 3px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         h1 {
@@ -172,13 +242,17 @@ export class ManualUsuarioComponent implements OnInit {
             font-size: 18px;
         }
         
-        .role-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-left: 4px solid #1421cf;
-            margin: 20px 0;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        .section-number {
+            background: #1421cf;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: 700;
         }
         
         .process-step {
@@ -217,39 +291,13 @@ export class ManualUsuarioComponent implements OnInit {
             border-left: 4px solid #ffc107;
         }
         
-        .confidentiality-section {
-            background: linear-gradient(135deg, #1421cf 0%, #db1f1f 100%);
-            color: white;
-            padding: 25px;
-            margin: 25px 0;
-            border-radius: 10px;
-            text-align: center;
-        }
-        
-        ul {
-            margin: 15px 0;
-            padding-left: 25px;
-        }
-        
-        li {
-            margin: 8px 0;
-            line-height: 1.5;
-        }
-        
-        p {
-            margin: 12px 0;
-            line-height: 1.6;
-        }
-        
-        strong {
-            color: #1a1a1a;
-        }
-        
-        .section-divider {
-            height: 2px;
-            background: linear-gradient(90deg, #1421cf 0%, #db1f1f 100%);
-            margin: 30px 0;
-            border: none;
+        .success-box {
+            background: #d1f2eb;
+            border: 1px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
         }
         
         .feature-grid {
@@ -265,299 +313,635 @@ export class ManualUsuarioComponent implements OnInit {
             border-radius: 8px;
             border: 1px solid #e9ecef;
         }
+        
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        
+        .step-number {
+            background: #db1f1f;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: 600;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .url-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            border-left: 4px solid #1421cf;
+        }
+        
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, #1421cf 0%, #db1f1f 100%);
+            margin: 30px 0;
+            border: none;
+        }
     </style>
 </head>
 <body>
-    <!-- Página 1 -->
+    <!-- Portada -->
+    <div class="manual-page cover-page">
+        <div class="cover-logo">TT</div>
+        <h1 class="cover-title">Manual de Usuario</h1>
+        <h2 class="cover-subtitle">Sistema de Gestión Integral</h2>
+        <p style="font-size: 18px; margin-top: 20px; opacity: 0.9;">TodoTech Shop</p>
+        <div class="cover-version">
+            <p>Versión 2.0 | Octubre 2025</p>
+            <p style="margin-top: 10px;">Documento Confidencial</p>
+        </div>
+    </div>
+
+    <!-- Tabla de Contenidos -->
+    <div class="manual-page toc-page">
+        <h1 class="toc-title">Tabla de Contenidos</h1>
+        <ul class="toc-list">
+            <li class="toc-item">
+                <span class="toc-number">1.</span>
+                Ver Catálogo de Productos
+            </li>
+            <li class="toc-item">
+                <span class="toc-number">2.</span>
+                Proceso de Compra en Tienda
+            </li>
+            <li class="toc-item">
+                <span class="toc-number">3.</span>
+                Pago en Módulo de Caja
+            </li>
+            <li class="toc-item">
+                <span class="toc-number">4.</span>
+                Recuperación de Contraseña
+            </li>
+            <li class="toc-item">
+                <span class="toc-number">5.</span>
+                Verificación de Stock
+            </li>
+            <li class="toc-item">
+                <span class="toc-number">6.</span>
+                Gestión Administrativa
+            </li>
+            <li class="toc-item">
+                <span class="toc-number">7.</span>
+                Reportes y Análitica
+            </li>
+            <li class="toc-item">
+                <span class="toc-number">8.</span>
+                Soporte Técnico
+            </li>
+        </ul>
+        
+        <div class="note-box" style="margin-top: 60px;">
+            <strong>📋 Nota:</strong> Este manual está diseñado para guiar a usuarios y personal en el correcto uso del sistema TodoTech Shop. Cada sección incluye instrucciones detalladas y mejores prácticas.
+        </div>
+        
+        <div class="page-number">Página 2 de 10</div>
+    </div>
+
+    <!-- Página 3 - Sección 1 -->
     <div class="manual-page">
         <div class="header">
-            
-            <h1>Manual de Usuario</h1>
-            <h2>Sistema de Gestión TodoTech Shop</h2>
-            <p><strong>Versión 2.0</strong></p>
-            <p><em>Fecha de publicación: 16/10/2025</em></p>
+            <h1><span class="section-number">1</span> Ver Catálogo de Productos</h1>
+            <p>Acceso público al catálogo electrónico de TodoTech Shop</p>
         </div>
-        
-        <div class="confidentiality-section">
-            <h3>🔒 Compromiso con la Confidencialidad</h3>
-            <p>Este manual contiene información confidencial y propiedad de TodoTech Shop. Su distribución está restringida al personal autorizado.</p>
-        </div>
-        
-        <h2>Introducción</h2>
-        <p>Bienvenido al sistema de gestión integral de TodoTech Shop, diseñado específicamente para optimizar los procesos de venta, inventario y administración en nuestra cadena de tiendas de tecnología.</p>
         
         <div class="note-box">
-            <strong>🎯 Propósito del Sistema:</strong> Agilizar las ventas en tiendas físicas, reducir errores en precios y mejorar significativamente la experiencia del cliente mediante procesos digitalizados y eficientes.
+            <strong>🎯 Propósito:</strong> Permitir a los clientes explorar nuestros productos disponibles antes de visitar la tienda física.
         </div>
         
-        <h2>Compromiso con la Atención al Usuario</h2>
-        <p>En TodoTech Shop, priorizamos la excelencia en el servicio al cliente. Nuestro sistema está diseñado para:</p>
+        <h2>Acceso al Catálogo</h2>
         
-        <div class="feature-grid">
-            <div class="feature-card">
-                <h4>👥 Atención Personalizada</h4>
-                <p>Cada interacción con el cliente es única y merece una atención especializada y personalizada.</p>
-            </div>
-            <div class="feature-card">
-                <h4>⚡ Eficiencia en Procesos</h4>
-                <p>Reducción de tiempos de espera y optimización de todos los procesos de venta.</p>
-            </div>
-            <div class="feature-card">
-                <h4>🔍 Transparencia Total</h4>
-                <p>Información clara y accesible para el cliente en cada etapa del proceso.</p>
+        <div class="step-indicator">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h3>Ingresar a la URL del Sistema</h3>
+                <div class="url-box">http://todotech-frontend.s3-website.us-east-2.amazonaws.com/catalogo-cliente</div>
+                <p>Esta dirección es de acceso público y no requiere credenciales.</p>
             </div>
         </div>
         
-        <hr class="section-divider">
+        <div class="step-indicator">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h3>Navegar por el Catálogo</h3>
+                <p>Una vez en la página, podrás:</p>
+                <ul>
+                    <li>🔍 Ver productos organizados por categorías</li>
+                    <li>📱 Filtrar por marca, precio o características técnicas</li>
+                    <li>💡 Ver detalles completos de cada producto</li>
+                    <li>📊 Ver disponibilidad en tiempo real</li>
+                </ul>
+            </div>
+        </div>
         
-        <h2>Roles del Sistema</h2>
+        <div class="step-indicator">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h3>Botón "Ingresar al Catálogo"</h3>
+                <p>Al acceder a la URL, encontrarás un botón prominente que dice <strong>"Ingresar al Catálogo"</strong>. Al hacer clic:</p>
+                <ul>
+                    <li>Se cargará la interfaz completa del catálogo</li>
+                    <li>Podrás ver todos los productos disponibles</li>
+                    <li>Tendrás acceso a filtros avanzados</li>
+                    <li>Verás precios actualizados</li>
+                </ul>
+            </div>
+        </div>
         
-        <div class="role-section">
-            <h3>🔧 Administrador (Admin)</h3>
-            <p><strong>Responsabilidades Principales:</strong></p>
+        <div class="success-box">
+            <strong>✅ Beneficios:</strong> 
             <ul>
-                <li>Gestión integral de usuarios y permisos del sistema</li>
-                <li>Configuración y mantenimiento de parámetros del sistema</li>
-                <li>Generación de reportes analíticos y de ventas</li>
-                <li>Supervisión del inventario general y niveles de stock</li>
-                <li>Configuración de precios, promociones y productos</li>
-                <li>Auditoría de procesos y cumplimiento de políticas</li>
+                <li>Consulta 24/7 desde cualquier dispositivo</li>
+                <li>Información actualizada en tiempo real</li>
+                <li>Previsualización antes de la compra</li>
+                <li>Comparación de productos fácil</li>
             </ul>
         </div>
         
-        <div class="role-section">
-            <h3>👨‍💼 Vendedor</h3>
-            <p><strong>Responsabilidades Principales:</strong></p>
-            <ul>
-                <li>Atención especializada al cliente en tienda física</li>
-                <li>Creación y gestión de órdenes de venta</li>
-                <li>Consulta experta del catálogo electrónico</li>
-                <li>Verificación en tiempo real de disponibilidad de stock</li>
-                <li>Asesoramiento técnico personalizado a clientes</li>
-                <li>Manejo de objeciones y cierre de ventas</li>
-            </ul>
-        </div>
-        
-        <div class="page-number">Página 1 de 5</div>
+        <div class="page-number">Página 3 de 10</div>
     </div>
 
-    <!-- Página 2 -->
+    <!-- Página 4 - Sección 2 -->
     <div class="manual-page">
-        <h2>Roles del Sistema (Continuación)</h2>
-        
-        <div class="role-section">
-            <h3>💰 Cajero</h3>
-            <p><strong>Responsabilidades Principales:</strong></p>
-            <ul>
-                <li>Procesamiento eficiente de pagos de órdenes de venta</li>
-                <li>Aceptación y manejo de diferentes métodos de pago:
-                    <ul>
-                        <li>💵 Efectivo</li>
-                        <li>💳 Tarjeta bancaria (crédito/débito)</li>
-                        <li>📱 Redcompra y transferencias</li>
-                    </ul>
-                </li>
-                <li>Entrega profesional de comprobantes de pago</li>
-                <li>Conciliación diaria de caja y reportes financieros</li>
-                <li>Atención al cliente en proceso de pago</li>
-            </ul>
+        <div class="header">
+            <h1><span class="section-number">2</span> Proceso de Compra en Tienda</h1>
+            <p>Gestión completa de ventas por parte del vendedor</p>
         </div>
-        
-        <div class="role-section">
-            <h3>📦 Despachador</h3>
-            <p><strong>Responsabilidades Principales:</strong></p>
-            <ul>
-                <li>Validación precisa de órdenes de venta pagadas</li>
-                <li>Preparación eficiente de pedidos según ubicación en bodega</li>
-                <li>Entrega física cuidadosa de productos al cliente</li>
-                <li>Verificación de aceptación y satisfacción del cliente</li>
-                <li>Cierre correcto de órdenes de venta en sistema</li>
-                <li>Manejo de inventario y organización de bodega</li>
-            </ul>
-        </div>
-        
-        <hr class="section-divider">
-        
-        <h2>Políticas de Confidencialidad y Seguridad</h2>
         
         <div class="warning-box">
-            <h4>⚠️ Información Confidencial</h4>
-            <p>Todo el personal debe mantener la confidencialidad de:</p>
-            <ul>
-                <li>Datos personales de clientes</li>
-                <li>Información financiera de la empresa</li>
-                <li>Estrategias comerciales y de precios</li>
-                <li>Procesos internos del sistema</li>
-            </ul>
+            <strong>⚠️ Importante:</strong> Este proceso solo puede ser realizado por vendedores autorizados con credenciales válidas.
         </div>
         
-        <div class="note-box">
-            <h4>🔐 Medidas de Seguridad</h4>
-            <ul>
-                <li>Acceso restringido por roles y permisos</li>
-                <li>Contraseñas seguras y cambio periódico</li>
-                <li>Registro de actividades en el sistema</li>
-                <li>Backup automático de información</li>
-            </ul>
+        <h2>Flujo del Proceso de Venta</h2>
+        
+        <div class="step-indicator">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h3>Inicio de Sesión del Vendedor</h3>
+                <p>El vendedor debe acceder al sistema con sus credenciales:</p>
+                <div class="url-box">http://todotech-frontend.s3-website.us-east-2.amazonaws.com/catalogo-cliente</div>
+                <ul>
+                    <li>Usuario: [número de empleado o email]</li>
+                    <li>Contraseña: [contraseña personal]</li>
+                </ul>
+            </div>
         </div>
         
-        <div class="page-number">Página 2 de 5</div>
+        <div class="step-indicator">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h3>Creación de Orden de Venta</h3>
+                <p>En el módulo de ventas, el vendedor:</p>
+                <ul>
+                    <li>Hace clic en "Nueva Orden"</li>
+                    <li>Registra los datos del cliente (con consentimiento)</li>
+                    <li>Selecciona la tienda física correspondiente</li>
+                    <li>Asigna número de orden automático</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h3>Agregar Productos al Carrito</h3>
+                <p>Desde el catálogo interno, el vendedor:</p>
+                <ul>
+                    <li>Busca productos por código o nombre</li>
+                    <li>Verifica stock disponible en tiempo real</li>
+                    <li>Agrega cantidades requeridas</li>
+                    <li>Aplica promociones vigentes</li>
+                    <li>Confirma precios y totales</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <h3>Generación de Comprobante</h3>
+                <p>Al finalizar la selección:</p>
+                <ul>
+                    <li>Sistema calcula totales automáticamente</li>
+                    <li>Genera número de orden único</li>
+                    <li>Imprime comprobante preliminar</li>
+                    <li>Entrega número de orden al cliente</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="page-number">Página 4 de 10</div>
     </div>
 
-    <!-- Página 3 -->
+    <!-- Página 5 - Sección 3 -->
     <div class="manual-page">
-        <h2>Proceso de Compra para Clientes</h2>
-        
-        <div class="note-box">
-            <strong>🏪 Modalidad de Venta:</strong> TodoTech Shop opera exclusivamente a través de tiendas físicas. No realizamos ventas en línea para garantizar la mejor experiencia de compra.
+        <div class="header">
+            <h1><span class="section-number">3</span> Pago en Módulo de Caja</h1>
+            <p>Procesamiento seguro de pagos y cierre de venta</p>
         </div>
         
-        <h3>Paso 1: Visita a la Tienda Física</h3>
-        <div class="process-step">
-            <p>El cliente debe acudir personalmente a una de nuestras tiendas físicas, donde será recibido por nuestro equipo de atención al cliente.</p>
-            <p><strong>Compromiso:</strong> Ambiente acogedor y atención inmediata.</p>
+        <h2>Proceso de Pago</h2>
+        
+        <div class="step-indicator">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h3>Recepción en Caja</h3>
+                <p>El cliente se dirige al módulo de caja con:</p>
+                <ul>
+                    <li>Número de orden generado</li>
+                    <li>Productos seleccionados</li>
+                    <li>Método de pago elegido</li>
+                </ul>
+            </div>
         </div>
         
-        <h3>Paso 2: Asesoramiento Especializado</h3>
-        <div class="process-step">
-            <p>Un vendedor especializado atenderá al cliente, realizando un diagnóstico de necesidades y recomendando soluciones tecnológicas adecuadas.</p>
-            <p><strong>Compromiso:</strong> Asesoramiento técnico profesional y personalizado.</p>
+        <div class="step-indicator">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h3>Consulta de Orden por Cajero</h3>
+                <p>El cajero accede al sistema y:</p>
+                <ul>
+                    <li>Ingresa el número de orden</li>
+                    <li>Verifica productos y montos</li>
+                    <li>Confirma disponibilidad de stock</li>
+                    <li>Prepara transacción de pago</li>
+                </ul>
+            </div>
         </div>
         
-        <h3>Paso 3: Creación de Orden de Venta</h3>
-        <div class="process-step">
-            <p>El vendedor crea una orden de venta en el sistema ingresando:</p>
-            <ul>
-                <li>📝 Información completa del cliente (con consentimiento)</li>
-                <li>🛒 Productos seleccionados del catálogo electrónico</li>
-                <li>✅ Verificación inmediata de stock en tiempo real</li>
-                <li>💰 Cálculo automático de precios y totales</li>
-            </ul>
+        <div class="step-indicator">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h3>Procesamiento de Pago</h3>
+                <p>El sistema permite dos métodos principales:</p>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>💵 Pago en Efectivo</h4>
+                        <ul>
+                            <li>Ingreso del monto recibido</li>
+                            <li>Cálculo automático de vuelto</li>
+                            <li>Registro en caja correspondiente</li>
+                            <li>Comprobante impreso</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h4>💳 Pago con Stripe</h4>
+                        <ul>
+                            <li>Integración con pasarela Stripe</li>
+                            <li>Procesamiento seguro de tarjetas</li>
+                            <li>Tokenización de datos sensibles</li>
+                            <li>Comprobante digital e impreso</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <h3>Paso 4: Generación de Número de Orden</h3>
-        <div class="process-step">
-            <p>El sistema genera un número de orden único que identifica la transacción. El cliente recibe este número para presentar en caja.</p>
-            <p><strong>Beneficio:</strong> Seguimiento preciso y sin errores.</p>
+        <div class="step-indicator">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <h3>Cierre y Entrega</h3>
+                <p>Una vez confirmado el pago:</p>
+                <ul>
+                    <li>Sistema actualiza estado de la orden</li>
+                    <li>Genera comprobante final</li>
+                    <li>Actualiza inventario automáticamente</li>
+                    <li>Entrega orden a despacho</li>
+                </ul>
+            </div>
         </div>
         
-        <div class="page-number">Página 3 de 5</div>
+        <div class="page-number">Página 5 of 10</div>
     </div>
 
-    <!-- Página 4 -->
+    <!-- Página 6 - Sección 4 -->
     <div class="manual-page">
-        <h2>Proceso de Compra para Clientes (Continuación)</h2>
+        <div class="header">
+            <h1><span class="section-number">4</span> Recuperación de Contraseña</h1>
+            <p>Sistema seguro de recuperación de acceso</p>
+        </div>
         
-        <h3>Paso 5: Proceso de Pago</h3>
-        <div class="process-step">
-            <p>En el área de caja, el cajero:</p>
+        <h2>Proceso de Recuperación</h2>
+        
+        <div class="step-indicator">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h3>Acceso a Recuperación</h3>
+                <p>En la pantalla de login:</p>
+                <ul>
+                    <li>Hacer clic en "¿Olvidaste tu contraseña?"</li>
+                    <li>Ingresar email registrado en el sistema</li>
+                    <li>Hacer clic en "Enviar enlace de recuperación"</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h3>Recepción de Email</h3>
+                <p>El sistema enviará un email con:</p>
+                <ul>
+                    <li>Enlace único de recuperación (válido por 24 horas)</li>
+                    <li>Instrucciones paso a paso</li>
+                    <li>Información de seguridad</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h3>Creación de Nueva Contraseña</h3>
+                <p>Al acceder al enlace:</p>
+                <ul>
+                    <li>Ingresar nueva contraseña (mínimo 8 caracteres)</li>
+                    <li>Confirmar nueva contraseña</li>
+                    <li>Hacer clic en "Actualizar contraseña"</li>
+                    <li>Recibir confirmación por email</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="warning-box">
+            <strong>🔒 Requisitos de Seguridad:</strong>
             <ul>
-                <li>🔢 Solicita y verifica el número de orden</li>
-                <li>💳 Procesa el pago por el método elegido por el cliente</li>
-                <li>🧾 Entrega comprobante de pago detallado</li>
-                <li>😊 Brinda atención cordial y eficiente</li>
+                <li>Mínimo 8 caracteres</li>
+                <li>Al menos una letra mayúscula</li>
+                <li>Al menos un número</li>
+                <li>Al menos un carácter especial</li>
+                <li>No usar contraseñas anteriores</li>
             </ul>
         </div>
         
-        <h3>Paso 6: Retiro en Despacho</h3>
-        <div class="process-step">
-            <p>Con el comprobante de pago, el cliente se dirige a despacho donde:</p>
+        <div class="page-number">Página 6 of 10</div>
+    </div>
+
+    <!-- Página 7 - Sección 5 -->
+    <div class="manual-page">
+        <div class="header">
+            <h1><span class="section-number">5</span> Verificación de Stock</h1>
+            <p>Control en tiempo real de inventario</p>
+        </div>
+        
+        <h2>Consulta de Disponibilidad</h2>
+        
+        <div class="step-indicator">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h3>Acceso al Módulo de Inventario</h3>
+                <p>Usuarios autorizados pueden:</p>
+                <ul>
+                    <li>Acceder a "Gestión de Inventario"</li>
+                    <li>Ver stock actual por tienda</li>
+                    <li>Consultar movimientos recientes</li>
+                    <li>Revisar niveles mínimos</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h3>Búsqueda de Productos</h3>
+                <p>Múltiples métodos de consulta:</p>
+                <ul>
+                    <li>🔍 Por código SKU</li>
+                    <li>📝 Por nombre o descripción</li>
+                    <li>🏷️ Por categoría o marca</li>
+                    <li>📊 Por nivel de stock</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h3>Información en Tiempo Real</h3>
+                <p>El sistema muestra:</p>
+                <ul>
+                    <li>Stock disponible actual</li>
+                    <li>Stock comprometido en órdenes</li>
+                    <li>Stock en tránsito</li>
+                    <li>Histórico de movimientos</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="success-box">
+            <strong>📈 Beneficios del Sistema:</strong>
             <ul>
-                <li>📋 El despachador valida la orden en el sistema</li>
-                <li>📦 Prepara los productos desde bodega con cuidado</li>
-                <li>🤝 Entrega personalmente los productos al cliente</li>
-                <li>⭐ Verifica la aceptación y satisfacción del cliente</li>
-                <li>✅ Cierra la orden en el sistema</li>
+                <li>Actualización automática con cada venta</li>
+                <li>Alertas de stock bajo</li>
+                <li>Prevención de ventas sin stock</li>
+                <li>Optimización de inventario</li>
             </ul>
         </div>
         
-        <hr class="section-divider">
+        <div class="page-number">Página 7 of 10</div>
+    </div>
+
+    <!-- Página 8 - Sección 6 -->
+    <div class="manual-page">
+        <div class="header">
+            <h1><span class="section-number">6</span> Gestión Administrativa</h1>
+            <p>Funcionalidades exclusivas para administradores</p>
+        </div>
         
-        <h2>Estándares de Atención al Cliente</h2>
+        <div class="warning-box">
+            <strong>⚡ Solo Personal Autorizado:</strong> Estas funciones están restringidas a usuarios con rol de Administrador.
+        </div>
+        
+        <h2>Módulos de Administración</h2>
         
         <div class="feature-grid">
             <div class="feature-card">
-                <h4>🎯 Enfoque en el Cliente</h4>
-                <p>Cada interacción debe ser amable, profesional y centrada en las necesidades del cliente.</p>
+                <h4>👥 Gestión de Usuarios</h4>
+                <ul>
+                    <li>Crear y editar usuarios</li>
+                    <li>Asignar roles y permisos</li>
+                    <li>Resetear contraseñas</li>
+                    <li>Auditar actividades</li>
+                </ul>
             </div>
             <div class="feature-card">
-                <h4>⏱️ Eficiencia</h4>
-                <p>Tiempos de espera mínimos y procesos optimizados para mejor experiencia.</p>
+                <h4>📦 Gestión de Productos</h4>
+                <ul>
+                    <li>Alta/baja de productos</li>
+                    <li>Actualización de precios</li>
+                    <li>Gestión de categorías</li>
+                    <li>Configuración de promociones</li>
+                </ul>
             </div>
             <div class="feature-card">
-                <h4>🔧 Conocimiento Técnico</h4>
-                <p>Todo el personal debe conocer los productos y poder asesorar competentemente.</p>
+                <h4>🏪 Configuración de Tiendas</h4>
+                <ul>
+                    <li>Gestión de sucursales</li>
+                    <li>Configuración horaria</li>
+                    <li>Parámetros del sistema</li>
+                    <li>Integraciones externas</li>
+                </ul>
             </div>
         </div>
         
-        <div class="page-number">Página 4 de 5</div>
+        <h2>Procesos Administrativos Clave</h2>
+        
+        <div class="process-step">
+            <h3>Cierre Diario de Caja</h3>
+            <p>Proceso automatizado que incluye:</p>
+            <ul>
+                <li>Conciliación de ventas vs pagos</li>
+                <li>Reporte de movimientos de caja</li>
+                <li>Verificación de arqueos</li>
+                <li>Cierre contable automático</li>
+            </ul>
+        </div>
+        
+        <div class="process-step">
+            <h3>Gestión de Precios</h3>
+            <p>Sistema centralizado de precios:</p>
+            <ul>
+                <li>Actualizaciones masivas</li>
+                <li>Promociones temporales</li>
+                <li>Precios especiales por cliente</li>
+                <li>Histórico de cambios</li>
+            </ul>
+        </div>
+        
+        <div class="page-number">Página 8 of 10</div>
     </div>
 
-    <!-- Página 5 -->
+    <!-- Página 9 - Sección 7 -->
     <div class="manual-page">
-        <h2>Integración con Sistemas</h2>
-        
-        <div class="role-section">
-            <h3>📊 Sistema de Inventario</h3>
-            <p>Integración en tiempo real que permite:</p>
-            <ul>
-                <li>Consulta inmediata y precisa de stock disponible</li>
-                <li>Actualización automática al cerrar órdenes de venta</li>
-                <li>Prevención de ventas de productos sin stock</li>
-                <li>Alertas de reposición y niveles mínimos</li>
-                <li>Gestión eficiente de múltiples bodegas</li>
-            </ul>
+        <div class="header">
+            <h1><span class="section-number">7</span> Reportes y Análitica</h1>
+            <p>Business Intelligence para toma de decisiones</p>
         </div>
         
-        <div class="role-section">
-            <h3>💼 Sistema de Finanzas</h3>
-            <p>Todas las órdenes cerradas se almacenan automáticamente para:</p>
-            <ul>
-                <li>Contabilidad precisa y reportes financieros</li>
-                <li>Análisis detallado de ventas y rentabilidad</li>
-                <li>Auditoría y cumplimiento normativo</li>
-                <li>Proyecciones y planificación estratégica</li>
-                <li>Control de gastos y flujo de caja</li>
-            </ul>
+        <h2>Reportes Disponibles</h2>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>📊 Ventas por Período</h4>
+                <ul>
+                    <li>Ventas diarias/semanales/mensuales</li>
+                    <li>Comparativo con períodos anteriores</li>
+                    <li>Análisis por vendedor</li>
+                    <li>Ventas por categoría</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>📈 Métricas de Desempeño</h4>
+                <ul>
+                    <li>Ticket promedio</li>
+                    <li>Productos más vendidos</li>
+                    <li>Conversión de ventas</li>
+                    <li>Eficiencia por tienda</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>📉 Análisis de Inventario</h4>
+                <ul>
+                    <li>Rotación de stock</li>
+                    <li>Productos lentos</li>
+                    <li>Óptimos de reposición</li>
+                    <li>Análisis ABC</li>
+                </ul>
+            </div>
         </div>
         
-        <hr class="section-divider">
-        
-        <h2>Beneficios del Sistema</h2>
+        <h2>Exportación de Datos</h2>
         
         <div class="process-step">
-            <h3>🎯 Para TodoTech Shop</h3>
+            <p>Todos los reportes pueden exportarse en:</p>
             <ul>
-                <li>Reducción del 95% en errores de precios</li>
-                <li>Optimización del 60% en tiempo de procesos de venta</li>
-                <li>Control de inventario en tiempo real</li>
-                <li>Procesos contables 100% automatizados</li>
-                <li>Reportes ejecutivos en tiempo real</li>
-                <li>Mejora continua basada en datos</li>
+                <li>📄 PDF (para presentaciones)</li>
+                <li>📊 Excel (para análisis avanzado)</li>
+                <li>📋 CSV (para integraciones)</li>
+            </ul>
+        </div>
+        
+        <div class="note-box">
+            <strong>💡 Tip:</strong> Utiliza los filtros de fecha y los agrupamientos por categoría para obtener insights más específicos de tu negocio.
+        </div>
+        
+        <div class="page-number">Página 9 of 10</div>
+    </div>
+
+    <!-- Página 10 - Sección 8 -->
+    <div class="manual-page">
+        <div class="header">
+            <h1><span class="section-number">8</span> Soporte Técnico</h1>
+            <p>Asistencia y recursos disponibles</p>
+        </div>
+        
+        <h2>Canales de Soporte</h2>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>📞 Soporte Telefónico</h4>
+                <p><strong>+56 2 2345 6789</strong></p>
+                <p>Lunes a Viernes: 9:00 - 18:00 hrs</p>
+                <p>Sábados: 9:00 - 14:00 hrs</p>
+            </div>
+            <div class="feature-card">
+                <h4>📧 Soporte por Email</h4>
+                <p><strong>soporte@todotechshop.cl</strong></p>
+                <p>Respuesta en menos de 4 horas hábiles</p>
+            </div>
+            <div class="feature-card">
+                <h4>🆘 Emergencias Técnicas</h4>
+                <p><strong>+56 9 8765 4321</strong></p>
+                <p>24/7 para problemas críticos del sistema</p>
+            </div>
+        </div>
+        
+        <h2>Recursos Adicionales</h2>
+        
+        <div class="process-step">
+            <h3>Base de Conocimiento</h3>
+            <p>Acceso a documentación completa:</p>
+            <ul>
+                <li>Manuales de procedimiento</li>
+                <li>Video-tutoriales</li>
+                <li>FAQ actualizada</li>
+                <li>Guías rápidas por rol</li>
             </ul>
         </div>
         
         <div class="process-step">
-            <h3>👍 Para Nuestros Clientes</h3>
+            <h3>Capacitación Continua</h3>
+            <p>Programas de entrenamiento:</p>
             <ul>
-                <li>Atención más rápida y personalizada</li>
-                <li>Asesoramiento técnico especializado</li>
-                <li>Garantía de stock disponible al momento de la compra</li>
-                <li>Proceso de compra seguro, organizado y transparente</li>
-                <li>Comprobantes digitales y seguimiento de compras</li>
-                <li>Experiencia de compra superior</li>
+                <li>Onboarding para nuevos usuarios</li>
+                <li>Capacitación de nuevas funcionalidades</li>
+                <li>Sesiones de refresco mensuales</li>
+                <li>Certificación por roles</li>
             </ul>
         </div>
         
-        <div class="confidentiality-section">
-            <h3>📞 Contacto y Soporte</h3>
-            <p><strong>Soporte Técnico:</strong> soporte@todotechshop.cl</p>
-            <p><strong>Teléfono:</strong> +56 2 2345 6789</p>
-            <p><strong>Horario de atención:</strong> Lunes a Viernes 9:00 - 18:00 hrs</p>
-            <p><strong>Emergencias técnicas:</strong> +56 9 8765 4321</p>
+        <div class="success-box" style="text-align: center; margin-top: 40px;">
+            <h3>🚀 ¡Gracias por usar TodoTech Shop!</h3>
+            <p>Estamos comprometidos con tu éxito y la excelencia en el servicio al cliente.</p>
         </div>
         
-        <div class="page-number">Página 5 de 5</div>
+        <div class="page-number">Página 10 of 10</div>
     </div>
 </body>
 </html>
