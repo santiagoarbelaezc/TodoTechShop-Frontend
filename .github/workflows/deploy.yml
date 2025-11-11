@@ -1,0 +1,67 @@
+name: CI/CD TodoTech Frontend
+
+on:
+  push:
+    branches: [ firebase ]
+  pull_request:
+    branches: [ firebase ]
+
+jobs:
+  # ------------------------------
+  # PRUEBAS UNITARIAS
+  # ------------------------------
+  test:
+    name: ✅ Ejecutar Pruebas
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: ⬇️ Obtener código del repositorio
+        uses: actions/checkout@v4
+
+      - name: ⎔ Configurar Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: 📦 Instalar dependencias
+        run: npm ci
+
+      - name: 🧪 Ejecutar pruebas unitarias
+        run: npm test -- --watch=false --browsers=ChromeHeadless --code-coverage
+
+  # ------------------------------
+  # DESPLIEGUE A FIREBASE
+  # ------------------------------
+  deploy:
+    name: 🚀 Desplegar a Firebase
+    runs-on: ubuntu-latest
+    needs: test  # Solo se ejecuta si las pruebas pasan
+    # Solo despliega en pushes a la rama firebase (no en pull requests)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/firebase'
+
+    steps:
+      - name: ⬇️ Obtener código del repositorio
+        uses: actions/checkout@v4
+
+      - name: ⎔ Configurar Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: 📦 Instalar dependencias
+        run: npm ci
+
+      - name: 🏗️ Construir aplicación Angular
+        run: npm run build -- --configuration production
+
+      - name: 🔥 Desplegar a Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: 'todotechshopfrontend'
+          channelId: live
+          entryPoint: './'
+          
