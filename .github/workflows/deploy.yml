@@ -2,66 +2,60 @@ name: CI/CD TodoTech Frontend
 
 on:
   push:
-    branches: [ firebase ]
+    branches: [ firebase, main ]
   pull_request:
-    branches: [ firebase ]
+    branches: [ firebase, main ]
+
+env:
+  NODE_VERSION: '20'  # Variable global para fácil mantenimiento
 
 jobs:
-  # ------------------------------
-  # PRUEBAS UNITARIAS
-  # ------------------------------
   test:
-    name: ✅ Ejecutar Pruebas
+    name: ✅ Tests - Node ${{ env.NODE_VERSION }}
     runs-on: ubuntu-latest
     
     steps:
-      - name: ⬇️ Obtener código del repositorio
+      - name: ⬇️ Checkout code
         uses: actions/checkout@v4
 
-      - name: ⎔ Configurar Node.js 18
+      - name: ⎔ Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: 📦 Instalar dependencias
+      - name: 📦 Install dependencies
         run: npm ci
 
-      - name: 🧪 Ejecutar pruebas unitarias
-        run: npm test -- --watch=false --browsers=ChromeHeadless --code-coverage
+      - name: 🧪 Run unit tests
+        run: npm test -- --watch=false --browsers=ChromeHeadless
 
-  # ------------------------------
-  # DESPLIEGUE A FIREBASE
-  # ------------------------------
   deploy:
-    name: 🚀 Desplegar a Firebase
+    name: 🚀 Deploy to Firebase - Node ${{ env.NODE_VERSION }}
     runs-on: ubuntu-latest
-    needs: test  # Solo se ejecuta si las pruebas pasan
-    # Solo despliega en pushes a la rama firebase (no en pull requests)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/firebase'
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/firebase' || github.ref == 'refs/heads/main')
 
     steps:
-      - name: ⬇️ Obtener código del repositorio
+      - name: ⬇️ Checkout code
         uses: actions/checkout@v4
 
-      - name: ⎔ Configurar Node.js 18
+      - name: ⎔ Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: 📦 Instalar dependencias
+      - name: 📦 Install dependencies
         run: npm ci
 
-      - name: 🏗️ Construir aplicación Angular
+      - name: 🏗️ Build Angular app
         run: npm run build -- --configuration production
 
-      - name: 🔥 Desplegar a Firebase Hosting
+      - name: 🔥 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           projectId: 'todotechshopfrontend'
           channelId: live
-          entryPoint: './'
-          
