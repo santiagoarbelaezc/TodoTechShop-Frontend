@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { ResumenOrdenComponent } from './resumen-orden.component';
 
@@ -8,7 +9,7 @@ describe('ResumenOrdenComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ResumenOrdenComponent]
+      imports: [ResumenOrdenComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
@@ -21,3 +22,4 @@ describe('ResumenOrdenComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { CarruselProductosComponent } from './carrusel-productos.component';
 
@@ -8,7 +9,7 @@ describe('CarruselProductosComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CarruselProductosComponent]
+      imports: [CarruselProductosComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
@@ -21,3 +22,4 @@ describe('CarruselProductosComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+

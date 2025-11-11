@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { OrdenesActivasComponent } from './ordenes-activas.component';
 
@@ -8,7 +9,7 @@ describe('OrdenesActivasComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [OrdenesActivasComponent]
+      imports: [OrdenesActivasComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
@@ -21,3 +22,4 @@ describe('OrdenesActivasComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+

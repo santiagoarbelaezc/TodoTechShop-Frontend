@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { CatalogoComponent } from './catalogo.component';
 
@@ -8,7 +9,7 @@ describe('CatalogoComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CatalogoComponent]
+      imports: [CatalogoComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
@@ -21,3 +22,4 @@ describe('CatalogoComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+

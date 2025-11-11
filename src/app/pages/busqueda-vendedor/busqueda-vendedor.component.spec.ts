@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { BusquedaVendedorComponent } from './busqueda-vendedor.component';
 
@@ -8,7 +9,7 @@ describe('BusquedaVendedorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [BusquedaVendedorComponent]
+      imports: [BusquedaVendedorComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
@@ -21,3 +22,4 @@ describe('BusquedaVendedorComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+

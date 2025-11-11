@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { NavbarClienteComponent } from './navbar-cliente.component';
 
@@ -8,7 +9,7 @@ describe('NavbarClienteComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NavbarClienteComponent]
+      imports: [NavbarClienteComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
@@ -21,3 +22,4 @@ describe('NavbarClienteComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+

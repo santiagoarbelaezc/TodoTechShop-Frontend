@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing'; // Agregar esto
 
 import { CreacionComponent } from './creacion.component';
 
@@ -8,7 +9,10 @@ describe('CreacionComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CreacionComponent]
+      imports: [
+        CreacionComponent,
+        HttpClientTestingModule // ← SOLO AGREGAR ESTA LÍNEA
+      ]
     })
     .compileComponents();
 

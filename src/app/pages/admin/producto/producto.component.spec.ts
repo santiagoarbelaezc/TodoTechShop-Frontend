@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing'; // Agregar esto
 
 import { ProductoComponent } from './producto.component';
 
@@ -8,7 +9,10 @@ describe('ProductoComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ProductoComponent]
+      imports: [
+        ProductoComponent,
+        HttpClientTestingModule // ← SOLO AGREGAR ESTA LÍNEA
+      ]
     })
     .compileComponents();
 

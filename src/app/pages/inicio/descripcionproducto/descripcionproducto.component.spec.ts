@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { ActivatedRoute } from '@angular/router'; // Agregar esta importación
 
 import { DescripcionproductoComponent } from './descripcionproducto.component';
 
@@ -8,7 +10,19 @@ describe('DescripcionproductoComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DescripcionproductoComponent]
+      imports: [DescripcionproductoComponent, HttpClientTestingModule],
+      providers: [
+        { 
+          provide: ActivatedRoute, 
+          useValue: { 
+            snapshot: { 
+              paramMap: { 
+                get: () => '123' // O el ID del producto que espera tu componente
+              } 
+            } 
+          } 
+        }
+      ]
     })
     .compileComponents();
 

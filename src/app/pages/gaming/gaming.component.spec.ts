@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { GamingComponent } from './gaming.component';
 
@@ -8,7 +9,7 @@ describe('GamingComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GamingComponent]
+      imports: [GamingComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
@@ -21,3 +22,4 @@ describe('GamingComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { TerminosCondicionesComponent } from './terminos-condiciones.component';
 
@@ -8,7 +9,7 @@ describe('TerminosCondicionesComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TerminosCondicionesComponent]
+      imports: [TerminosCondicionesComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
@@ -21,3 +22,4 @@ describe('TerminosCondicionesComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+

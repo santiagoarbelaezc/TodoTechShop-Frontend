@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing'; // Agregar esto
 
 import { TablaUsuariosComponent } from './tabla-usuarios.component';
 
@@ -8,7 +9,10 @@ describe('TablaUsuariosComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TablaUsuariosComponent]
+      imports: [
+        TablaUsuariosComponent,
+        HttpClientTestingModule // ← SOLO AGREGAR ESTA LÍNEA
+      ]
     })
     .compileComponents();
 

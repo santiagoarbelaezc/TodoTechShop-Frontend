@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { RecuperarContrasenaComponent } from './recuperar-contrasena.component';
 
@@ -8,7 +9,7 @@ describe('RecuperarContrasenaComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RecuperarContrasenaComponent]
+      imports: [RecuperarContrasenaComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
@@ -21,3 +22,4 @@ describe('RecuperarContrasenaComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+

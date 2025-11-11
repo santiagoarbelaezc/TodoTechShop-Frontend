@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { DespachoComponent } from './despacho.component';
 
@@ -8,7 +9,7 @@ describe('DespachoComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DespachoComponent]
+      imports: [DespachoComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
@@ -21,3 +22,4 @@ describe('DespachoComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+

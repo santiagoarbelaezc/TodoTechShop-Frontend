@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { BuscarInicioComponent } from './buscar-inicio.component';
 
@@ -8,7 +9,7 @@ describe('BuscarInicioComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [BuscarInicioComponent]
+      imports: [BuscarInicioComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
@@ -21,3 +22,4 @@ describe('BuscarInicioComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+

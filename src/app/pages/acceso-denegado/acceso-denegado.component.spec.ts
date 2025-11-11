@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing'; // Agregar esto
 
 import { AccesoDenegadoComponent } from './acceso-denegado.component';
 
@@ -8,7 +9,10 @@ describe('AccesoDenegadoComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AccesoDenegadoComponent]
+      imports: [
+        AccesoDenegadoComponent,
+        HttpClientTestingModule // ← SOLO AGREGAR ESTA LÍNEA
+      ]
     })
     .compileComponents();
 

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { PhoneComponent } from './phone.component';
 
@@ -8,7 +9,7 @@ describe('PhoneComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PhoneComponent]
+      imports: [PhoneComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
@@ -21,3 +22,4 @@ describe('PhoneComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+
