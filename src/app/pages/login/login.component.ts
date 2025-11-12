@@ -492,6 +492,8 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  //nuevo comentario
+
   private guardarAceptacionTerminos(): void {
     localStorage.setItem('terminosAceptados', 'true');
     localStorage.setItem('fechaAceptacionTerminos', new Date().toISOString());
