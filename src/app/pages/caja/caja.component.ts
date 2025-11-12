@@ -12,6 +12,7 @@ import { StripePaymentService } from '../../services/stripe-payment.service';
 import { PaymentStateService } from '../../services/payment-state.service';
 import { OrdenConDetallesDto, OrdenDto } from '../../models/orden-venta/ordenventa.dto';
 import { NavbarCajaComponent } from './navbar-caja/navbar-caja.component';
+import { ImpresionService } from '../../services/impresion.service';
 
 // Enums esenciales para el pago
 export enum TipoMetodo {
@@ -120,6 +121,11 @@ export class CajaComponent implements OnInit, OnDestroy {
   errorMessage: string = '';
   cargando: boolean = false;
 
+  // Variables para el modal de efectivo
+  showCashModal: boolean = false;
+  cashReceived: number = 0;
+  modalChangeAmount: number = 0;
+
   private paymentStatusInterval: any;
   private stripeWindow: Window | null = null;
   private windowCheckInterval: any;
@@ -128,6 +134,7 @@ export class CajaComponent implements OnInit, OnDestroy {
     private ordenVentaService: OrdenVentaService,
     private stripePaymentService: StripePaymentService,
     private paymentStateService: PaymentStateService,
+    private impresionService: ImpresionService,
     private cdRef: ChangeDetectorRef
   ) {}
 
@@ -278,10 +285,15 @@ export class CajaComponent implements OnInit, OnDestroy {
     const metodoInfo = this.metodosPago.find(m => m.nombre === method);
     this.showCardForm = metodoInfo?.requiereFormulario || false;
     
-    this.cashAmount = 0;
-    this.changeAmount = 0;
-    this.resetCardForm();
+    // ✅ NUEVO: Abrir modal para efectivo
+    if (method === 'Efectivo') {
+      this.openCashModal();
+    } else {
+      this.cashAmount = 0;
+      this.changeAmount = 0;
+    }
     
+    this.resetCardForm();
     this.cdRef.detectChanges();
   }
 
@@ -358,17 +370,83 @@ export class CajaComponent implements OnInit, OnDestroy {
   }
 
   calculateChange(): void {
-    if (this.ordenSeleccionada && this.cashAmount > 0) {
-      this.changeAmount = this.cashAmount - this.ordenSeleccionada.total;
+  if (this.ordenSeleccionada) {
+    // Usar cashAmount para el cálculo normal y cashReceived para el modal
+    const montoRecibido = this.showCashModal ? this.cashReceived : this.cashAmount;
+    
+    if (montoRecibido > 0) {
+      this.changeAmount = montoRecibido - this.ordenSeleccionada.total;
     } else {
       this.changeAmount = 0;
     }
+  } else {
+    this.changeAmount = 0;
   }
+}
 
   esMetodoStripe(): boolean {
     const metodoInfo = this.metodosPago.find(m => m.nombre === this.selectedPaymentMethod);
     return metodoInfo?.tipoMetodo === TipoMetodo.STRIPE;
   }
+
+  // ✅ MÉTODOS PARA EL MODAL DE EFECTIVO
+  openCashModal(): void {
+    if (!this.ordenSeleccionada) {
+      this.mostrarError('Seleccione una orden primero');
+      return;
+    }
+
+    this.cashReceived = 0;
+    this.modalChangeAmount = 0;
+    this.showCashModal = true;
+    
+    // Enfocar el input después de que el modal se abra
+    setTimeout(() => {
+      const input = document.getElementById('cashReceived');
+      if (input) {
+        input.focus();
+      }
+    }, 100);
+  }
+
+  closeCashModal(): void {
+    this.showCashModal = false;
+    this.cashReceived = 0;
+    this.modalChangeAmount = 0;
+  }
+
+  calculateModalChange(): void {
+  this.calculateChange(); // Reutiliza la misma lógica
+}
+
+  canConfirmCashPayment(): boolean {
+    return this.ordenSeleccionada !== null && 
+           this.cashReceived >= this.ordenSeleccionada.total &&
+           this.cashReceived > 0;
+  }
+
+  confirmCashPayment(): void {
+  if (!this.canConfirmCashPayment()) {
+    return;
+  }
+
+  console.log('💵 Confirmando pago en efectivo:', {
+    orden: this.ordenSeleccionada?.numeroOrden,
+    total: this.ordenSeleccionada?.total,
+    recibido: this.cashReceived,
+    cambio: this.changeAmount // Usar changeAmount en lugar de modalChangeAmount
+  });
+
+  // Actualizar los valores principales con los del modal
+  this.cashAmount = this.cashReceived;
+  // this.changeAmount ya está calculado correctamente por calculateChange()
+
+  // Cerrar el modal
+  this.closeCashModal();
+  
+  // Procesar el pago tradicional
+  this.processTraditionalPayment();
+}
 
   // Métodos de procesamiento de pagos
   private async processStripePayment(): Promise<void> {
@@ -449,7 +527,6 @@ export class CajaComponent implements OnInit, OnDestroy {
   private processTraditionalPayment(): void {
     this.cargando = true;
     
-    // ✅ CORREGIDO: Validación de la orden seleccionada
     if (!this.ordenSeleccionada) {
       this.mostrarError('No hay orden seleccionada para procesar pago');
       this.cargando = false;
@@ -458,22 +535,49 @@ export class CajaComponent implements OnInit, OnDestroy {
 
     const idOrdenAPagar = this.ordenSeleccionada.id;
     
-    console.log('🔍 DEBUG Procesando pago tradicional para orden:', {
+    console.log('💵 Procesando pago en efectivo:', {
       id: idOrdenAPagar,
       numeroOrden: this.ordenSeleccionada.numeroOrden,
-      metodo: this.selectedPaymentMethod
+      total: this.ordenSeleccionada.total,
+      recibido: this.cashAmount,
+      cambio: this.changeAmount
     });
 
     setTimeout(() => {
-      // ✅ CORREGIDO: Actualizar el estado de la orden real en el backend
       this.ordenVentaService.marcarComoPagada(idOrdenAPagar).subscribe({
         next: (ordenActualizada) => {
           console.log('✅ Orden marcada como pagada en backend:', ordenActualizada);
-          this.ordenSeleccionada!.estado = EstadoOrden.PAGADA;
-          
-          this.mostrarExito(`Pago en ${this.selectedPaymentMethod} procesado exitosamente. Orden #${this.ordenSeleccionada!.numeroOrden} ha sido pagada.`);
-          this.actualizarEstadisticas();
-          this.removerOrdenDeLista(idOrdenAPagar);
+
+          // Obtener detalles completos antes de guardar
+          this.ordenVentaService.obtenerOrdenConDetalles(idOrdenAPagar).subscribe({
+            next: (ordenConDetalles) => {
+              console.log('✅ Orden con detalles obtenida:', ordenConDetalles);
+              
+              // Guardar orden completa con productos
+              this.ordenVentaService.guardarOrdenPagada(ordenConDetalles);
+              
+              this.ordenSeleccionada!.estado = EstadoOrden.PAGADA;
+              
+              this.mostrarExito(`Pago en efectivo procesado exitosamente. Orden #${this.ordenSeleccionada!.numeroOrden} ha sido pagada.`);
+              this.actualizarEstadisticas();
+              this.removerOrdenDeLista(idOrdenAPagar);
+            },
+            error: (error) => {
+              console.error('❌ Error al obtener detalles de la orden:', error);
+              // Si falla obtener detalles, guardar la orden básica
+              const ordenBasica: OrdenConDetallesDto = {
+                ...this.ordenSeleccionada!,
+                productos: [],
+                estado: EstadoOrden.PAGADA
+              };
+              this.ordenVentaService.guardarOrdenPagada(ordenBasica);
+              
+              this.ordenSeleccionada!.estado = EstadoOrden.PAGADA;
+              this.mostrarExito(`Pago en efectivo procesado exitosamente. Orden #${this.ordenSeleccionada!.numeroOrden} ha sido pagada.`);
+              this.actualizarEstadisticas();
+              this.removerOrdenDeLista(idOrdenAPagar);
+            }
+          });
         },
         error: (error) => {
           console.error('❌ Error al marcar orden como pagada:', error);
@@ -647,10 +751,8 @@ export class CajaComponent implements OnInit, OnDestroy {
   private handleSuccessfulStripePayment(paymentIntentId: string, orderId: number): void {
     this.paymentStateService.markPaymentSuccess();
     
-    // ✅ AGREGADO: Cerrar ventana automáticamente antes de procesar
     this.cerrarVentanaStripe();
     
-    // ✅ SOLUCIÓN: Usar siempre la orden seleccionada actual
     if (!this.ordenSeleccionada) {
       console.error('❌ No hay orden seleccionada para marcar como pagada');
       this.mostrarError('Error: No se encontró la orden a marcar como pagada');
@@ -682,22 +784,49 @@ export class CajaComponent implements OnInit, OnDestroy {
     this.ordenVentaService.marcarComoPagada(idOrdenAPagar).subscribe({
       next: (ordenActualizada) => {
         console.log('✅ Orden marcada como pagada exitosamente:', ordenActualizada);
-        
-        // Actualizar la orden en la lista local
-        if (this.ordenSeleccionada) {
-          this.ordenSeleccionada.estado = EstadoOrden.PAGADA;
-          // Reassign a new object with a definite id to satisfy typing and trigger change detection
-          this.ordenSeleccionada = { ...this.ordenSeleccionada, id: this.ordenSeleccionada.id! };
-        }
-        
-        this.mostrarExito(`¡Pago con Stripe procesado exitosamente! Orden #${ordenActualizada.numeroOrden} ha sido pagada.`);
-        this.actualizarEstadisticas();
-        this.removerOrdenDeLista(idOrdenAPagar);
+
+        // ✅ OBTENER DETALLES COMPLETOS ANTES DE GUARDAR
+        this.ordenVentaService.obtenerOrdenConDetalles(idOrdenAPagar).subscribe({
+          next: (ordenConDetalles) => {
+            console.log('✅ Orden con detalles obtenida:', ordenConDetalles);
+            
+            // ✅ GUARDAR ORDEN COMPLETA CON PRODUCTOS
+            this.ordenVentaService.guardarOrdenPagada(ordenConDetalles);
+            
+            // Actualizar la orden en la lista local
+            if (this.ordenSeleccionada) {
+              this.ordenSeleccionada.estado = EstadoOrden.PAGADA;
+              this.ordenSeleccionada = { ...this.ordenSeleccionada, id: this.ordenSeleccionada.id! };
+            }
+            
+            this.mostrarExito(`¡Pago con Stripe procesado exitosamente! Orden #${ordenActualizada.numeroOrden} ha sido pagada.`);
+            this.actualizarEstadisticas();
+            this.removerOrdenDeLista(idOrdenAPagar);
+          },
+          error: (error) => {
+            console.error('❌ Error al obtener detalles de la orden:', error);
+            // Si falla obtener detalles, guardar la orden básica
+            const ordenBasica: OrdenConDetallesDto = {
+              ...this.ordenSeleccionada!,
+              productos: [],
+              estado: EstadoOrden.PAGADA
+            };
+            this.ordenVentaService.guardarOrdenPagada(ordenBasica);
+            
+            if (this.ordenSeleccionada) {
+              this.ordenSeleccionada.estado = EstadoOrden.PAGADA;
+              this.ordenSeleccionada = { ...this.ordenSeleccionada, id: this.ordenSeleccionada.id! };
+            }
+            
+            this.mostrarExito(`¡Pago con Stripe procesado exitosamente! Orden #${ordenActualizada.numeroOrden} ha sido pagada.`);
+            this.actualizarEstadisticas();
+            this.removerOrdenDeLista(idOrdenAPagar);
+          }
+        });
       },
       error: (error) => {
         console.error('❌ Error al marcar orden como pagada:', error);
         
-        // Mostrar más detalles del error
         let mensajeError = 'Error al actualizar el estado de la orden: ';
         if (error.error?.mensaje) {
           mensajeError += error.error.mensaje;
@@ -705,7 +834,6 @@ export class CajaComponent implements OnInit, OnDestroy {
           mensajeError += error.message;
         }
         
-        // Mostrar la URL que falló para debug
         console.error('URL que falló:', error.url);
         
         this.mostrarError(mensajeError);
@@ -776,6 +904,8 @@ export class CajaComponent implements OnInit, OnDestroy {
     this.resetCardForm();
     this.cashAmount = 0;
     this.changeAmount = 0;
+    this.cashReceived = 0;
+    this.modalChangeAmount = 0;
     
     setTimeout(() => {
       this.paymentStateService.resetPayment();
@@ -834,6 +964,7 @@ export class CajaComponent implements OnInit, OnDestroy {
     }).format(value);
   }
 
+
   // ✅ NUEVO: Método para debug
   debugOrdenes(): void {
     console.group('🔍 DEBUG - Órdenes Disponibles para Pago');
@@ -843,5 +974,40 @@ export class CajaComponent implements OnInit, OnDestroy {
     console.log('Órdenes pendientes:', this.ordenesPendientes);
     console.log('Órdenes pagadas:', this.ordenesPagadas);
     console.groupEnd();
+  }
+
+  // ✅ MÉTODOS PARA IMPRIMIR ORDEN PAGADA
+  imprimirOrdenPagada(): void {
+    const ordenPagada = this.ordenVentaService.obtenerUltimaOrdenPagada();
+    
+    if (ordenPagada) {
+      console.log('🖨️ Imprimiendo orden pagada:', ordenPagada.numeroOrden);
+      
+      this.impresionService.imprimirOrdenPagada(ordenPagada);
+      this.mostrarExito(`Preparando impresión de orden #${ordenPagada.numeroOrden}`);
+    } else {
+      this.mostrarError('No hay orden pagada para imprimir');
+    }
+  }
+
+  enviarEmailOrden(): void {
+    const ordenPagada = this.ordenVentaService.obtenerUltimaOrdenPagada();
+    if (ordenPagada) {
+      console.log('📧 Enviando email para orden:', ordenPagada.numeroOrden);
+      this.mostrarExito(`Enviando comprobante de orden #${ordenPagada.numeroOrden} por email...`);
+      
+      // Aquí puedes implementar la lógica para enviar email
+      // Por ahora es solo una simulación
+    }
+  }
+
+  limpiarOrdenPagada(): void {
+    console.log('🧹 Limpiando orden pagada mostrada');
+    this.ordenVentaService.limpiarHistorialOrdenesPagadas();
+    this.cdRef.detectChanges();
+  }
+
+  get ultimaOrdenPagada(): string | null {
+    return this.ordenVentaService.obtenerNumeroUltimaOrdenPagada();
   }
 }

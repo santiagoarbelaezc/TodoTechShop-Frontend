@@ -317,5 +317,51 @@ obtenerOrdenesDisponiblesPago(): Observable<OrdenDto[]> {
   );
 }
 
+// ========== MÉTODO PARA GUARDAR NÚMERO DE ORDEN PAGADA ==========
+
+/**
+ * Guarda el número de orden después de un pago exitoso
+ */
+guardarNumeroOrdenPagada(numeroOrden: string): void {
+  console.log('💾 Guardando número de orden pagada:', numeroOrden);
+  localStorage.setItem('ultimaOrdenPagada', numeroOrden);
+}
+
+
+
+/**
+ * Guarda la orden completa después de un pago exitoso
+ */
+guardarOrdenPagada(orden: OrdenConDetallesDto): void {
+  console.log('💾 Guardando orden pagada completa:', orden.numeroOrden);
+  localStorage.setItem('ultimaOrdenPagada', JSON.stringify(orden));
+}
+
+/**
+ * Obtiene la última orden pagada completa
+ */
+obtenerUltimaOrdenPagada(): OrdenConDetallesDto | null {
+  try {
+    const ordenGuardada = localStorage.getItem('ultimaOrdenPagada');
+    return ordenGuardada ? JSON.parse(ordenGuardada) : null;
+  } catch (error) {
+    console.error('❌ Error al obtener orden pagada:', error);
+    return null;
+  }
+}
+
+/**
+ * Obtiene solo el número de la última orden pagada (para compatibilidad)
+ */
+obtenerNumeroUltimaOrdenPagada(): string | null {
+  const orden = this.obtenerUltimaOrdenPagada();
+  return orden?.numeroOrden || null;
+}
+
+limpiarHistorialOrdenesPagadas(): void {
+  localStorage.removeItem('ultimaOrdenPagada');
+  console.log('🗑️ Última orden pagada limpiada del historial');
+}
+
 
 }

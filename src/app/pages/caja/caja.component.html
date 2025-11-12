@@ -130,6 +130,42 @@
         </div>
       </div>
     </header>
+<!-- Sección para Imprimir Orden Pagada -->
+<section class="imprimir-section" *ngIf="ultimaOrdenPagada">
+  <div class="panel-header">
+    <h3>
+      <i class="fas fa-receipt"></i>
+      Orden Pagada Recientemente
+    </h3>
+    <span class="badge-success">PAGADA</span>
+  </div>
+  
+  <div class="imprimir-content">
+    <div class="orden-pagada-info">
+      <div class="orden-pagada-header">
+        <i class="fas fa-check-circle"></i>
+        <div class="orden-pagada-details">
+          <h4>Orden #{{ultimaOrdenPagada}} Pagada Exitosamente</h4>
+        </div>
+      </div>
+      
+      <div class="imprimir-actions">
+        <button type="button" class="btn btn-imprimir" (click)="imprimirOrdenPagada()">
+          <i class="fas fa-print"></i>
+          Imprimir Comprobante
+        </button>
+        <button type="button" class="btn btn-email" (click)="enviarEmailOrden()">
+          <i class="fas fa-envelope"></i>
+          Enviar por Email
+        </button>
+        <button type="button" class="btn btn-limpiar" (click)="limpiarOrdenPagada()">
+          <i class="fas fa-times"></i>
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
 
     <!-- Panel Principal: Detalles y Pago -->
     <section class="pago-panel">
@@ -391,6 +427,105 @@
         </div>
       </ng-template>
     </section>
+
+    <!-- Modal para Pago en Efectivo -->
+<div class="modal-overlay" *ngIf="showCashModal" (click)="closeCashModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <i class="fas fa-money-bill-wave"></i>
+        Pago en Efectivo
+      </h3>
+      <button class="modal-close" (click)="closeCashModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-content">
+      <!-- Información de la orden -->
+      <div class="order-summary">
+        <div class="summary-item">
+          <span>Orden:</span>
+          <strong>#{{ordenSeleccionada?.numeroOrden}}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Cliente:</span>
+          <span>{{ordenSeleccionada?.cliente?.nombre}}</span>
+        </div>
+        <div class="summary-item total-due">
+          <span>Total a Pagar:</span>
+          <strong class="total-amount">{{ordenSeleccionada?.total | currency:'COP':'symbol':'1.0-0'}}</strong>
+        </div>
+      </div>
+
+      <!-- Input para el monto recibido -->
+      <div class="cash-input-section">
+        <label for="cashReceived" class="cash-input-label">
+          <i class="fas fa-hand-holding-usd"></i>
+          Efectivo Recibido:
+        </label>
+        <input
+          type="number"
+          id="cashReceived"
+          [(ngModel)]="cashReceived"
+          (input)="calculateChange()"
+          placeholder="0"
+          min="0"
+          class="cash-input"
+          autofocus
+        />
+      </div>
+
+      <!-- Resumen del cambio -->
+      <div class="change-summary" *ngIf="cashReceived > 0">
+        <div class="change-item">
+          <span>Total a Pagar:</span>
+          <span>{{ordenSeleccionada?.total | currency:'COP':'symbol':'1.0-0'}}</span>
+        </div>
+        <div class="change-item">
+          <span>Efectivo Recibido:</span>
+          <span>{{cashReceived | currency:'COP':'symbol':'1.0-0'}}</span>
+        </div>
+        <div class="change-item change-total" [class.insufficient]="changeAmount < 0" [class.sufficient]="changeAmount >= 0">
+          <span>{{changeAmount >= 0 ? 'Cambio a Devolver:' : 'Falta:'}}</span>
+          <strong>{{changeAmount | currency:'COP':'symbol':'1.0-0'}}</strong>
+        </div>
+
+        <!-- Alertas -->
+        <div class="alert-message" *ngIf="changeAmount < 0">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>El monto recibido es insuficiente. Faltan {{(-changeAmount) | currency:'COP':'symbol':'1.0-0'}}</span>
+        </div>
+
+        <div class="alert-message success" *ngIf="changeAmount >= 0 && changeAmount > 0">
+          <i class="fas fa-check-circle"></i>
+          <span>Cambio calculado correctamente</span>
+        </div>
+
+        <div class="alert-message exact" *ngIf="changeAmount === 0">
+          <i class="fas fa-check"></i>
+          <span>Pago exacto, no hay cambio</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn-cancel" (click)="closeCashModal()">
+        <i class="fas fa-times"></i>
+        Cancelar
+      </button>
+      <button 
+        type="button" 
+        class="btn btn-confirm" 
+        (click)="confirmCashPayment()"
+        [disabled]="!canConfirmCashPayment()"
+        [class.disabled]="!canConfirmCashPayment()">
+        <i class="fas fa-check-circle"></i>
+        Confirmar Pago
+      </button>
+    </div>
+  </div>
+</div>
   </main>
 </body>
 </html>
