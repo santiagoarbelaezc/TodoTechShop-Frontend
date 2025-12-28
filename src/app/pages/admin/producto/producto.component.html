@@ -98,20 +98,24 @@
             </div>
           </div>
 
-          <!-- Fila 2: Categoría y Marca -->
           <div class="input-group">
-            <select id="categoria" name="categoria" [(ngModel)]="producto.categoria" 
-                    #categoriaInput="ngModel" required>
-              <option value="" disabled selected>Seleccione una categoría</option>
-              <option *ngFor="let cat of categorias" [ngValue]="cat">
-                {{ cat.nombre }}
-              </option>
-            </select>
-            <label for="categoria">Categoría *</label>
-            <div *ngIf="categoriaInput.invalid && (categoriaInput.dirty || categoriaInput.touched)" class="error-message">
-              La categoría es obligatoria
-            </div>
-          </div>
+  <select 
+    id="categoria" 
+    name="categoria" 
+    [(ngModel)]="producto.categoria" 
+    #categoriaInput="ngModel" 
+    required
+  >
+    <option value="" disabled selected>Seleccione una categoría</option>
+    <option *ngFor="let cat of categorias" [ngValue]="cat">
+      {{ cat.nombre }}
+    </option>
+  </select>
+  <label for="categoria">Categoría *</label>
+  <div *ngIf="categoriaInput.invalid && (categoriaInput.dirty || categoriaInput.touched)" class="error-message">
+    La categoría es obligatoria
+  </div>
+</div>
 
           <div class="input-group">
             <input type="text" id="marca" name="marca" [(ngModel)]="producto.marca" 

@@ -1,165 +1,109 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TodoTech Shop - Catálogo</title>
-  <link rel="stylesheet" href="catalogo.component.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-</head>
-<body>
-  <!-- ✅ NAVBAR CLIENTE -->
-  <app-navbar-cliente></app-navbar-cliente>
+<!-- ✅ LOADING STATE -->
+<div *ngIf="loading" class="loading-container">
+  <div class="loading-spinner"></div>
+  <p>Cargando productos...</p>
+</div>
 
-  <!-- ✅ LOADING STATE -->
-  <div *ngIf="loading" class="loading-container">
-    <div class="loading-spinner"></div>
-    <p>Cargando productos...</p>
+<!-- ✅ ERROR STATE -->
+<div *ngIf="error && !loading" class="error-container">
+  <div class="error-message">
+    <h3>😕 Ocurrió un error</h3>
+    <p>{{ error }}</p>
+    <button (click)="recargarProductos()" class="btn-retry">Reintentar</button>
   </div>
+</div>
 
-  <!-- ✅ ERROR STATE -->
-  <div *ngIf="error && !loading" class="error-container">
-    <div class="error-message">
-      <h3>😕 Ocurrió un error</h3>
-      <p>{{ error }}</p>
-      <button (click)="recargarProductos()" class="btn-retry">Reintentar</button>
+<!-- ✅ CONTENIDO PRINCIPAL -->
+<div *ngIf="!loading && !error">
+
+  <!-- 🔹 BANNER PRINCIPAL CON PARTÍCULAS -->
+  <section class="banner">
+    <div class="banner-content">
+      <h2>
+        <span class="reveal-text">
+          ¡ Bienvenido a TodoTechShop Tecnología Sin Límites !
+        </span>
+        <span class="reveal-text">
+          Descubre innovación, calidad y asesoría experta en cada compra
+        </span>
+      </h2>
     </div>
-  </div>
+  </section>
 
-  <!-- ✅ CONTENIDO PRINCIPAL -->
-  <div *ngIf="!loading && !error">
-    <!-- 🔹 BANNER PRINCIPAL CON PARTÍCULAS -->
-    <section class="banner">
-      <!-- Partículas individuales -->
-      <div class="particle"></div>
-      <div class="particle"></div>
-      <div class="particle"></div>
-      <div class="particle"></div>
-      <div class="particle"></div>
-      
-      <div class="banner-content">
-        <h2>
-          <span class="reveal-text">¡ Bienvenido a TodoTechShop Tecnología Sin Límites !</span>
-          <span class="reveal-text">Descubre innovación, calidad y asesoría experta en cada compra</span>       
-        </h2>
-        <p class="banner-subtitle">
-          Explora nuestro catálogo. Para comprar o ver detalles, <a (click)="irALogin()" class="login-link">inicia sesión</a>
-        </p>
-      </div>
-    </section>
+  
 
-    <!-- 🔹 CARRUSELES DE PRODUCTOS PÚBLICOS -->
-    <app-carrusel-publico
-      *ngIf="productosGaming.length > 0"
-      [productos]="productosGaming"
-      titulo="🎮 PC Gaming"
-      carouselId="gaming">
-    </app-carrusel-publico>
 
-    <app-carrusel-publico
-      *ngIf="productosIphone.length > 0"
-      [productos]="productosIphone"
-      titulo="📱 Smartphones iPhone"
-      carouselId="iphone">
-    </app-carrusel-publico>
+  <!-- 🔹 CARRUSELES DE PRODUCTOS PÚBLICOS -->
+  
 
-    <!-- 🔹 PROMOCIONES -->
-    <div class="promos-container">
-      <div class="promo-box" id="promo1">
-        <img src="assets/catalogo.jpg" alt="Escanea el código QR">
-        <div class="promo-text">
-          <h3>Escanea el código QR</h3>
-          <p>y mira el catálogo en tu celular</p>
-        </div>
-      </div>
+  <app-carrusel-publico
+    *ngIf="productosIphone.length > 0"
+    [productos]="productosIphone"
+    titulo="iPhone"
+    carouselId="iphone">
+  </app-carrusel-publico>
 
-      <div class="promo-box" id="promo2">
-        <div class="promo-text">
-          <h3>Obtén descuentos especiales en nuestros productos</h3>
-          <p>Inicia sesión para ver precios exclusivos</p>
-        </div>
-      </div>
+ <section class="feature-section-wrapper">
+<app-feature-banner
+    imageUrl="assets/feature1.png"
+    title="Tienda TodoTech Shop"
+    subtitle="Explora nuestro catálogo exclusivo de productos tecnológicos. Encuentra las últimas novedades en smartphones, laptops, accesorios y más, todo en un solo lugar."
+    primaryText="Ver Productos"
+    [reverse]="false"
+    backgroundColor="linear-gradient(135deg, #191919 0%, #000000 100%)"
+    textColor="#E1E1E1">
+</app-feature-banner>
 
-      <div class="promo-box" id="promo3">
-        <img src="assets/tienda.png" alt="Conoce nuestros productos">
-        <div class="promo-text">
-          <h3>Conoce nuestros productos</h3>
-          <p>Tecnología sin límites</p>
-        </div>
-      </div>
-    </div>
+<app-feature-banner
+  imageUrl="assets/jbl.png"
+  title="Tecnología para cada día"
+  subtitle="Descubre dispositivos pensados para acompañarte en tu rutina: desde smartphones potentes y laptops ultraligeras hasta accesorios que hacen tu experiencia más cómoda y productiva."
+  primaryText="Explorar ahora"
+  [reverse]="true"
+  backgroundColor="linear-gradient(135deg, #ffffff 0%, #f5f5f7 100%)"
+  textColor="#111827">
+</app-feature-banner>
 
-    <app-carrusel-publico
-      *ngIf="productosAsus.length > 0"
-      [productos]="productosAsus"
-      titulo="💻 Laptops Asus"
-      carouselId="asus">
-    </app-carrusel-publico>
 
-    <app-carrusel-publico
-      *ngIf="productosSamsung.length > 0"
-      [productos]="productosSamsung"
-      titulo="📱 Smartphones Samsung"
-      carouselId="samsung">
-    </app-carrusel-publico>
+  
+  <app-feature-banner
+    imageUrl="assets/iphone-banner.png"
+    title="iPhone 17 Pro Max"
+    subtitle="Nuevo acabado naranja que destaca a primera vista, cámaras Pro capaces de capturar cada detalle incluso de noche y un rendimiento pensado para acompañarte todo el día."
+    primaryText="Más información"
+    [reverse]="false"
+    backgroundColor="linear-gradient(135deg, #fff5e6 0%, #ffe0b3 100%)"
+    textColor="#1f2933">
+  </app-feature-banner>
 
-    <!-- 🔹 LLAMADO A LA ACCIÓN -->
-    <section class="cta-section">
-      <div class="cta-content">
-        <h3>¿Te gustó lo que viste?</h3>
-        <p>Inicia sesión para acceder a todas las funcionalidades:</p>
-        <ul class="cta-features">
-          <li>✅ Ver detalles completos de productos</li>
-          <li>✅ Agregar productos al carrito</li>
-          <li>✅ Realizar compras</li>
-          <li>✅ Acceder a promociones exclusivas</li>
-          <li>✅ Historial de pedidos</li>
-          <li>✅ Soporte personalizado</li>
-        </ul>
-        <button (click)="irALogin()" class="cta-button">
-          <i class="fas fa-sign-in-alt"></i>
-          Iniciar Sesión
-        </button>
-      </div>
-    </section>
-  </div>
+  <app-feature-banner
+    imageUrl="assets/iphone-banner2.png"
+    title="Diseñado para brillar"
+    subtitle="Pantalla ProMotion fluida, chip de próxima generación optimizado para juegos y creatividad, y un diseño naranja que convierte cada vistazo en una experiencia única."
+    primaryText="Ver catálogo"
+    [reverse]="true"
+    backgroundColor="linear-gradient(135deg, #191919 0%, #000000 100%)"
+    textColor="#E1E1E1">
+  </app-feature-banner>
+</section>
 
-  <!-- ✅ FOOTER -->
-  <footer>
-    <div class="footer-container">
-      <div class="footer-section about">
-        <h2>TodoTech Shop</h2>
-        <p>Tu destino para lo último en tecnología. Encuentra laptops, smartphones, gaming y más.</p>
-      </div>
 
-      <div class="footer-section links">
-        <h3>Enlaces rápidos</h3>
-        <ul>
-          <li><a (click)="volverAlCatalogo()">Catálogo</a></li>
-          <li><a (click)="irALogin()">Iniciar Sesión</a></li>
-        </ul>
-      </div>
 
-      <div class="footer-section contact">
-        <h3>Contacto</h3>
-        <p>Teléfono: +57 305 407 8225</p>
-        
-      </div>
+<app-carrusel-publico
+    *ngIf="productosGaming.length > 0"
+    [productos]="productosGaming"
+    titulo="Gaming"
+    carouselId="gaming">
+  </app-carrusel-publico>
 
-      <div class="footer-section social">
-        <h3>Síguenos</h3>
-        <div class="social-icons">
-          <a href="#"><i class="fab fa-facebook-f"></i></a>
-          <a href="#"><i class="fab fa-instagram"></i></a>
-          <a href="#"><i class="fab fa-twitter"></i></a>
-          <a href="#"><i class="fab fa-youtube"></i></a>
-        </div>
-      </div>
-    </div>
+  
+  <app-carrusel-publico
+    *ngIf="productosAsus.length > 0"
+    [productos]="productosAsus"
+    titulo="Laptops Asus"
+    carouselId="asus">
+  </app-carrusel-publico>
 
-    <div class="footer-bottom">
-      <p>© 2025 TodoTech Shop. Todos los derechos reservados.</p>
-    </div>
-  </footer>
-</body>
-</html>
+  
+
+</div>

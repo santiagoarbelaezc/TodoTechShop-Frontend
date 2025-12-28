@@ -1,0 +1,54 @@
+<section 
+  class="trio-presentation"
+  [style]="getSectionStyles()"
+  [style.background]="backgroundColor"
+>
+  <!-- Contenedor principal -->
+  <div class="trio-container">
+    <!-- Grid de 3 cards -->
+    <div 
+      class="cards-grid"
+      [style.gap]="gap"
+    >
+      <!-- Card individual -->
+      <div 
+        *ngFor="let card of cards; let i = index"
+        class="content-card"
+        [style.height]="cardHeight"
+        [class.hover-effect]="hoverEffect"
+        [class.has-link]="card.link"
+        [attr.data-layout]="getCardLayout(i)"
+        (click)="navigateToLink(card.link)"
+      >
+        <!-- Contenido de la card -->
+        <div class="card-content">
+          
+          <!-- Imagen -->
+          <div class="card-image-container">
+            <img 
+              [src]="card.imageUrl" 
+              [alt]="card.altText"
+              class="card-image"
+              loading="lazy"
+            />
+            <div class="image-overlay"></div>
+          </div>
+          
+          <!-- Texto superpuesto -->
+          <div 
+            class="card-text-overlay"
+            [class]="'text-' + getTextPositionClass(card.textPosition)"
+          >
+            <div class="text-content">
+              <h3 class="card-title">{{ card.title }}</h3>
+              <p class="card-description">{{ card.description }}</p>
+              
+              <!-- Botón si hay enlace -->
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

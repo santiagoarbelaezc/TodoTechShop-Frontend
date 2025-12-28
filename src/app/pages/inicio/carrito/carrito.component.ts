@@ -3,7 +3,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject } fro
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CarritoService, ItemCarrito, ResultadoOperacion } from '../../../services/carrito.service';
+import { CarritoService, ItemCarrito, ResultadoOperacion } from '../../../services/carrito/carrito.service';
 import { ProductoService } from '../../../services/producto.service';
 import { ProductoDto } from '../../../models/producto/producto.dto';
 import { EstadoProducto } from '../../../models/enums/estado-producto.enum';

@@ -464,7 +464,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
   goToCatalog(): void {
     console.log('🔍 Navegando al catálogo público...');
-    this.router.navigate(['/catalogo-cliente']).then(success => {
+    this.router.navigate(['/catalogo-principal-todotech']).then(success => {
       if (success) {
         console.log('✅ Navegación exitosa al catálogo');
       } else {

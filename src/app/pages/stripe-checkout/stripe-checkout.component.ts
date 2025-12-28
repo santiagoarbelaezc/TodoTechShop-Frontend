@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { StripePaymentService } from '../../services/stripe-payment.service';
-import { PaymentGatewayService } from '../../services/payment-gateway.service';
+import { StripePaymentService } from '../../services/payments/stripe-payment.service';
+import { PaymentGatewayService } from '../../services/payments/payment-gateway.service';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 

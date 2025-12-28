@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../../../services/producto.service';
-import { CarritoService } from '../../../services/carrito.service';
+import { CarritoService } from '../../../services/carrito/carrito.service';
 import { AuthService } from '../../../services/auth.service';
 import { NavbarStateService } from '../../../services/navbar-state.service';
 import { NavbarInicioComponent } from '../navbar-inicio/navbar-inicio.component';

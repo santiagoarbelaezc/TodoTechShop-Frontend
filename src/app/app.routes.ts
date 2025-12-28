@@ -32,6 +32,13 @@ import { CatalogoComponent } from './pages/cliente/catalogo/catalogo.component';
 import { StripeCheckoutComponent } from './pages/stripe-checkout/stripe-checkout.component';
 import { TerminosCondicionesComponent } from './pages/terminos-condiciones/terminos-condiciones.component';
 import { PoliticaPrivacidadComponent } from './pages/politica-privacidad/politica-privacidad.component';
+import { DescripcionClienteComponent } from './pages/cliente/descripcion-cliente/descripcion-cliente.component';
+
+import { InicioCatalogoComponent } from './pages/cliente/pages/inicio-catalogo/inicio-catalogo.component';
+import { DescripcionCatalogoComponent } from './pages/cliente/pages/descripcion-catalogo/descripcion-catalogo.component';
+import { CatalogoGamingComponent } from './pages/cliente/catalogo-gaming/catalogo-gaming.component';
+import { GamingCatalogoComponent } from './pages/cliente/pages/gaming-catalogo/gaming-catalogo.component';
+import { PresentacionCatalogoComponent } from './pages/cliente/pages/presentacion-catalogo/presentacion-catalogo.component';
 
 export const routes: Routes = [
   // 🔓 RUTAS PÚBLICAS
@@ -55,9 +62,22 @@ export const routes: Routes = [
     component: ManualUsuarioComponent,
     canActivate: [publicGuard]
   },
+  
+   { 
+    path: 'catalogo-principal-todotech', 
+    component: InicioCatalogoComponent
+  },
   { 
-    path: 'catalogo-cliente', 
-    component: CatalogoComponent
+    path: 'catalogo-todotech-gaming', 
+    component: GamingCatalogoComponent
+  },
+  { 
+    path: 'catalogo-todotech-presentacion', 
+    component: PresentacionCatalogoComponent
+  },
+  { 
+    path: 'descripcion-principal-todotech', 
+    component: DescripcionCatalogoComponent
   },
   { 
     path: 'terminos-condiciones', 

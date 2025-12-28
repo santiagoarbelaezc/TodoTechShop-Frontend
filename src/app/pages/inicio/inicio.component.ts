@@ -7,7 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { NavbarInicioComponent } from './navbar-inicio/navbar-inicio.component';
 import { CarritoComponent } from './carrito/carrito.component';
 import { ProductoService } from '../../services/producto.service';
-import { CarritoService, ResultadoOperacion } from '../../services/carrito.service';
+import { CarritoService, ResultadoOperacion } from '../../services/carrito/carrito.service';
 import { ProductoDto } from '../../models/producto/producto.dto';
 import { CarruselProductosComponent } from './carrusel-productos/carrusel-productos.component';
 import { NavbarStateService } from '../../services/navbar-state.service';

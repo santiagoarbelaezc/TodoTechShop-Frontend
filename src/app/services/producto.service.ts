@@ -418,4 +418,69 @@ obtenerProductoPorIdPublico(id: number): Observable<ProductoDto> {
     })
   );
 }
+
+// ===== MÉTODOS PARA OBTENER MARCAS =====
+
+/**
+ * Obtener todas las marcas únicas (público - sin autenticación)
+ */
+obtenerTodasLasMarcas(): Observable<string[]> {
+  return this.http.get<MensajeDto<string[]>>(
+    `${this.apiUrl}/publicos/marcas`
+  ).pipe(
+    map(response => response.data || []),
+    catchError(error => {
+      console.error('Error obteniendo todas las marcas:', error);
+      throw error;
+    })
+  );
+}
+
+/**
+ * Obtener marcas de productos activos (público - sin autenticación)
+ */
+obtenerMarcasDeProductosActivos(): Observable<string[]> {
+  return this.http.get<MensajeDto<string[]>>(
+    `${this.apiUrl}/publicos/marcas/activas`
+  ).pipe(
+    map(response => response.data || []),
+    catchError(error => {
+      console.error('Error obteniendo marcas activas:', error);
+      throw error;
+    })
+  );
+}
+
+/**
+ * Obtener todas las marcas únicas (con autenticación)
+ */
+obtenerTodasLasMarcasAutenticado(): Observable<string[]> {
+  return this.http.get<MensajeDto<string[]>>(
+    `${this.apiUrl}/marcas`,
+    { headers: this.getHeaders() }
+  ).pipe(
+    map(response => response.data || []),
+    catchError(error => {
+      console.error('Error obteniendo todas las marcas (autenticado):', error);
+      throw error;
+    })
+  );
+}
+
+/**
+ * Obtener marcas de productos activos (con autenticación)
+ */
+obtenerMarcasDeProductosActivosAutenticado(): Observable<string[]> {
+  return this.http.get<MensajeDto<string[]>>(
+    `${this.apiUrl}/marcas/activas`,
+    { headers: this.getHeaders() }
+  ).pipe(
+    map(response => response.data || []),
+    catchError(error => {
+      console.error('Error obteniendo marcas activas (autenticado):', error);
+      throw error;
+    })
+  );
+}
+
 }

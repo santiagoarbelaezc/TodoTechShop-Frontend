@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+:host {
+  display: block;
+  
+}
+
+app-catalogo-gaming {
+    display: block;
+    margin-top: 60px;
+    padding-top: 40px;
+}
+
+@media (max-width: 768px) {
+    app-catalogo-gaming {
+        margin-top: 30px;
+        padding-top: 30px;
+    }
+}
+
+
+
+
+/* ===== MEJORAS DE RENDIMIENTO ===== */
+@media (prefers-reduced-motion: reduce) {
+  .gaming-catalogo-wrapper::before,
+  .scanline,
+  .neon-border::before {
+    animation: none !important;
+    display: none;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== MODOS DE COLOR (futuras mejoras) ===== */
+@media (prefers-color-scheme: dark) {
+  /* Ya estamos en dark mode, mantener estilos */
+}
+
+/* ===== EFECTOS DE CARGAS Y ESTADOS ===== */
+.loading-state {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-state::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.1), 
+    transparent
+  );
+  animation: loadingShimmer 1.5s infinite;
+}
+
+@keyframes loadingShimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}

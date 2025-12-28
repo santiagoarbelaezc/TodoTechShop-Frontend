@@ -8,8 +8,8 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { OrdenVentaService, EstadoOrden } from '../../services/orden-venta.service';
-import { StripePaymentService } from '../../services/stripe-payment.service';
-import { PaymentStateService } from '../../services/payment-state.service';
+import { StripePaymentService } from '../../services/payments/stripe-payment.service';
+import { PaymentStateService } from '../../services/payments/payment-state.service';
 import { OrdenConDetallesDto, OrdenDto } from '../../models/orden-venta/ordenventa.dto';
 import { NavbarCajaComponent } from './navbar-caja/navbar-caja.component';
 import { ImpresionService } from '../../services/impresion.service';

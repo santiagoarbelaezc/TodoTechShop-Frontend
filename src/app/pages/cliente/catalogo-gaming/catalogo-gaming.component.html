@@ -1,0 +1,92 @@
+<!-- ✅ LOADING STATE -->
+<div *ngIf="loading" class="loading-container">
+  <div class="loading-spinner"></div>
+  <p>Cargando productos gaming...</p>
+</div>
+
+<!-- ✅ ERROR STATE -->
+<div *ngIf="error && !loading" class="error-container">
+  <div class="error-message">
+    <h3>😕 Ocurrió un error</h3>
+    <p>{{ error }}</p>
+    <button (click)="recargarProductos()" class="btn-retry">Reintentar</button>
+  </div>
+</div>
+
+<!-- ✅ CONTENIDO PRINCIPAL -->
+<div *ngIf="!loading && !error">
+
+  <!-- 🔹 CARRUSELES DE PRODUCTOS GAMING -->
+  
+  <app-carrusel-gaming
+    *ngIf="productosPlayStation.length > 0"
+    [productos]="productosPlayStation"
+    [titulo]="'PlayStation'"
+    [carouselId]="'playstation'">
+  </app-carrusel-gaming>
+
+  <app-feature-banner
+      imageUrl="assets/ps5-console.png"
+      title="PlayStation 5 Pro"
+      subtitle="Experimenta juegos como nunca antes con gráficos en 4K a 120fps, ray tracing avanzado y tiempos de carga casi instantáneos con el SSD de velocidad ultra rápida."
+      primaryText="Ver PlayStation"
+      [reverse]="false"
+      backgroundColor="linear-gradient(135deg, #003087 0%, #001f5c 100%)"
+      textColor="#ffffff">
+    </app-feature-banner>
+
+
+  <app-carrusel-gaming
+    *ngIf="productosXbox.length > 0"
+    [productos]="productosXbox"
+    [titulo]="'Xbox'"
+    [carouselId]="'xbox'">
+  </app-carrusel-gaming>
+
+  <app-carrusel-gaming
+    *ngIf="productosPcGamer.length > 0"
+    [productos]="productosPcGamer"
+    [titulo]="'PC Gamer'"
+    [carouselId]="'pc-gamer'">
+  </app-carrusel-gaming>
+
+  <app-carrusel-gaming
+    *ngIf="productosNintendo.length > 0"
+    [productos]="productosNintendo"
+    [titulo]="'Nintendo'"
+    [carouselId]="'nintendo'">
+  </app-carrusel-gaming>
+
+  
+
+  <!-- 🔹 SECCIÓN DE BANNERS -->
+  <section class="feature-section-wrapper">
+    <app-feature-banner
+      imageUrl="assets/feature1.png"
+      title="TodoTechShop Gaming"
+      subtitle="Explora nuestro catálogo exclusivo de productos gaming. Encuentra las últimas consolas, PC gamer, juegos y accesorios para llevar tu experiencia al siguiente nivel."
+      primaryText="Ver Productos Gaming"
+      [reverse]="false"
+      backgroundColor="linear-gradient(135deg, #191919 0%, #000000 100%)"
+      textColor="#E1E1E1">
+    </app-feature-banner>
+
+    
+  </section>
+
+  <!-- 🔹 CARRUSELES ADICIONALES -->
+  <app-carrusel-gaming
+    *ngIf="productosJuegos.length > 0"
+    [productos]="productosJuegos"
+    [titulo]="'Videojuegos'"
+    [carouselId]="'videojuegos'">
+  </app-carrusel-gaming>
+
+  <app-carrusel-gaming
+    *ngIf="productosSillasGaming.length > 0"
+    [productos]="productosSillasGaming"
+    [titulo]="'Sillas Gaming'"
+    [carouselId]="'sillas-gaming'">
+  </app-carrusel-gaming>
+
+</div>

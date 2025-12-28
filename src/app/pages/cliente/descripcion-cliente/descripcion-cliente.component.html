@@ -1,0 +1,200 @@
+<!-- Navbar -->
+
+<!-- Loading state -->
+<div *ngIf="cargando()" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Cargando producto...</p>
+</div>
+
+<!-- Error state -->
+<div *ngIf="error() && !cargando()" class="error-container">
+    <div class="error-message">
+        <h3>😕 Ocurrió un error</h3>
+        <p>{{ error() }}</p>
+        <button (click)="recargar()" class="btn-retry">Reintentar</button>
+        <button (click)="irAInicio()" class="btn-home">Volver al Inicio</button>
+    </div>
+</div>
+
+<!-- Contenido principal del producto -->
+<main class="product-detail-container" *ngIf="!cargando() && !error() && producto()">
+    <div class="product-detail">
+        <!-- Columna izquierda: Imagen y controles -->
+        <div class="product-left-column">
+            <!-- Imagen principal del producto -->
+            <div class="product-image-section">
+                <div class="main-image-container">
+                    <img 
+                        [src]="obtenerImagenProducto(producto()!)" 
+                        [alt]="producto()!.nombre" 
+                        class="main-product-image" 
+                        (error)="producto()!.imagenUrl = 'assets/images/default-product.png'">
+                    <!-- Badge de vista previa -->
+                    <div class="public-badge">Vista Previa</div>
+                </div>
+            </div>
+
+            <!-- Controles de cantidad y botones debajo de la imagen -->
+            <div class="product-controls-section">
+                <div class="quantity-selector">
+                    <label for="quantity">Cantidad:</label>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn" (click)="disminuirCantidad()" [disabled]="cantidad() <= 1">−</button>
+                        <input 
+                            type="number" 
+                            id="quantity" 
+                            [(ngModel)]="cantidad" 
+                            min="1" 
+                            [max]="producto()!.stock" 
+                            class="quantity-input">
+                        <button class="quantity-btn" (click)="aumentarCantidad()" [disabled]="cantidad() >= producto()!.stock">+</button>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-login-required" (click)="irALoginParaComprar()" [disabled]="producto()!.stock === 0">
+                        <span class="btn-icon">🔒</span>
+                        <span class="btn-text">
+                            {{ producto()!.stock > 0 ? 'Iniciar sesión para comprar' : 'Producto Agotado' }}
+                        </span>
+                    </button>
+                    <button class="btn-secondary" (click)="volverAlCatalogo()">
+                        <i class="fas fa-arrow-left"></i>
+                        Volver al catálogo
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Información del producto -->
+        <div class="product-info-section">
+            <div class="product-header">
+                <h1 class="product-title">{{ producto()!.nombre }}</h1>
+                <div class="product-category">
+                    <span class="category-badge">{{ producto()!.categoria.nombre }}</span>
+                </div>
+            </div>
+
+            <div class="product-price-section">
+                <div class="product-price-container">
+                    <span class="price price-subtle">
+                        {{ formatearPrecio(producto()!.precio) }}
+                        <div class="price-inner-glow"></div>
+                    </span>
+                </div>
+                <div class="stock-section">
+                    <span class="stock-info" 
+                          [class.low-stock]="tieneStockBajo()" 
+                          [class.out-of-stock]="producto()!.stock === 0"
+                          [class.in-stock]="producto()!.stock >= 5">
+                        {{ obtenerTextoStock() }}
+                    </span>
+                    <span class="product-status" [class]="'status-' + producto()!.estado.toLowerCase()">
+                        {{ obtenerEstadoTexto() }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="product-description">
+                <h3>Descripción</h3>
+                <p>{{ producto()!.descripcion || 'No hay descripción disponible para este producto.' }}</p>
+            </div>
+
+            <div class="product-specs">
+                <h3>Características</h3>
+                <div class="specs-grid">
+                    <div class="spec-item">
+                        <span class="spec-label">Código:</span>
+                        <span class="spec-value">{{ producto()!.codigo }}</span>
+                    </div>
+                    <div class="spec-item">
+                        <span class="spec-label">Categoría:</span>
+                        <span class="spec-value">{{ producto()!.categoria.nombre }}</span>
+                    </div>
+                    <div class="spec-item">
+                        <span class="spec-label">Marca:</span>
+                        <span class="spec-value">{{ producto()!.marca || 'No especificada' }}</span>
+                    </div>
+                    <div class="spec-item" *ngIf="producto()!.garantia && producto()!.garantia > 0">
+                        <span class="spec-label">Garantía:</span>
+                        <span class="spec-value">{{ producto()!.garantia }} meses</span>
+                    </div>
+                    <div class="spec-item">
+                        <span class="spec-label">Disponibilidad:</span>
+                        <span class="spec-value" [class.available]="producto()!.stock > 0" [class.unavailable]="producto()!.stock === 0">
+                            {{ producto()!.stock > 0 ? 'Disponible' : 'Agotado' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensaje de login requerido -->
+    <div class="login-message-section" *ngIf="producto()!.stock > 0">
+        <div class="login-message-card">
+            <div class="login-icon">🔒</div>
+            <div class="login-content">
+                <h3>Inicia sesión para comprar</h3>
+                <p>Debes iniciar sesión para agregar este producto al carrito y realizar la compra. 
+                   <a (click)="irALoginParaComprar()">Haz clic aquí para iniciar sesión</a> o crea una cuenta si aún no tienes una.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos recomendados -->
+    <section class="recommended-section" *ngIf="productosRecomendados().length > 0">
+        <div class="section-header">
+            <h2 class="section-title">📱 Productos Recomendados</h2>
+            <p class="section-subtitle">Descubre productos similares que te pueden interesar</p>
+        </div>
+
+        <div class="recommended-grid">
+            <div class="recommended-card" *ngFor="let productoRec of productosRecomendados()" (click)="verProductoRecomendado(productoRec)">
+                <div class="product-image-container">
+                    <img 
+                        [src]="obtenerImagenProducto(productoRec)" 
+                        [alt]="productoRec.nombre" 
+                        class="product-image" 
+                        (error)="productoRec.imagenUrl = 'assets/images/default-product.png'">
+                    <div class="public-badge">Vista Previa</div>
+                </div>
+                <div class="product-content">
+                    <div class="product-header">
+                        <h3 class="product-title">{{ productoRec.nombre }}</h3>
+                        <span class="category-tag">{{ productoRec.categoria.nombre }}</span>
+                    </div>
+                    <div class="product-price-section">
+                        <div class="product-price-container">
+                            <span class="price price-subtle">
+                                {{ formatearPrecio(productoRec.precio) }}
+                                <div class="price-inner-glow"></div>
+                            </span>
+                        </div>
+                        <div class="stock-section">
+                            <span class="stock-info" 
+                                  [class.low-stock]="productoRec.stock < 5 && productoRec.stock > 0" 
+                                  [class.out-of-stock]="productoRec.stock === 0"
+                                  [class.in-stock]="productoRec.stock >= 5">
+                                {{ productoRec.stock > 0 ? 'Stock: ' + productoRec.stock : 'Agotado' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mensaje cuando no hay productos recomendados -->
+    <section class="no-recommendations" *ngIf="productosRecomendados().length === 0">
+        <div class="section-header">
+            <h2 class="section-title">📦 Más Productos</h2>
+            <p class="section-subtitle">No hay productos recomendados disponibles en este momento</p>
+            <button class="btn-secondary" (click)="irAInicio()">
+                <i class="fas fa-store"></i>
+                Ver Todos los Productos
+            </button>
+        </div>
+    </section>
+</main>
+

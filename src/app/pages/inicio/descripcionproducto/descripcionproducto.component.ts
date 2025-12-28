@@ -7,7 +7,7 @@ import { NavbarInicioComponent } from '../navbar-inicio/navbar-inicio.component'
 import { CarritoComponent } from '../carrito/carrito.component';
 
 import { ProductoService } from '../../../services/producto.service';
-import { CarritoService, ResultadoOperacion } from '../../../services/carrito.service';
+import { CarritoService, ResultadoOperacion } from '../../../services/carrito/carrito.service';
 import { ProductoDto } from '../../../models/producto/producto.dto';
 
 // Interfaz extendida para incluir la propiedad imagen

@@ -1,0 +1,929 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+:root {
+    --dynamic-bg-color: #FFFFFF;
+    --transition-speed: 1.2s;
+    --white-color: #FFFFFF;
+    --blue-color: #1E40AF;
+    --red-color: #DC2626;
+    --black-color: #000000;
+}
+
+.catalogo-presentacion {
+    position: relative;
+    height: auto;       /* Cambiado de min-height: 100vh */
+    min-height: 100vh;
+    padding-bottom: 40px;  /* 40px de espacio en la parte inferior */
+    overflow-x: hidden;
+    background: var(--dynamic-bg-color);
+    transition: background-color var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* Contenedor de fondo dinámico */
+.dynamic-background-container {
+    position: relative;
+    transition: background-color var(--transition-speed) ease;
+}
+
+/* Secciones de color */
+.color-section {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+.initial-section {
+    background-color: var(--white-color);
+    color: #1d1d1f;
+}
+
+.transition-section {
+    background-color: transparent !important;
+    color: inherit;
+}
+
+.full-section {
+    background-color: transparent !important;
+    color: inherit;
+}
+
+/* Contenedor general de contenido */
+.content-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    width: 100%;
+}
+
+/* COMPONENTES DE ANCHO COMPLETO - FUERA DEL CONTENEDOR */
+
+/* Feature Banner - Ancho completo */
+.feature-section-wrapper {
+    width: 100%;
+    max-width: 100vw;
+}
+
+.feature-section-wrapper app-feature-banner {
+    display: block;
+    width: 100%;
+}
+
+/* Trio Presentation - Ancho completo */
+.trio-section {
+    width: 100%;
+    max-width: 100vw;
+    padding: 4rem 0;
+}
+
+.trio-section app-trio-presentation {
+    display: block;
+    width: 100%;
+}
+
+/* Banner Component - Ancho completo */
+.banner-container {
+    width: 100%;
+    max-width: 100vw;
+    padding: 4rem 0;
+}
+
+.banner-container app-banner {
+    display: block;
+    width: 100%;
+}
+
+/* Eliminar el content-container de los componentes de ancho completo */
+.feature-section-wrapper,
+.trio-section,
+.banner-container {
+    max-width: 100vw !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Ajustar los componentes hijos para que ocupen todo el ancho */
+app-trio-presentation,
+app-banner,
+app-feature-banner {
+    width: 100vw;
+    max-width: 100vw;
+    display: block;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+}
+
+/* Asegurar que los contenedores internos también ocupen el 100% */
+app-trio-presentation ::ng-deep .trio-presentation-container,
+app-trio-presentation ::ng-deep .container,
+app-trio-presentation ::ng-deep .content-wrapper,
+app-banner ::ng-deep .banner-wrapper,
+app-banner ::ng-deep .container,
+app-feature-banner ::ng-deep .feature-banner-container,
+app-feature-banner ::ng-deep .container {
+    width: 100% !important;
+    max-width: 100vw !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Para Feature Banner específicamente */
+app-feature-banner {
+    width: 100vw !important;
+    max-width: 100vw !important;
+}
+
+/* Encabezados de sección */
+.section-heading {
+    font-size: 3rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #F0F0F0;
+    opacity: 0.9;
+}
+
+.section-subheading {
+    font-size: 1.25rem;
+    text-align: center;
+    margin-bottom: 3rem;
+    color: #F0F0F0;
+    opacity: 0.8;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* Encabezados de sección */
+.section-heading2 {
+    font-size: 3rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #1b1b1b;
+    opacity: 0.9;
+}
+
+.section-subheading2 {
+    font-size: 1.25rem;
+    text-align: center;
+    margin-bottom: 3rem;
+    color: #1b1b1b;
+    opacity: 0.8;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* Sección de texto e imagen */
+.text-image-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    margin-bottom: 4rem;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, var(--blue-color) 0%, #3B82F6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.section-description {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: inherit;
+    opacity: 0.9;
+    margin-bottom: 2.5rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.feature-item {
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.feature-item:hover {
+    transform: translateY(-8px) scale(1.02);
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.feature-item h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: inherit;
+}
+
+.feature-item p {
+    font-size: 1rem;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+/* Imagen SIMPLE - Solo proporciones ajustadas, sin efectos hover */
+.section-image {
+    width: 100%;
+    height: 600px;
+    object-fit: cover;
+    border-radius: 24px;
+   
+}
+
+
+/* Sección de promoción - SIMPLIFICADA */
+.promo-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.promo-title {
+    font-size: 2.8rem; /* Bajado ligeramente de 3rem */
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #202020 0%, #131313 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.promo-text {
+    font-size: 1.15rem; /* Mejorado: 1.2rem → 1.15rem */
+    line-height: 1.7;
+    opacity: 0.9;
+    margin-bottom: 2.5rem;
+    font-weight: 400; /* AGREGADO: más elegante */
+}
+
+.promo-highlights {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.highlight {
+    text-align: center;
+    padding: 1.8rem; /* Reducido de 2rem */
+    background: rgba(255, 255, 255, 0.18); /* Más sutil */
+    border-radius: 16px;
+    min-width: 170px; /* Compacto */
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.25); /* Más sutil */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.highlight:hover {
+    transform: scale(1.03); /* Hover más sutil: 1.05 → 1.03 */
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.highlight-number {
+    display: block;
+    font-size: 2.6rem; /* Bajado de 3rem */
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.highlight-text {
+    font-size: 0.95rem; /* Bajado de 1rem */
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+/* IMÁGENES SIMPLES - Solo tamaño ajustado */
+.promo-images {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.promo-image {
+    width: 100%;
+    height: 320px; /* Reducido de 280px */
+    object-fit: cover;
+    border-radius: 16px;
+    
+}
+/* Sección de categorías - Estilo mejorado con texto blanco */
+.categories-section {
+    text-align: center;
+    padding: 6rem 0;
+    position: relative;
+}
+
+/* Fondo transparente - el color vendrá del fondo dinámico */
+.categories-section {
+    background: transparent !important;
+}
+
+/* Títulos consistentes con section-heading y section-subheading - TEXTO BLANCO */
+.categories-title {
+    font-size: 3rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #FFFFFF; /* Blanco */
+    opacity: 0.95;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.categories-subtitle {
+    font-size: 1.25rem;
+    text-align: center;
+    margin-bottom: 4rem;
+    color: #FFFFFF; /* Blanco */
+    opacity: 0.85;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+    font-weight: 400;
+}
+
+/* Grid mejorado */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2.5rem;
+    margin-top: 4rem;
+}
+
+/* Tarjetas mejoradas con texto blanco */
+.category-card {
+    padding: 3rem 2.5rem;
+    background: rgba(255, 255, 255, 0.05); /* Fondo sutil blanco translúcido */
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Borde blanco sutil */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    backdrop-filter: blur(8px);
+}
+
+/* Efecto hover mejorado */
+.category-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-6px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Títulos blancos */
+.category-card h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #FFFFFF; /* Blanco */
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+}
+
+.category-card:hover h3 {
+    color: #FFFFFF;
+    opacity: 1;
+}
+
+/* Texto descriptivo blanco */
+.category-card p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.85); /* Blanco con transparencia */
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    opacity: 0.9;
+}
+
+.category-card:hover p {
+    opacity: 1;
+    color: #FFFFFF; /* Blanco sólido al hover */
+}
+
+/* Efecto de entrada mejorado para AOS */
+.category-card[data-aos] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: 
+        opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+        all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.category-card[data-aos].aos-animate {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Mejoras responsive */
+@media (max-width: 1200px) {
+    .categories-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .categories-section {
+        padding: 5rem 0;
+    }
+    
+    .categories-title {
+        font-size: 2.5rem;
+    }
+    
+    .categories-subtitle {
+        font-size: 1.125rem;
+        margin-bottom: 3.5rem;
+    }
+    
+    .categories-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .categories-section {
+        padding: 4rem 0;
+    }
+    
+    .categories-title {
+        font-size: 2.2rem;
+    }
+    
+    .categories-subtitle {
+        font-size: 1.05rem;
+        margin-bottom: 3rem;
+        padding: 0 1rem;
+    }
+    
+    .categories-grid {
+        grid-template-columns: 1fr;
+        max-width: 450px;
+        margin-left: auto;
+        margin-right: auto;
+        gap: 1.75rem;
+    }
+    
+    .category-card {
+        padding: 2.5rem 2rem;
+    }
+    
+    .category-card h3 {
+        font-size: 1.4rem;
+    }
+    
+    .category-card p {
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .categories-section {
+        padding: 3rem 0;
+    }
+    
+    .categories-title {
+        font-size: 2rem;
+    }
+    
+    .categories-subtitle {
+        font-size: 1rem;
+        margin-bottom: 2.5rem;
+    }
+    
+    .category-card {
+        padding: 2rem 1.5rem;
+    }
+    
+    .category-card h3 {
+        font-size: 1.3rem;
+    }
+    
+    .category-card p {
+        font-size: 0.9rem;
+    }
+}
+
+/* Accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+    .category-card,
+    .category-card[data-aos] {
+        transition: none !important;
+    }
+    
+    .category-card:hover {
+        transform: none;
+    }
+}
+
+/* Para fondo blanco: texto negro con bordes oscuros */
+.color-section[data-color="#FFFFFF"] .categories-title,
+.color-section[data-color="#FFFFFF"] .categories-subtitle,
+.color-section[data-color="#FFFFFF"] .category-card h3,
+.color-section[data-color="#FFFFFF"] .category-card p {
+    color: #000000 !important;
+}
+
+.color-section[data-color="#FFFFFF"] .category-card {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.color-section[data-color="#FFFFFF"] .category-card:hover {
+    background: rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+.color-section[data-color="#FFFFFF"] .category-card p {
+    color: #333333 !important;
+}
+
+.color-section[data-color="#FFFFFF"] .category-card:hover p {
+    color: #000000 !important;
+}
+
+/* Para fondos oscuros (negro, azul, rojo): texto blanco */
+.color-section[data-color="#000000"] .categories-title,
+.color-section[data-color="#000000"] .categories-subtitle,
+.color-section[data-color="#000000"] .category-card h3,
+.color-section[data-color="#000000"] .category-card p,
+.color-section[data-color="#1E40AF"] .categories-title,
+.color-section[data-color="#1E40AF"] .categories-subtitle,
+.color-section[data-color="#1E40AF"] .category-card h3,
+.color-section[data-color="#1E40AF"] .category-card p,
+.color-section[data-color="#DC2626"] .categories-title,
+.color-section[data-color="#DC2626"] .categories-subtitle,
+.color-section[data-color="#DC2626"] .category-card h3,
+.color-section[data-color="#DC2626"] .category-card p {
+    color: #FFFFFF !important;
+}
+
+/* Fondo dinámico ya maneja los colores, así que no aplicamos ningún fondo aquí */
+.initial-section .categories-section,
+.transition-section .categories-section,
+.full-section .categories-section {
+    background: transparent;
+}
+
+/* Sección final */
+.final-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    padding: 4rem 0;
+}
+
+.final-title {
+    font-size: 2rem;
+    font-weight: 800;
+    text-align: left;
+    margin-bottom: 1.5rem;
+    color: #F0F0F0; /* Color claro para fondos oscuros */
+    opacity: 0.9;
+    line-height: 1.1;
+}
+
+.final-text {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #F0F0F0; /* Color claro para fondos oscuros */
+    margin-bottom: 2.5rem;
+    opacity: 0.8;
+    max-width: 600px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 2rem 1.2rem;
+    background: rgba(240, 240, 240, 0.08);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(240, 240, 240, 0.1);
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
+    background: rgba(240, 240, 240, 0.12);
+    border-color: rgba(240, 240, 240, 0.2);
+}
+
+.stat-number {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #f3f3f3; /* Azul más claro que destaque sobre F0F0F0 */
+    margin-bottom: 0.5rem;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.95rem;
+    color: #D1D5DB; /* Gris más claro para buen contraste */
+    font-weight: 500;
+}
+
+.store-image {
+    width: 100%;
+    height: 600px;
+    object-fit: cover;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+
+/* Indicador de progreso del color */
+.color-progress-indicator {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 15px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.color-dot[data-color="#FFFFFF"] {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+}
+
+.color-dot[data-color="#1E40AF"] {
+    background-color: #1E40AF;
+}
+
+.color-dot[data-color="#DC2626"] {
+    background-color: #DC2626;
+}
+
+.color-dot[data-color="#000000"] {
+    background-color: #000000;
+}
+
+.color-dot.active {
+    transform: scale(1.4);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+.color-dot:hover {
+    transform: scale(1.3);
+}
+
+.color-dot::after {
+    content: attr(title);
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.color-dot:hover::after {
+    opacity: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .text-image-section,
+    .promo-section,
+    .final-section {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .promo-images {
+        order: -1;
+    }
+    
+    .section-heading,
+    .categories-title,
+    .promo-title,
+    .final-title {
+        font-size: 2.5rem;
+    }
+    
+    /* Ajustes para componentes en tablet */
+    .feature-section-wrapper,
+    .trio-section,
+    .banner-container {
+        padding: 3rem 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .content-container {
+        padding: 0 1.5rem;
+        width: 100%;
+    }
+    
+    .color-section {
+        min-height: auto;
+    }
+    
+    .section-heading,
+    .categories-title,
+    .promo-title,
+    .final-title {
+        font-size: 2rem;
+    }
+    
+    .section-title {
+        font-size: 2.2rem;
+    }
+    
+    .categories-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .promo-highlights {
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .highlight {
+        width: 100%;
+        max-width: 250px;
+    }
+    
+    .color-progress-indicator {
+        right: 10px;
+        padding: 10px 8px;
+        gap: 12px;
+    }
+    
+    /* Ajustes para componentes en móviles */
+    .feature-section-wrapper,
+    .trio-section,
+    .banner-container {
+        padding: 2rem 0;
+    }
+    
+    /* Asegurar que los componentes ocupen todo el ancho en móviles */
+    app-trio-presentation,
+    app-banner,
+    app-feature-banner {
+        width: 100vw;
+        left: 0;
+        right: 0;
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .color-section {
+        padding: 2rem 0;
+    }
+    
+    .section-heading,
+    .categories-title,
+    .promo-title,
+    .final-title {
+        font-size: 1.8rem;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+    }
+    
+    .section-description,
+    .promo-text,
+    .final-text {
+        font-size: 1.1rem;
+    }
+    
+    .feature-item,
+    .category-card,
+    .stat-item {
+        padding: 1.5rem;
+    }
+    
+    .promo-images {
+        grid-template-columns: 1fr;
+    }
+    
+    .color-progress-indicator {
+        display: none;
+    }
+    
+    /* Ajustes finales para componentes en móviles pequeños */
+    app-trio-presentation,
+    app-banner,
+    app-feature-banner {
+        width: 100vw;
+    }
+}
+
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .dynamic-background-container {
+        transition: none !important;
+    }
+}
+
+/* Ajustes para AOS */
+[data-aos] {
+    pointer-events: none;
+}
+
+[data-aos].aos-animate {
+    pointer-events: auto;
+}
+
+/* Efectos de scroll suave */
+html {
+    scroll-behavior: smooth;
+}

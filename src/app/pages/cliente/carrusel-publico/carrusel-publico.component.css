@@ -1,12 +1,9 @@
-/* ===== CARRUSEL DE PRODUCTOS ===== */
-/* ===== SECCIÓN DE PRODUCTOS MEJORADA ===== */
+/* ===== CARRUSEL DE PRODUCTOS OPTIMIZADO ===== */
 .products-section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     margin: 60px 0;
-    position: relative;
     width: 100%;
     padding: 0 20px;
 }
@@ -25,11 +22,8 @@
     overflow: hidden;
     border-radius: 20px;
     background: #FFFFFF;
-    box-shadow: 
-        0px 6px 30px rgba(0, 0, 0, 0.06),
-        0px 3px 12px rgba(0, 0, 0, 0.03);
+    box-shadow: 0px 6px 30px rgba(0, 0, 0, 0.06);
     border: 1px solid rgba(0, 0, 0, 0.04);
-    background: linear-gradient(135deg, #fafbff 0%, #fefefe 100%);
     padding: 12px;
 }
 
@@ -37,7 +31,7 @@
     display: flex;
     gap: 20px;
     padding: 25px;
-    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: transform 0.3s ease-out;
     scroll-behavior: smooth;
     overflow-x: auto;
     scrollbar-width: none;
@@ -48,7 +42,7 @@
     display: none;
 }
 
-/* ===== ENCABEZADO DE SECCIÓN MÁS COMPACTO ===== */
+/* ===== ENCABEZADO DE SECCIÓN ===== */
 .section-header {
     text-align: center;
     margin-bottom: 30px;
@@ -66,7 +60,6 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: -0.3px;
 }
 
 .section-subtitle {
@@ -76,7 +69,7 @@
     line-height: 1.5;
 }
 
-/* ===== TARJETA DE PRODUCTO REORGANIZADA ===== */
+/* ===== TARJETA DE PRODUCTO OPTIMIZADA ===== */
 .carousel-item {
     flex: 0 0 320px;
     min-width: 320px;
@@ -92,40 +85,18 @@
     background: #FFFFFF;
     border-radius: 18px;
     padding: 0;
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    box-shadow: 
-        0px 3px 15px rgba(0, 0, 0, 0.05),
-        0px 1px 6px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.05);
     border: 1px solid rgba(0, 0, 0, 0.03);
     position: relative;
     overflow: hidden;
     cursor: pointer;
 }
 
-.product-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(20, 33, 207, 0.02), 
-        transparent);
-    transition: left 0.8s ease;
-    z-index: 1;
-}
-
-.product-card:hover::before {
-    left: 100%;
-}
-
+/* Eliminado el efecto de brillo que se mueve (costoso) */
 .product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 
-        0px 8px 30px rgba(0, 0, 0, 0.1),
-        0px 4px 15px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.1);
 }
 
 /* ===== CONTENEDOR DE IMAGEN OPTIMIZADO ===== */
@@ -145,35 +116,20 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    filter: brightness(0.95) contrast(1.05);
-    position: relative;
-    z-index: 2;
-    transform: scale(1.05);
+    transition: transform 0.3s ease;
 }
 
 .product-card:hover .product-image {
-    transform: scale(1.08);
-    filter: brightness(1) contrast(1.1);
+    transform: scale(1.05);
 }
 
-/* ===== CONTENIDO DEL PRODUCTO REORGANIZADO ===== */
+/* ===== CONTENIDO DEL PRODUCTO ===== */
 .product-content {
     flex: 1;
     display: flex;
     flex-direction: column;
     padding: 20px;
-    position: relative;
-    z-index: 2;
     gap: 12px;
-}
-
-/* Información del producto */
-.product-info {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    flex: 1;
 }
 
 .product-header {
@@ -192,7 +148,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     min-height: 2.6em;
-    letter-spacing: -0.1px;
 }
 
 .product-description {
@@ -212,14 +167,7 @@
     min-height: 2.8em;
 }
 
-/* ===== PRECIO CON MEJOR ESPACIADO ===== */
-.product-price-section {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin: 8px 0;
-}
-
+/* ===== PRECIO OPTIMIZADO ===== */
 .product-price-container {
     text-align: center;
 }
@@ -233,49 +181,22 @@
     border-radius: 12px;
     background: rgba(248, 250, 252, 0.8);
     border: 1px solid rgba(20, 33, 207, 0.08);
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     min-width: 120px;
     position: relative;
-    overflow: hidden;
     font-family: 'Inter', sans-serif;
-    letter-spacing: -0.2px;
-    backdrop-filter: blur(8px);
-    box-shadow: 
-        0 2px 8px rgba(0, 0, 0, 0.04),
-        0 1px 4px rgba(0, 0, 0, 0.02);
-}
-
-.price::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(255, 255, 255, 0.4), 
-        transparent
-    );
-    transition: left 0.8s ease;
-    z-index: 1;
-}
-
-.product-card:hover .price::before {
-    left: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .product-card:hover .price {
-    background: linear-gradient(135deg, rgba(20, 33, 207, 0.95) 0%, rgba(219, 31, 31, 0.95) 100%);
-    color: white;
+    background: rgba(248, 250, 252, 0.95);
+    border-color: rgba(219, 31, 31, 0.15);
     transform: translateY(-1px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 
-        0 4px 15px rgba(0, 0, 0, 0.1),
-        0 2px 6px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 12px rgba(219, 31, 31, 0.08);
+    color: #db1f1f;
 }
 
-/* ===== BOTÓN AGREGAR AL CARRITO MEJORADO ===== */
+/* ===== BOTÓN OPTIMIZADO ===== */
 .product-actions {
     margin-top: auto;
     display: flex;
@@ -295,7 +216,7 @@
     justify-content: center;
     gap: 8px;
     width: 100%;
-    background: linear-gradient(135deg, #020969 0%, #db1f1f 100%);
+    background: #1a1a1a;
     color: #ffffff;
     font-size: 0.9rem;
     font-weight: 500;
@@ -303,12 +224,12 @@
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Efecto sutil de brillo al hover */
 .btn-carrito::before {
     content: '';
     position: absolute;
@@ -316,65 +237,39 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(255, 255, 255, 0.2), 
-        transparent
-    );
-    transition: left 0.6s ease;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-carrito:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    background: #000000;
 }
 
 .btn-carrito:hover::before {
     left: 100%;
 }
 
-.btn-carrito:hover {
-    transform: translateY(-1px);
-    box-shadow: 
-        0px 4px 15px rgba(2, 9, 105, 0.25),
-        0px 2px 8px rgba(219, 31, 31, 0.2);
-}
-
 .btn-carrito:active {
     transform: translateY(0);
-    box-shadow: 
-        0px 2px 6px rgba(2, 9, 105, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .btn-carrito.btn-disabled {
-    background: rgba(203, 213, 224, 0.7);
-    color: rgba(113, 128, 150, 0.7);
+    background: rgba(203, 213, 224, 0.5);
+    color: rgba(113, 128, 150, 0.6);
     cursor: not-allowed;
     transform: none;
-    box-shadow: none;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
-.btn-carrito.btn-disabled::before {
-    display: none;
-}
-
-.btn-icon {
-    font-size: 1rem;
-    transition: transform 0.2s ease;
-}
-
-.btn-carrito:hover .btn-icon {
-    transform: scale(1.1);
-}
-
-.btn-text {
-    font-weight: 500;
-}
-
-/* ===== INFORMACIÓN DE STOCK CENTRADA Y MEJORADA ===== */
+/* ===== INFORMACIÓN DE STOCK ===== */
 .stock-info {
     font-size: 0.8rem;
-    color: #a0aec0;
     font-weight: 500;
     padding: 6px 12px;
     border-radius: 8px;
-    background: rgba(160, 174, 192, 0.08);
-    transition: all 0.3s ease;
     text-align: center;
     display: block;
     margin: 0 auto;
@@ -398,11 +293,7 @@
     background: rgba(229, 62, 62, 0.08);
 }
 
-.product-card:hover .stock-info {
-    transform: translateY(-1px);
-}
-
-/* ===== NAVEGACIÓN DEL CARRUSEL ===== */
+/* ===== NAVEGACIÓN DEL CARRUSEL MEJORADO ===== */
 .carousel-nav {
     position: absolute;
     top: 50%;
@@ -410,19 +301,17 @@
     background: rgba(255, 255, 255, 0.92);
     color: #4a5568;
     border: none;
-    padding: 12px 14px;
+    padding: 14px 16px;
     cursor: pointer;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     border-radius: 12px;
     z-index: 20;
-    transition: all 0.25s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     box-shadow: 
         0px 3px 12px rgba(0, 0, 0, 0.08),
-        0px 1px 4px rgba(0, 0, 0, 0.04);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    width: 42px;
-    height: 42px;
+        0px 0px 0px 0.5px rgba(0, 0, 0, 0.15); /* Contorno sutil */
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -434,18 +323,53 @@
     color: #020969;
     box-shadow: 
         0px 4px 16px rgba(0, 0, 0, 0.1),
-        0px 2px 8px rgba(0, 0, 0, 0.06);
+        0px 0px 0px 0.5px rgba(0, 0, 0, 0.2); /* Contorno sutil en hover */
 }
 
 .carousel-nav.prev { 
-    left: 8px; 
+    left: 10px; 
 }
 
 .carousel-nav.next { 
-    right: 8px; 
+    right: 10px; 
 }
 
-/* ===== RESPONSIVE MEJORADO ===== */
+/* ===== RESPONSIVE ===== */
+@media screen and (max-width: 768px) {
+    .carousel-nav {
+        width: 44px;
+        height: 44px;
+        padding: 12px 14px;
+        font-size: 1.1rem;
+    }
+    
+    .carousel-nav.prev { 
+        left: 8px; 
+    }
+    
+    .carousel-nav.next { 
+        right: 8px; 
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .carousel-nav {
+        width: 42px;
+        height: 42px;
+        padding: 10px 12px;
+        font-size: 1rem;
+    }
+    
+    .carousel-nav.prev { 
+        left: 6px; 
+    }
+    
+    .carousel-nav.next { 
+        right: 6px; 
+    }
+}
+
+/* ===== RESPONSIVE ===== */
 @media screen and (max-width: 768px) {
     .products-section {
         margin: 40px 0;
@@ -469,11 +393,6 @@
     .product-content {
         padding: 18px;
         gap: 10px;
-    }
-    
-    .product-price-section {
-        gap: 10px;
-        margin: 6px 0;
     }
     
     .stock-info {
@@ -502,10 +421,6 @@
     
     .product-content {
         padding: 15px;
-        gap: 8px;
-    }
-    
-    .product-price-section {
         gap: 8px;
     }
     

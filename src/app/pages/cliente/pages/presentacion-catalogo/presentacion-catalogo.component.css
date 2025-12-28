@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+:host {
+    display: block;
+}
+
+app-catalogo-presentacion {
+    display: block;
+    padding-top: 40px;
+    margin-bottom: 0; /* AGREGADO: elimina espacio extra */
+    padding-bottom: 0; /* AGREGADO: elimina padding inferior */
+}
+
+app-footer-cliente {
+    display: block;
+    margin-top: 0; /* AGREGADO: pega footer al catalogo */
+}
+
+@media (max-width: 768px) {
+    app-catalogo-presentacion {
+        margin-top: 0; /* ELIMINADO padding-top duplicado */
+        padding-top: 30px;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    app-footer-cliente {
+        margin-top: 0;
+    }
+}

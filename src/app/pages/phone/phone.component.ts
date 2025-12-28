@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { NavbarInicioComponent } from '../inicio/navbar-inicio/navbar-inicio.component';
 import { CarritoComponent } from '../inicio/carrito/carrito.component';
 import { ProductoService } from '../../services/producto.service';
-import { CarritoService } from '../../services/carrito.service';
+import { CarritoService } from '../../services/carrito/carrito.service';
 import { ProductoDto } from '../../models/producto/producto.dto';
 import { CarruselProductosComponent } from '../inicio/carrusel-productos/carrusel-productos.component';
 import { NavbarStateService } from '../../services/navbar-state.service';

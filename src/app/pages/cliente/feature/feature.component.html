@@ -1,0 +1,97 @@
+<div class="apple-carousel">
+  <!-- Encabezado del carrusel -->
+  <div class="carousel-header">
+    <h2 class="carousel-title">PlayStation 5</h2>
+    <p class="carousel-subtitle">La nueva generación de entretenimiento gaming</p>
+  </div>
+
+  <!-- Contenedor principal -->
+  <div class="carousel-wrapper">
+    <!-- Flecha anterior -->
+    <button 
+      *ngIf="showArrows && images.length > 1"
+      class="nav-arrow prev"
+      (click)="prev()"
+      [class.disabled]="isAnimating || currentIndex === 0"
+      aria-label="Anterior"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <!-- Área de visualización -->
+    <div 
+      class="carousel-viewport"
+      (mouseenter)="onMouseEnter()"
+      (mouseleave)="onMouseLeave()"
+    >
+      <!-- Pista del carrusel -->
+      <div 
+        class="carousel-track"
+        [style.transform]="trackTransform"
+        [style.transition]="isAnimating ? 'transform 0.4s cubic-bezier(0.28, 0.11, 0.32, 1)' : 'none'"
+      >
+        <!-- Tarjetas -->
+        <div 
+          *ngFor="let image of images; let i = index"
+          class="carousel-card"
+          [class.active]="i === currentIndex"
+          [class.adjacent]="(i - currentIndex > -2 && i - currentIndex < 2 && i !== currentIndex)"
+          (click)="goToSlide(i)"
+        >
+          <div class="card-image-container">
+            <img 
+              [src]="image.url" 
+              [alt]="image.alt"
+              class="card-image"
+              loading="lazy"
+            />
+            <div class="card-overlay"></div>
+          </div>
+          
+          <div class="card-content">
+            <div class="card-badge" *ngIf="i === currentIndex">
+              <span>Destacado</span>
+            </div>
+            <h3 class="card-title">{{ image.title }}</h3>
+            <p class="card-description">{{ image.description }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flecha siguiente -->
+    <button 
+      *ngIf="showArrows && images.length > 1"
+      class="nav-arrow next"
+      (click)="next()"
+      [class.disabled]="isAnimating || currentIndex === images.length - 1"
+      aria-label="Siguiente"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Indicadores -->
+  <div class="carousel-indicators" *ngIf="showDots && images.length > 1">
+    <button 
+      *ngFor="let image of images; let i = index"
+      class="indicator"
+      [class.active]="i === currentIndex"
+      (click)="goToSlide(i)"
+      [attr.aria-label]="'Ir a imagen ' + (i + 1)"
+    >
+      <div class="indicator-progress"></div>
+    </button>
+  </div>
+
+  <!-- Contador -->
+  <div class="carousel-counter">
+    <span class="current-index">{{ currentIndex + 1 }}</span>
+    <span class="counter-divider">/</span>
+    <span class="total-count">{{ images.length }}</span>
+  </div>
+</div>

@@ -2,7 +2,7 @@ import { Component, Input, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ProductoDto } from '../../../models/producto/producto.dto';
-import { ProductoService } from '../../../services/producto.service';
+import { ProductoSeleccionadoService } from '../../../services/cliente/producto-seleccionado.service';
 
 @Component({
   selector: 'app-carrusel-publico',
@@ -24,7 +24,7 @@ export class CarruselPublicoComponent implements AfterViewInit {
   // 🔹 INYECCIONES
   // ===========================
   private router = inject(Router);
-  private productoService = inject(ProductoService);
+  private productoSeleccionadoService = inject(ProductoSeleccionadoService);
 
   // ===========================
   // 🔹 CICLO DE VIDA
@@ -76,16 +76,18 @@ export class CarruselPublicoComponent implements AfterViewInit {
   // ===========================
   // 🔹 ACCIONES DE PRODUCTOS - PÚBLICAS
   // ===========================
-  verDetalleProducto(producto: ProductoDto): void {
-    console.log('👀 Viendo detalle de producto (público):', producto.nombre);
+  verDetalleProducto(producto: ProductoDto, event?: Event): void {
+    console.log('👀 Redirigiendo a descripción del producto:', producto.nombre);
     
-    // Para el catálogo público, redirigir al login
-    this.router.navigate(['/login'], { 
-      queryParams: { 
-        returnUrl: '/descripcion-producto',
-        message: 'Inicia sesión para ver detalles completos del producto'
-      } 
-    });
+    if (event) {
+      event.stopPropagation(); // Prevenir que se active el click del card
+    }
+
+    // 1️⃣ Guardar el producto seleccionado en el servicio
+    this.productoSeleccionadoService.setProductoSeleccionado(producto);
+
+    // 2️⃣ Navegar a la ruta descripcion-principal-todotech
+    this.router.navigate(['/descripcion-principal-todotech']);
   }
 
   agregarAlCarrito(producto: ProductoDto, event?: Event): void {

@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, AfterViewInit, inject, OnDestro
 import { CommonModule } from '@angular/common';
 import { ProductoDto } from '../../../models/producto/producto.dto';
 import { Router } from '@angular/router';
-import { CarritoService } from '../../../services/carrito.service';
+import { CarritoService } from '../../../services/carrito/carrito.service';
 import { ProductoService } from '../../../services/producto.service';
 import { Subscription, firstValueFrom } from 'rxjs'; // 🔥 NUEVAS IMPORTACIONES
 

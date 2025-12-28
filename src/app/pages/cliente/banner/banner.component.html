@@ -1,0 +1,36 @@
+<div class="banner-presentacion">
+  <!-- Contenedor del banner -->
+  <div 
+    class="banner-container"
+    [style.height]="height"
+  >
+    <!-- Grid de imágenes sin separación -->
+    <div class="banner-grid">
+      <!-- Imágenes -->
+      <div 
+        *ngFor="let image of images; let i = index"
+        class="banner-image-wrapper"
+        [style]="getImageStyle(i)"
+        (mouseenter)="onMouseEnter(i)"
+        (mouseleave)="onMouseLeave()"
+        (click)="onClick(image)"
+        [class.clickable]="image.link"
+      >
+        <div class="image-container">
+          <img 
+            [src]="image.url" 
+            [alt]="image.alt"
+            class="banner-image"
+            loading="eager"
+          />
+          <div class="image-overlay"></div>
+          
+          <!-- Título (opcional) -->
+          <div *ngIf="image.title" class="image-title">
+            <h3>{{ image.title }}</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

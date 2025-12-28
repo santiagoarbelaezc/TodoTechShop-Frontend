@@ -1,0 +1,338 @@
+/* ===== TRIO PRESENTATION COMPONENT ===== */
+.trio-presentation {
+  width: 100%;
+  padding: 5rem 2rem;
+  position: relative;
+  overflow: hidden;
+  --bg-color: #000000;
+  --text-color: #ffffff;
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --overlay-start: rgba(0, 0, 0, 0.7);
+  --overlay-mid: rgba(0, 0, 0, 0.4);
+  --overlay-light: rgba(0, 0, 0, 0.2);
+  --hover-bg: rgba(255, 255, 255, 0.08);
+  --hover-border: rgba(255, 255, 255, 0.15);
+}
+
+.trio-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Grid de cards */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: stretch;
+}
+
+/* Card individual */
+.content-card {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: default;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  background: var(--card-bg, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  min-height: 700px;
+}
+
+/* Efecto hover */
+.content-card.hover-effect:hover {
+  transform: translateY(-10px);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px var(--hover-border, rgba(255, 255, 255, 0.1));
+  background: var(--hover-bg, rgba(255, 255, 255, 0.08));
+}
+
+.content-card.has-link {
+  cursor: pointer;
+}
+
+/* Contenido de la card */
+.card-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor de imagen */
+.card-image-container {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Para PNG con fondo transparente */
+  object-position: center;
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.content-card:hover .card-image {
+  transform: scale(1.05);
+}
+
+/* Overlay para mejor legibilidad del texto */
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    var(--overlay-start, rgba(0, 0, 0, 0.7)) 0%,
+    var(--overlay-mid, rgba(0, 0, 0, 0.4)) 30%,
+    var(--overlay-light, rgba(0, 0, 0, 0.2)) 50%,
+    var(--overlay-mid, rgba(0, 0, 0, 0.4)) 70%,
+    var(--overlay-start, rgba(0, 0, 0, 0.7)) 100%
+  );
+  opacity: 0.7;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.content-card:hover .image-overlay {
+  opacity: 0.8;
+}
+
+/* Texto superpuesto */
+.card-text-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Posiciones del texto */
+.text-top {
+  top: 0;
+  bottom: auto;
+}
+
+.text-center {
+  top: 55%;
+  transform: translateY(-50%);
+}
+
+.text-bottom {
+  top: auto;
+  bottom: 0;
+}
+
+/* Contenido del texto */
+.text-content {
+  text-align: center;
+  max-width: 90%;
+  margin: 0 auto;
+  pointer-events: auto;
+  color: var(--text-color, #ffffff);
+}
+
+.card-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  
+  color: var(--text-color, #ffffff);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.card-description {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  color: var(--text-color, #ffffff);
+  opacity: 0.9;
+  font-weight: 400;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+}
+
+/* Botón de acción */
+.card-actions {
+  display: inline-block;
+  pointer-events: auto;
+}
+
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-color, #ffffff);
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.action-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.action-button svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+}
+
+.action-button:hover svg {
+  transform: translateX(3px);
+}
+
+/* Layout específico para el orden imagen/texto */
+.content-card[data-layout="image-text"] .card-content {
+  flex-direction: column;
+}
+
+.content-card[data-layout="text-image"] .card-content {
+  flex-direction: column-reverse;
+}
+
+/* Para layout personalizado con imágenes PNG */
+.content-card[data-layout="text-image"] .card-image {
+  margin-top: auto;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+  .cards-grid {
+    gap: 1.5rem;
+  }
+  
+  .card-title {
+    font-size: 1.6rem;
+  }
+  
+  .content-card {
+    min-height: 580px;
+  }
+}
+
+@media (max-width: 992px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .content-card {
+    min-height: 550px;
+  }
+  
+  .content-card:nth-child(3) {
+    grid-column: span 2;
+    max-width: 80%;
+    justify-self: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .trio-presentation {
+    padding: 3rem 1.5rem;
+  }
+  
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .content-card {
+    min-height: 500px;
+  }
+  
+  .content-card:nth-child(3) {
+    grid-column: span 1;
+    max-width: 100%;
+  }
+  
+  .card-title {
+    font-size: 1.5rem;
+  }
+  
+  .card-description {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .trio-presentation {
+    padding: 2rem 1rem;
+  }
+  
+  .content-card {
+    min-height: 450px;
+  }
+  
+  .card-text-overlay {
+    padding: 1.5rem;
+  }
+  
+  .card-title {
+    font-size: 1.3rem;
+  }
+  
+  .card-description {
+    font-size: 0.9rem;
+  }
+  
+  .action-button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Animaciones de entrada */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.content-card {
+  animation: fadeInUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  opacity: 0;
+}
+
+.content-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.content-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.content-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+/* Mejoras de rendimiento */
+.card-image,
+.image-overlay,
+.card-text-overlay {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}

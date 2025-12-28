@@ -1,0 +1,225 @@
+<section class="catalogo-presentacion" id="catalogo-presentacion">
+  <!-- Contenedor principal con efecto de fondo dinámico progresivo -->
+  <div class="dynamic-background-container" #dynamicBackground>
+    
+    <!-- Sección inicial en blanco - Feature Banner ANCHO COMPLETO -->
+    <div class="color-section initial-section" id="section-0" data-color="#FFFFFF">
+      <!-- Feature Banner FUERA del content-container -->
+      <section class="feature-section-wrapper full-width-component" data-aos="fade-up" data-aos-duration="1000">
+        <app-feature-banner
+          imageUrl="assets/feature1.png"
+          title="Tienda TodoTech Shop"
+          subtitle="Explora nuestro catálogo exclusivo de productos tecnológicos. Encuentra las últimas novedades en smartphones, laptops, accesorios y más, todo en un solo lugar."
+          primaryText="Ver Productos"
+          [reverse]="false"
+          backgroundColor="linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%)"
+          textColor="#313131">
+        </app-feature-banner>
+      </section>
+    </div>
+
+    <!-- Sección de transición a azul -->
+    <div class="color-section transition-section" id="section-1" data-color="#1E40AF">
+      <div class="content-container">
+        <div class="text-image-section" data-aos="fade-right" data-aos-duration="800">
+          <div class="text-content">
+            <h2 class="section-title">Innovación en Cada Detalle</h2>
+            <p class="section-description">
+              En TodoTech Shop, nos dedicamos a traerte lo último en tecnología. Desde los smartphones más avanzados hasta las laptops más potentes, cada producto es cuidadosamente seleccionado para ofrecerte la mejor experiencia.
+            </p>
+            <div class="features-grid">
+              <div class="feature-item" data-aos="fade-up" data-aos-delay="200">
+                
+                <h3>Rendimiento Máximo</h3>
+                <p>Componentes de última generación para un rendimiento excepcional en todas tus tareas.</p>
+              </div>
+              <div class="feature-item" data-aos="fade-up" data-aos-delay="400">
+                
+                <h3>Calidad Garantizada</h3>
+                <p>Todos nuestros productos cuentan con garantía oficial y soporte técnico especializado.</p>
+              </div>
+            </div>
+          </div>
+          <div class="image-content" data-aos="fade-left" data-aos-duration="800">
+            <img src="assets/jbl.png" alt="Productos tecnológicos" class="section-image">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIMER Trio Presentation (Fondo azul completo) -->
+    <div class="color-section full-section" id="section-2" data-color="#1E40AF">
+      <div class="trio-section first-trio" data-aos="zoom-in" data-aos-duration="1000">
+        <!-- Solo el heading dentro del content-container -->
+        <div class="content-container">
+          <h2 class="section-heading2" data-aos="fade-down" data-aos-duration="600">Productos Destacados</h2>
+          <p class="section-subheading2" data-aos="fade-down" data-aos-delay="200" data-aos-duration="600">
+            Descubre nuestra selección premium de tecnología de vanguardia
+          </p>
+        </div>
+        <!-- El componente trio-presentation ANCHO COMPLETO -->
+        <div class="full-width-component">
+          <app-trio-presentation
+            [cards]="trioCards1"
+            [backgroundColor]="trioBackground1"
+            [textColor]="trioTextColor1"
+            [cardHeight]="trioCardHeight1"
+            [gap]="trioGap1"
+            [hoverEffect]="trioHoverEffect1"
+            [layout]="trioLayout1"
+          ></app-trio-presentation>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de transición a rojo -->
+    <div class="color-section transition-section" id="section-3" data-color="#DC2626">
+      <div class="content-container">
+        <div class="promo-section" data-aos="fade-up" data-aos-duration="800">
+          <div class="promo-content">
+            <h2 class="promo-title">Ofertas Exclusivas</h2>
+            <p class="promo-text">
+              Aprovecha nuestras promociones especiales en consolas de última generación. 
+              Paquetes completos con juegos incluidos y accesorios premium.
+            </p>
+            <div class="promo-highlights">
+              <div class="highlight" data-aos="zoom-in" data-aos-delay="300">
+                <span class="highlight-number">30%</span>
+                <span class="highlight-text">Descuento en accesorios seleccionados</span>
+              </div>
+              <div class="highlight" data-aos="zoom-in" data-aos-delay="500">
+                <span class="highlight-number">24</span>
+                <span class="highlight-text">Meses de garantía extendida</span>
+              </div>
+            </div>
+          </div>
+          <div class="promo-images">
+            <img src="assets/xbox-console.png" alt="Consolas en oferta" class="promo-image" data-aos="fade-left" data-aos-delay="200">
+            <img src="assets/play5.png" alt="Accesorios gaming" class="promo-image" data-aos="fade-left" data-aos-delay="400">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Banner de presentación (Fondo rojo completo) -->
+    <div class="color-section full-section" id="section-4" data-color="#DC2626">
+      <div class="banner-container" data-aos="fade-up" data-aos-duration="1200">
+        <!-- Solo el heading dentro del content-container -->
+        <div class="content-container">
+          <h2 class="section-heading" data-aos="fade-down">Consolas de Última Generación</h2>
+          <p class="section-subheading" data-aos="fade-down" data-aos-delay="200">
+            Experiencias de gaming inmersivas con la mejor tecnología
+          </p>
+        </div>
+        <!-- El componente banner ANCHO COMPLETO -->
+        <div class="full-width-component">
+          <app-banner
+            [images]="bannerImages"
+            [height]="bannerHeight"
+            [hoverScale]="hoverScale"
+            [minScale]="minScale"
+            [hoverTransition]="hoverTransition"
+          ></app-banner>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de transición a negro -->
+    <div class="color-section transition-section" id="section-5" data-color="#000000">
+      <div class="content-container">
+        <div class="categories-section" data-aos="fade-up" data-aos-duration="800">
+          <h2 class="categories-title">Explora Nuestras Categorías</h2>
+          <p class="categories-subtitle">
+            Encuentra exactamente lo que necesitas en nuestra amplia selección de productos tecnológicos.
+          </p>
+          <div class="categories-grid">
+            <div class="category-card" data-aos="flip-left" data-aos-delay="100">
+              
+              <h3>Laptops & PC</h3>
+              <p>Equipos de alto rendimiento para trabajo, estudio y gaming.</p>
+            </div>
+            <div class="category-card" data-aos="flip-left" data-aos-delay="200">
+             
+              <h3>Smartphones</h3>
+              <p>Los últimos modelos con tecnología de vanguardia.</p>
+            </div>
+            <div class="category-card" data-aos="flip-left" data-aos-delay="300">
+              
+              <h3>Consolas</h3>
+              <p>Next-gen gaming con las mejores experiencias.</p>
+            </div>
+            <div class="category-card" data-aos="flip-left" data-aos-delay="400">
+              
+              <h3>TV & Audio</h3>
+              <p>Mejora tu experiencia con nuestros productos de entretenimiento.</p>
+            </div>
+            <div class="category-card" data-aos="flip-left" data-aos-delay="500">
+              
+              <h3>Accesorios</h3>
+              <p>Mejora tu setup con nuestros accesorios premium.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEGUNDO Trio Presentation (Fondo negro completo) -->
+    <div class="color-section full-section" id="section-6" data-color="#000000">
+      <div class="trio-section second-trio" data-aos="zoom-in" data-aos-duration="1000">
+        <!-- Solo el heading dentro del content-container -->
+        <div class="content-container">
+          <h2 class="section-heading" data-aos="fade-down">iPhone 17 Series</h2>
+          <p class="section-subheading" data-aos="fade-down" data-aos-delay="200">
+            El futuro de la telefonía móvil, disponible ahora
+          </p>
+        </div>
+        <!-- El componente trio-presentation ANCHO COMPLETO -->
+        <div class="full-width-component">
+          <app-trio-presentation
+            [cards]="trioCards2"
+            [backgroundColor]="trioBackground2"
+            [textColor]="trioTextColor2"
+            [cardHeight]="trioCardHeight2"
+            [gap]="trioGap2"
+            [hoverEffect]="trioHoverEffect2"
+            [layout]="trioLayout2"
+          ></app-trio-presentation>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección final (Volviendo a blanco) -->
+    <div class="color-section transition-section" id="section-7" data-color="#FFFFFF">
+      <div class="content-container">
+        <div class="final-section" data-aos="fade-up" data-aos-duration="1000">
+          <div class="final-content">
+            <h2 class="final-title">Tecnología Nueva, Atención Personal</h2>
+            <p class="final-text">
+              Somos una nueva tienda especializada, creada para ofrecerte productos tecnológicos 
+              de calidad con un trato cercano y honesto. Te ayudamos a encontrar lo que necesitas.
+            </p>
+            <div class="stats-grid">
+              <div class="stat-item" data-aos="fade-up" data-aos-delay="200">
+                <span class="stat-number">+500</span>
+                <span class="stat-label">Productos</span>
+              </div>
+              <div class="stat-item" data-aos="fade-up" data-aos-delay="400">
+                <span class="stat-number">Atención</span>
+                <span class="stat-label">Directa</span>
+              </div>
+              <div class="stat-item" data-aos="fade-up" data-aos-delay="600">
+                <span class="stat-number">Garantía</span>
+                <span class="stat-label">Incluida</span>
+              </div>
+            </div>
+          </div>
+          <div class="final-image" data-aos="fade-left" data-aos-delay="400">
+            <img src="assets/todotech.jpg" alt="Tienda TodoTech" class="store-image">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</section>

@@ -1,15 +1,27 @@
-<nav class="navbar">
+<nav class="navbar" [class.scrolled]="scrolled">
   <div class="nav-container">
     <!-- Logo -->
     <div class="nav-logo">
-      <img src="assets/logoTech.png" alt="TodoTech Shop" class="logo-img">
+      <img src="assets/logoDark.png" alt="TodoTech Shop" class="logo-img">
     </div>
 
+   
+
+<button class="hamburger-btn" (click)="toggleMenu()" aria-label="Menú" 
+        [class.active]="menuAbierto">
+  <span class="hamburger-icon">
+    <i class="fas fa-bars"></i>
+  </span>
+</button>
+
+    <!-- Overlay para fondo oscuro -->
+    <div class="menu-overlay" (click)="closeMenu()" [class.active]="menuAbierto"></div>
+
     <!-- Menú de navegación -->
-    <ul class="nav-menu">
+    <ul class="nav-menu" [class.active]="menuAbierto">
       <li class="nav-item">
         <button class="nav-link" 
-                (click)="irACatalogo()"
+                (click)="irACatalogo(); closeMenu()"
                 [class.active]="seccionActiva === 'catalogo'">
           <i class="fas fa-store"></i>
           <span>Catálogo</span>
@@ -18,7 +30,7 @@
       
       <li class="nav-item">
         <button class="nav-link" 
-                (click)="irAInicio()"
+                (click)="irAInicio(); closeMenu()"
                 [class.active]="seccionActiva === 'inicio'">
           <i class="fas fa-home"></i>
           <span>Inicio</span>
@@ -27,7 +39,7 @@
       
       <li class="nav-item">
         <button class="nav-link" 
-                (click)="irALaptops()"
+                (click)="irALaptops(); closeMenu()"
                 [class.active]="seccionActiva === 'laptops'">
           <i class="fas fa-laptop"></i>
           <span>Laptops & PCs</span>
@@ -36,7 +48,7 @@
       
       <li class="nav-item">
         <button class="nav-link" 
-                (click)="irAPhone()"
+                (click)="irAPhone(); closeMenu()"
                 [class.active]="seccionActiva === 'phone'">
           <i class="fas fa-mobile-alt"></i>
           <span>Smartphones</span>
@@ -45,7 +57,7 @@
       
       <li class="nav-item">
         <button class="nav-link" 
-                (click)="irAGaming()"
+                (click)="irAGaming(); closeMenu()"
                 [class.active]="seccionActiva === 'gaming'">
           <i class="fas fa-gamepad"></i>
           <span>Gaming</span>
@@ -54,7 +66,7 @@
       
       <li class="nav-item">
         <button class="nav-link" 
-                (click)="irAAccesorios()"
+                (click)="irAAccesorios(); closeMenu()"
                 [class.active]="seccionActiva === 'accesorios'">
           <i class="fas fa-headphones"></i>
           <span>Accesorios</span>
@@ -67,7 +79,7 @@
       <div class="user-actions">
         <!-- Botón de búsqueda -->
         <button class="action-btn" 
-                (click)="irABuscar()" 
+                (click)="irABuscar(); closeMenu()" 
                 title="Buscar productos">
           <i class="fas fa-search"></i>
         </button>

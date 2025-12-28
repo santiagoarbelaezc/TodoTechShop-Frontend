@@ -1,0 +1,225 @@
+/* ===== BANNER PRESENTACIÓN ELEGANTE ===== */
+.banner-presentacion {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Contenedor principal */
+.banner-container {
+  width: 100%;
+  position: relative;
+}
+
+/* Grid sin separación */
+.banner-grid {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+/* Contenedor de cada imagen */
+.banner-image-wrapper {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  cursor: pointer;
+  transition-property: width, transform, z-index;
+  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  will-change: width, transform;
+  backface-visibility: hidden;
+  transform-origin: center;
+}
+
+/* Efecto de hover */
+.banner-image-wrapper:hover {
+  z-index: 20 !important;
+}
+
+/* Contenedor de imagen */
+.image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Imagen principal */
+.banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Efecto de zoom sutil en hover */
+.banner-image-wrapper:hover .banner-image {
+  transform: scale(1.05);
+}
+
+/* Overlay elegante */
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0.1) 25%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.1) 75%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+  opacity: 0.5;
+  transition: opacity 0.4s ease;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.banner-image-wrapper:hover .image-overlay {
+  opacity: 0.3;
+}
+
+/* Título de la imagen */
+.image-title {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 3;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  pointer-events: none;
+  padding: 0 30px;
+}
+
+.banner-image-wrapper:hover .image-title {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.image-title h3 {
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+/* Efecto de brillo sutil */
+.banner-image-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0) 20%,
+    rgba(255, 255, 255, 0.01) 80%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.banner-image-wrapper:hover::before {
+  opacity: 1;
+}
+
+/* Efecto de borde sutil */
+.banner-image-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.banner-image-wrapper:hover::after {
+  opacity: 1;
+}
+
+/* Si la imagen es clickable */
+.banner-image-wrapper.clickable {
+  cursor: pointer;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+  .image-title h3 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .banner-grid {
+    flex-direction: column;
+  }
+  
+  .banner-image-wrapper {
+    width: 100% !important;
+    flex: 1 0 auto;
+  }
+  
+  .image-title h3 {
+    font-size: 1.75rem;
+  }
+  
+  /* En móvil, solo se ve una imagen a la vez */
+  .banner-image-wrapper:not(:hover) {
+    flex: 1 0 auto;
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .image-title h3 {
+    font-size: 1.5rem;
+    bottom: 25px;
+  }
+}
+
+/* Mejora de rendimiento */
+.banner-grid,
+.banner-image-wrapper,
+.banner-image,
+.image-overlay {
+  will-change: transform, width;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Suavizado de animaciones */
+.banner-grid {
+  perspective: 1000px;
+}
+
+.banner-image-wrapper {
+  transform-style: preserve-3d;
+}

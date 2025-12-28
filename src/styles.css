@@ -7,11 +7,194 @@
     --text-dark: #000000;
     --text-light: #EEEEEE;
     --danger-color: #f700ff;
+    
+    /* SCROLL PERSONALIZADO ROJO */
+    --scrollbar-track: rgba(255, 0, 43, 0.1);
+    --scrollbar-thumb: #ff002b;
+    --scrollbar-thumb-hover: #ff3355;
+    --scrollbar-width: 8px;
+
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #2a2a2a;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --text-tertiary: #888888;
+    --accent-primary: #4f46e5;
+    --accent-secondary: #db1f1f;
+    --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #db1f1f 100%);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --glow-effect: rgba(79, 70, 229, 0.3);
+    --neon-red: #ff2e2e;
+    --neon-blue: #00d4ff;
+    --neon-purple: #9d4edd;
+    
+    /* Efectos de partículas */
+    --particle-size: 2px;
+    --particle-opacity: 0.3;
+
+    --gaming-bg-primary: #0a0a0a;
+    --gaming-bg-secondary: #1a1a1a;
+    --gaming-bg-card: #1e1e1e;
+    --gaming-text-primary: #ffffff;
+    --gaming-text-secondary: #b0b0b0;
+    --gaming-accent-blue: #00d4ff;
+    --gaming-accent-red: #ff2e2e;
+    --gaming-accent-purple: #9d4edd;
+    --gaming-accent-green: #00ff88;
+    --gaming-gradient-primary: linear-gradient(135deg, #00d4ff 0%, #ff2e2e 100%);
+    --gaming-gradient-secondary: linear-gradient(135deg, #9d4edd 0%, #00ff88 100%);
+    --gaming-border: rgba(255, 255, 255, 0.1);
+    --gaming-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --gaming-glow: 0 0 20px rgba(0, 212, 255, 0.3);
+        
 }
 
 /* Reset y estilos base optimizados */
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ✅ BLOQUEO TOTAL DEL SCROLL HORIZONTAL + SCROLL VERTICAL SUAVE */
+html {
+    overflow-x: hidden !important;
+    overflow-y: auto;
+    width: 100%;
+    max-width: 100vw;
+    scroll-behavior: smooth;
+    position: relative;
+    scroll-padding-top: 100px; /* Espacio para navbar sticky */
+}
+
+body {
+    overflow-x: hidden !important;
+    overflow-y: auto;
+    width: 100%;
+    max-width: 100vw;
+    min-height: 100vh;
+    position: relative;
+    scroll-behavior: smooth;
+}
+
+/* ✅ SCROLL PERSONALIZADO ROJO - WEBKIT (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 10px;
+    margin: 4px 0;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 10px;
+    border: 2px solid var(--scrollbar-track);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    min-height: 40px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+    transform: scale(1.05);
+    box-shadow: 
+        0 0 8px var(--scrollbar-thumb-hover),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: var(--scrollbar-thumb-hover);
+    transform: scale(0.98);
+}
+
+/* ✅ SCROLL PERSONALIZADO ROJO - FIREFOX */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* ✅ PREVENIR JUMP/SCROLL INTERMITENTE AL RECARGAR */
+html:not([data-scroll-prevented]) {
+    scroll-behavior: smooth;
+}
+
+/* ✅ EVITAR JUMP DEL NAVBAR STICKY */
+body[data-navbar-loaded] {
+    scroll-padding-top: 100px;
+}
+
+/* ✅ OPTIMIZACIONES ADICIONALES PARA PREVENIR FANTASMAS VISUALES */
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html, body {
+        scroll-behavior: auto;
+    }
+}
+
+/* ✅ FIJAR viewport y prevenir zoom extraño en móviles */
+@supports (-webkit-touch-callout: none) {
+    /* iOS Safari */
+    html, body {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: none;
+    }
+}
+
+/* ✅ Android Chrome */
+@supports not (-webkit-touch-callout: none) {
+    html, body {
+        overscroll-behavior: none;
+    }
+}
+
+/* ✅ PREVENIR BOUNCE/SCROLL ELASTIC EN MÓVILES */
+html, body {
+    overscroll-behavior-y: contain;
+    overscroll-behavior-x: none;
+}
+
+/* ✅ OPTIMIZACIÓN PARA PWA/INSTALLED APPS */
+@media all and (display-mode: standalone) {
+    html, body {
+        overscroll-behavior: none;
+    }
+}
+
+/* ✅ CORRECCIÓN ESPECÍFICA PARA EL PROBLEMA DEL RECARGA */
+@media screen and (min-width: 0px) {
+    html {
+        scroll-snap-type: none;
+    }
+    
+    body {
+        scroll-padding-top: clamp(80px, 10vw, 120px);
+    }
+}
+
+/* ✅ SCROLL ESPECIAL PARA .nav-menu (ya incluido en navbar CSS) */
+.nav-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.nav-menu::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.nav-menu::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.nav-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
 }

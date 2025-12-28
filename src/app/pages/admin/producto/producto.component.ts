@@ -11,6 +11,7 @@ import { ProductoDto } from '../../../models/producto/producto.dto';
 
 // Pipe personalizado para truncar texto
 import { Pipe, PipeTransform } from '@angular/core';
+import { CategoriaService } from '../../../services/categoria.service';
 
 @Pipe({
   name: 'truncate',
@@ -50,6 +51,7 @@ interface FiltrosBusqueda {
 })
 export class ProductoComponent implements OnInit {
   private productoService = inject(ProductoService);
+  private categoriaService = inject(CategoriaService);
 
   // Variables de estado
   seccionActiva: string = 'productos';
@@ -62,13 +64,7 @@ export class ProductoComponent implements OnInit {
   productos: ProductoDto[] = [];
   productosFiltrados: ProductoDto[] = [];
   resultadosBusqueda: ProductoDto[] = [];
-  categorias: CategoriaDto[] = [
-    { id: 1, nombre: 'Electrónicos' },
-    { id: 2, nombre: 'Computación' },
-    { id: 3, nombre: 'Smartphones' },
-    { id: 4, nombre: 'Audio' },
-    { id: 5, nombre: 'Accesorios' }
-  ];
+  categorias: CategoriaDto[] = [];
 
   // Estados disponibles
   estadosProducto: EstadoProducto[] = [
@@ -122,7 +118,28 @@ export class ProductoComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarProductos();
-    this.cargarCategoriasReales(); // Cargar categorías reales del servicio
+    
+    this.cargarCategorias(); // Cargar categorías reales del servicio
+  }
+
+  private cargarCategorias(): void {
+    this.categoriaService.obtenerTodasLasCategoriasPublico().subscribe({
+      next: (categorias) => {
+        this.categorias = categorias;
+        console.log('Categorías cargadas:', this.categorias);
+      },
+      error: (error) => {
+        console.error('Error al cargar categorías:', error);
+        // Mantener categorías por defecto si hay error
+        this.categorias = [
+          { id: 1, nombre: 'Electrónicos' },
+          { id: 2, nombre: 'Computación' },
+          { id: 3, nombre: 'Smartphones' },
+          { id: 4, nombre: 'Audio' },
+          { id: 5, nombre: 'Accesorios' }
+        ];
+      }
+    });
   }
 
   // Inicialización
@@ -142,12 +159,7 @@ export class ProductoComponent implements OnInit {
     };
   }
 
-  // Cargar categorías reales
-  private cargarCategoriasReales(): void {
-    // Si tienes un servicio para categorías, úsalo aquí
-    // this.categoriaService.obtenerTodasLasCategorias().subscribe(...)
-    // Por ahora mantenemos las categorías de ejemplo
-  }
+  
 
  // Y modifica mostrarSeccion:
 mostrarSeccion(seccion: string): void {

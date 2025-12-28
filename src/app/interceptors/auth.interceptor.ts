@@ -10,7 +10,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const token = authService.getToken();
   
-  // ✅ URLs públicas que no requieren token
+  // ✅ URLs públicas que no requieren token (INCLUYE TU ENDPOINT)
   const publicUrls = [
     '/usuarios/login',
     '/usuarios/recordar-contrasena',
@@ -19,7 +19,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     '/productos/publicos/disponibles',
     '/productos/publicos/categoria/',
     '/productos/publicos/buscar',
-    '/productos/publicos/' 
+    '/productos/publicos/',
+    '/productos/activos'  // ✅ AÑADE ESTA LÍNEA IMPORTANTE
   ];
   
   // ✅ URLs de APIs externas que NO deben recibir el header Authorization
@@ -44,7 +45,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
   
   // Si no hay token o el usuario no está logueado, redirigir al login
-  if (!token || !authService.isLoggedIn()) {
+  // PERO solo si NO estamos en una página pública
+  const isPaginaPublica = window.location.pathname.includes('catalogo-principal-todotech');
+  
+  if ((!token || !authService.isLoggedIn()) && !isPaginaPublica) {
     console.warn('❌ Token no disponible o usuario no autenticado para:', req.url);
     authService.logout();
     router.navigate(['/login']);

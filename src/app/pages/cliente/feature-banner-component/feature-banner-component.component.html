@@ -1,0 +1,39 @@
+<section
+  class="feature-section"
+  [ngStyle]="{ background: backgroundColor, color: textColor }"
+>
+  <div class="feature-card" [class.reverse]="reverse">
+    <!-- Imagen con efecto elegante de reveal -->
+    <div
+      class="feature-image"
+      data-aos="zoom-in-up"
+      data-aos-delay="100"
+      data-aos-duration="900"
+      data-aos-easing="cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+    >
+      <img [src]="imageUrl" [alt]="title" />
+    </div>
+
+    <!-- Texto con efecto fluido -->
+    <div
+      class="feature-content"
+      data-aos="fade-up"
+      data-aos-delay="200"
+      data-aos-duration="800"
+      data-aos-easing="cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+    >
+      <h2 class="feature-title" [ngStyle]="{ color: textColor }">
+        {{ title }}
+      </h2>
+      <p class="feature-subtitle" [ngStyle]="{ color: textColor }">
+        {{ subtitle }}
+      </p>
+
+      <div class="feature-actions">
+        <button class="btn primary">
+          {{ primaryText }}
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
