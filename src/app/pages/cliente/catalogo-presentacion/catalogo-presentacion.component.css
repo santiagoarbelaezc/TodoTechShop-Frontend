@@ -932,6 +932,7 @@ app-feature-banner {
     
     .color-section {
         min-height: auto;
+        overflow: visible !important;
     }
     
     .section-heading,
@@ -977,11 +978,11 @@ app-feature-banner {
     .trio-section,
     .banner-container {
         padding: 2rem 0;
+        overflow: visible !important;
     }
     
     /* Asegurar que los componentes ocupen todo el ancho en móviles */
     app-trio-presentation,
-    app-banner,
     app-feature-banner {
         width: 100vw;
         left: 0;
@@ -989,11 +990,17 @@ app-feature-banner {
         margin-left: 0;
         margin-right: 0;
     }
+    
+    /* Banner no necesita 100vw para no recortarse */
+    app-banner {
+        width: 100%;
+    }
 }
 
 @media (max-width: 480px) {
     .color-section {
         padding: 2rem 0;
+        overflow: visible !important;
     }
     
     .section-heading,
@@ -1029,9 +1036,13 @@ app-feature-banner {
     
     /* Ajustes finales para componentes en móviles pequeños */
     app-trio-presentation,
-    app-banner,
     app-feature-banner {
         width: 100vw;
+    }
+    
+    /* Banner se ajusta sin recorte */
+    app-banner {
+        width: 100%;
     }
 }
 

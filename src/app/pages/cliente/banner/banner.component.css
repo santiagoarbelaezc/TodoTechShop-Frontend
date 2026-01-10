@@ -280,7 +280,7 @@
 /* MÓVIL PEQUEÑO (< 480px) */
 @media (max-width: 480px) {
   .banner-image-wrapper {
-    height: 280px;
+    height: 200px;
   }
   
   .image-title h3 {
