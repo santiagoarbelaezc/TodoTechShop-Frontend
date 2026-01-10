@@ -41,64 +41,46 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['ChromeHeadless'], // Cambiado para CI/CD
-    singleRun: true, // Cambiado a true para CI/CD
+    browsers: ['ChromeHeadless'],
+    singleRun: true,
     restartOnFileChange: true,
     
-    // CONFIGURACIÓN PARA IGNORAR ARCHIVOS CSS (SOLUCIÓN AL ERROR)
+    // CONFIGURACIÓN PARA IGNORAR ARCHIVOS CSS DE AOS DURANTE PRUEBAS
     webpack: {
       module: {
         rules: [
+          // Ignorar CSS de AOS usando null-loader - ruta específica
+          {
+            test: /node_modules[\\\/]aos[\\\/]dist[\\\/]aos\.css$/,
+            use: 'null-loader'
+          },
+          // Procesar otros archivos CSS
           {
             test: /\.css$/,
-            use: [
-              {
-                loader: 'null-loader'
-              }
-            ]
+            use: ['style-loader', 'css-loader']
           },
           {
             test: /\.scss$/,
-            use: [
-              {
-                loader: 'null-loader'
-              }
-            ]
+            use: ['style-loader', 'css-loader', 'sass-loader']
           },
           {
             test: /\.sass$/,
-            use: [
-              {
-                loader: 'null-loader'
-              }
-            ]
+            use: ['style-loader', 'css-loader', 'sass-loader']
           },
           {
             test: /\.less$/,
-            use: [
-              {
-                loader: 'null-loader'
-              }
-            ]
+            use: ['style-loader', 'css-loader', 'less-loader']
           }
         ]
       },
       resolve: {
         fallback: {
-          // Evita problemas con módulos que no se necesitan en pruebas
           "fs": false,
           "path": false,
           "os": false
         }
       }
     },
-    
-    // Otra opción: excluir archivos específicos
-    exclude: [
-      // Si quieres excluir archivos específicos del directorio src
-      // 'src/**/*.spec.ts',
-      // 'src/test.ts'
-    ],
     
     // Configuración para ChromeHeadless
     customLaunchers: {

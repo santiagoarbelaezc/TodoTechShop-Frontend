@@ -29,7 +29,7 @@ export class AosService {
    * Inicializa AOS con configuración específica
    */
   init(config?: Partial<RouteConfig>): void {
-    if (this.isBrowser && typeof AOS !== 'undefined') {
+    if (this.isBrowser && typeof AOS !== 'undefined' && AOS.init) {
       try {
         const defaultConfig: RouteConfig = {
           duration: 800,
@@ -49,6 +49,7 @@ export class AosService {
         console.log('✅ AOS inicializado:', finalConfig);
       } catch (error) {
         console.error('❌ Error al inicializar AOS:', error);
+        this.initialized = false;
       }
     }
   }
@@ -57,7 +58,7 @@ export class AosService {
    * Refresca AOS para contenido dinámico
    */
   refresh(): void {
-    if (this.isBrowser && this.initialized && typeof AOS !== 'undefined') {
+    if (this.isBrowser && this.initialized && typeof AOS !== 'undefined' && AOS.refresh) {
       try {
         AOS.refresh();
         console.log('🔄 AOS refrescado');
@@ -77,9 +78,7 @@ export class AosService {
         element.setAttribute('data-aos-delay', delay.toString());
       }
       
-      // Aplicar animación inmediatamente
       element.removeAttribute('data-aos');
-      // Forzar reflow
       void element.offsetWidth;
       element.setAttribute('data-aos', animation);
       
@@ -104,8 +103,6 @@ export class AosService {
 
   /**
    * Revela progresivamente elementos con efecto cascada elegante
-   * @param selector - Selector CSS de elementos a animar
-   * @param config - Configuración personalizada para la revelación progresiva
    */
   revealProgressively(selector: string, config?: ProgressiveRevealConfig): void {
     if (!this.isBrowser) return;
@@ -129,23 +126,19 @@ export class AosService {
         return;
       }
 
-      // Crear Intersection Observer para cada elemento
       const observerOptions: IntersectionObserverInit = {
         threshold: finalConfig.threshold,
         rootMargin: finalConfig.rootMargin
       };
 
       elements.forEach((element, index) => {
-        // Asegurar que el elemento no esté ya revelado
         if (!this.revealedElements.has(element)) {
-          // Establecer estado inicial
           element.style.opacity = '0';
           element.style.transform = 'translateY(30px) scale(0.95)';
           element.style.transition = `all ${finalConfig.duration}ms ${finalConfig.easing}`;
           element.style.willChange = 'transform, opacity';
         }
 
-        // Crear observador único para este elemento si no existe
         const observerId = `${selector}-${index}`;
         
         if (!this.intersectionObservers.has(observerId)) {
@@ -154,13 +147,10 @@ export class AosService {
               const target = entry.target as HTMLElement;
               
               if (entry.isIntersecting && !this.revealedElements.has(target)) {
-                // Aplicar delay escalonado
                 setTimeout(() => {
                   target.style.opacity = '1';
                   target.style.transform = 'translateY(0) scale(1)';
                   this.revealedElements.add(target);
-                  
-                  // Log para debugging
                   console.log(`✨ Elemento revelado: ${index + 1}/${elements.length}`);
                 }, index * finalConfig.staggerDelay);
               }
@@ -230,7 +220,7 @@ export class AosService {
   }
 
   /**
-   * Revela elementos con efecto fade in puro (sin transformaciones)
+   * Revela elementos con efecto fade in puro
    */
   revealFadeOnly(selector: string, config?: ProgressiveRevealConfig): void {
     if (!this.isBrowser) return;
@@ -424,7 +414,6 @@ export class AosService {
         disable: false
       };
       
-      // Reiniciar con configuración móvil
       this.initialized = false;
       this.init(mobileConfig);
     }

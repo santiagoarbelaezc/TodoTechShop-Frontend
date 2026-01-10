@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { InicioCatalogoComponent } from './inicio-catalogo.component';
 
@@ -8,7 +9,7 @@ describe('InicioCatalogoComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InicioCatalogoComponent]
+      imports: [InicioCatalogoComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
