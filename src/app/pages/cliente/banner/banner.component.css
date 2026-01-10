@@ -243,6 +243,40 @@
   }
 }
 
+/* iPhone 13/14/15 (390px - 430px) */
+@media (max-width: 430px) and (min-width: 370px) {
+  .banner-image-wrapper {
+    height: 340px;
+  }
+  
+  .image-title h3 {
+    font-size: 1.4rem;
+    bottom: 28px;
+    line-height: 1.15;
+    font-weight: 600;
+  }
+  
+  .image-title {
+    padding: 0 18px;
+  }
+  
+  .image-title h3 {
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+  }
+  
+  .image-overlay {
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.22) 0%,
+      rgba(0, 0, 0, 0.12) 25%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.12) 75%,
+      rgba(0, 0, 0, 0.22) 100%
+    );
+    opacity: 0.62;
+  }
+}
+
 /* MÓVIL PEQUEÑO (< 480px) */
 @media (max-width: 480px) {
   .banner-image-wrapper {

@@ -318,6 +318,59 @@ app-feature-banner {
     }
 }
 
+/* iPhone 13/14/15 OPTIMIZADO (390px - 430px) */
+@media (max-width: 430px) and (min-width: 370px) {
+    .section-image {
+        height: 420px;
+        border-radius: 14px;
+    }
+    
+    .image-content:hover .section-image {
+        transform: scale(1.01);
+    }
+    
+    .section-title {
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+    }
+    
+    .section-title2 {
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+    }
+    
+    .section-description {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 1.8rem;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+    }
+    
+    .feature-item {
+        padding: 1.4rem;
+        border-radius: 12px;
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .feature-item h3 {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .feature-item p {
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+}
+
 /* RESPONSIVE - MOBILE (480px - 599px) */
 @media (max-width: 599px) and (min-width: 480px) {
     .section-image {
