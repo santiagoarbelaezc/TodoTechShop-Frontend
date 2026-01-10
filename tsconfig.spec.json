@@ -2,15 +2,10 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
-    "types": [
-      "jasmine"
-    ],
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "types": ["jasmine"]
   },
   "include": [
     "src/**/*.spec.ts",
-    "src/**/*.d.ts",
-    "src/setup-jasmine.ts"  // ← AÑADE ESTA LÍNEA
+    "src/**/*.d.ts"
   ]
 }

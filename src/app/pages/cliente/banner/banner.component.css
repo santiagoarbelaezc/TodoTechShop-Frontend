@@ -184,10 +184,16 @@
   .banner-image-wrapper {
     width: 100% !important;
     flex: 1 0 auto;
+    height: 400px;
   }
   
   .image-title h3 {
     font-size: 1.75rem;
+    bottom: 35px;
+  }
+  
+  .image-title {
+    padding: 0 20px;
   }
   
   /* En móvil, solo se ve una imagen a la vez */
@@ -195,12 +201,110 @@
     flex: 1 0 auto;
     width: 100% !important;
   }
+  
+  .image-overlay {
+    opacity: 0.6;
+  }
 }
 
-@media (max-width: 480px) {
+/* TABLET (600px - 767px) */
+@media (max-width: 767px) and (min-width: 600px) {
+  .banner-image-wrapper {
+    height: 380px;
+  }
+  
+  .image-title h3 {
+    font-size: 1.6rem;
+    bottom: 32px;
+  }
+  
+  .image-title {
+    padding: 0 20px;
+  }
+}
+
+/* MÓVIL HORIZONTAL (481px - 599px) */
+@media (max-width: 599px) and (min-width: 481px) {
+  .banner-image-wrapper {
+    height: 320px;
+  }
+  
   .image-title h3 {
     font-size: 1.5rem;
-    bottom: 25px;
+    bottom: 28px;
+  }
+  
+  .image-title {
+    padding: 0 16px;
+  }
+  
+  .image-title h3 {
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* MÓVIL PEQUEÑO (< 480px) */
+@media (max-width: 480px) {
+  .banner-image-wrapper {
+    height: 280px;
+  }
+  
+  .image-title h3 {
+    font-size: 1.35rem;
+    bottom: 24px;
+    line-height: 1.1;
+  }
+  
+  .image-title {
+    padding: 0 14px;
+  }
+  
+  .image-title h3 {
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
+    font-weight: 500;
+  }
+  
+  .image-overlay {
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.2) 0%,
+      rgba(0, 0, 0, 0.1) 25%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.15) 75%,
+      rgba(0, 0, 0, 0.2) 100%
+    );
+    opacity: 0.65;
+  }
+}
+
+/* MÓVIL MUY PEQUEÑO (< 360px) */
+@media (max-width: 359px) {
+  .banner-image-wrapper {
+    height: 240px;
+  }
+  
+  .image-title h3 {
+    font-size: 1.2rem;
+    bottom: 20px;
+  }
+  
+  .image-title {
+    padding: 0 12px;
+  }
+}
+
+/* ACCESIBILIDAD - Reducir movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .banner-image,
+  .image-overlay,
+  .image-title,
+  .banner-image-wrapper::before,
+  .banner-image-wrapper::after {
+    transition: none !important;
+  }
+  
+  .banner-image-wrapper:hover .banner-image {
+    transform: none;
   }
 }
 
