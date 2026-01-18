@@ -397,6 +397,8 @@ body {
       color: #1a1a1a;
       font-weight: 400;
       transition: all 0.4s ease;
+      -webkit-appearance: none;
+      -webkit-border-radius: 13px;
   }
 
   .input-group input:focus {
@@ -445,6 +447,10 @@ body {
       position: relative;
       overflow: hidden;
       transition: all 1s ease-in-out 0.6s;
+      -webkit-appearance: none;
+      -webkit-border-radius: 13px;
+      min-height: 52px;
+      touch-action: manipulation;
   }
 
   .login-container.swap-completed button[type="submit"] {
@@ -454,6 +460,10 @@ body {
 
   button[type="submit"]:hover {
       background: linear-gradient(135deg, #2a2a2a 0%, #4a4a4a 100%);
+  }
+  
+  button[type="submit"]:active {
+      transform: translateY(0);
   }
 
   .register-link {
@@ -739,8 +749,8 @@ body {
   }
 
   .help-button {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.9);
       border: none;
@@ -751,6 +761,8 @@ body {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       transition: all 0.3s ease;
       position: relative;
+      touch-action: manipulation;
+      -webkit-appearance: none;
   }
 
   .help-button:hover {
@@ -758,11 +770,18 @@ body {
       transform: scale(1.1);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
   }
+  
+  .help-button:active {
+      transform: scale(0.95);
+  }
 
   .help-icon {
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
       color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
   }
 
   .help-tooltip {
@@ -1140,7 +1159,7 @@ body {
     }
 }
 
-/* Media query específica para iPhone 13 (390x844) en portrait */
+/* Media query específica para móviles pequeños (390px y menos) en portrait */
 @media screen and (max-width: 430px) and (max-height: 900px) and (orientation: portrait) {
     body {
         padding: 0 !important;
@@ -1148,12 +1167,116 @@ body {
     
     .login-container {
         border-radius: 0;
+        margin: 0;
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+        background: url('/assets/fondoGamer2.jpg') center/cover no-repeat;
+        background-attachment: fixed;
+        background-color: #f0f0f0;
+    }
+    
+    .logo-section {
+        order: 1;
+        padding: 35px 20px;
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: auto;
+    }
+    
+    .login-form {
+        order: 2;
+        padding: 30px 20px;
+        background: white;
+    }
+    
+    .login-title {
+        font-size: 26px !important;
+        margin-bottom: 10px;
+    }
+    
+    .login-subtitle {
+        font-size: 14px !important;
+        margin-bottom: 22px;
+    }
+    
+    .input-group {
+        margin-bottom: 20px;
+    }
+    
+    .input-group input {
+        font-size: 16px !important;
+        padding: 13px 12px !important;
+        height: 46px;
+    }
+    
+    .input-group label {
+        font-size: 14px !important;
+        left: 12px;
+        top: 13px;
+    }
+    
+    .input-group input:focus + label,
+    .input-group input:not(:placeholder-shown) + label {
+        left: 12px;
+        padding: 0 5px;
+    }
+    
+    button[type="submit"] {
+        height: 48px !important;
+        font-size: 15px !important;
+        padding: 12px !important;
+    }
+    
+    .terms-section {
+        padding: 12px;
+        margin: 15px 0;
+    }
+    
+    .terms-checkbox {
+        font-size: 13px;
+        padding-left: 28px;
+    }
+    
+    .checkmark {
+        height: 18px;
+        width: 18px;
+    }
+    
+    .password-requirements {
+        font-size: 12px;
+        padding: 12px;
+        margin-top: 12px;
+    }
+    
+    .requirement {
+        font-size: 12px;
+        margin: 6px 0;
+    }
+    
+    .quick-login-buttons {
+        margin-top: 20px;
+        padding-top: 15px;
+    }
+    
+    .quick-buttons-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .quick-login-btn {
+        padding: 10px 12px;
+        font-size: 12px;
     }
     
     footer {
         background: rgba(0, 0, 0, 0.2);
         padding: 15px 20px;
         margin-top: 0;
+        font-size: 12px;
     }
 }
 
@@ -1166,6 +1289,7 @@ body {
     .login-container {
         flex-direction: row;
         min-height: 100vh;
+        background: linear-gradient(90deg, rgba(20, 33, 207, 0.05) 0%, rgba(219, 31, 31, 0.05) 100%), url('/assets/fondoGamer2.jpg') center/cover no-repeat;
     }
     
     .logo-section {
@@ -1175,12 +1299,15 @@ body {
         display: flex;
         flex-direction: column;
         justify-content: center;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(248, 249, 250, 0.92) 100%);
+        border-right: 2px solid #e0e0e0;
     }
     
     .login-form {
         padding: 20px;
         flex: 1;
         justify-content: center;
+        background: white;
     }
     
     footer {
@@ -1190,6 +1317,51 @@ body {
         right: 0;
         padding: 10px;
         margin-top: 0;
+    }
+}
+
+/* Mejoras responsive para móviles (todos los dispositivos mobile) */
+@media screen and (max-width: 768px) {
+    .help-button-container {
+        top: 15px;
+        right: 15px;
+    }
+    
+    .help-button {
+        width: 48px;
+        height: 48px;
+        font-size: 18px;
+    }
+    
+    .help-icon {
+        font-size: 24px;
+    }
+    
+    .help-tooltip {
+        font-size: 12px;
+        padding: 10px 14px;
+    }
+    
+    body {
+        padding: 5px;
+    }
+    
+    .login-container {
+        margin: 0;
+    }
+    
+    /* Logo más grande en móvil */
+    .logo {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .welcome-text h2 {
+        font-size: 24px !important;
+    }
+    
+    .welcome-text p {
+        font-size: 14px !important;
     }
 }
 
@@ -1211,6 +1383,70 @@ body {
     
     .forgot-password a {
         font-size: 13px;
+    }
+}
+
+/* Ajustes responsivos para tablets pequeñas (480px a 768px) */
+@media screen and (min-width: 431px) and (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .login-container {
+        flex-direction: column;
+        max-width: 100%;
+        margin: 0 auto;
+        background: linear-gradient(135deg, rgba(20, 33, 207, 0.08) 0%, rgba(219, 31, 31, 0.08) 100%), url('/assets/fondoGamer2.jpg') center/cover no-repeat;
+    }
+    
+    .logo-section {
+        order: 1;
+        padding: 40px 25px;
+        min-height: auto;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(248, 249, 250, 0.92) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .login-form {
+        order: 2;
+        padding: 35px 28px;
+        background: white;
+    }
+    
+    .login-title {
+        font-size: 28px !important;
+        margin-bottom: 12px;
+    }
+    
+    .login-subtitle {
+        font-size: 15px !important;
+        margin-bottom: 25px;
+    }
+    
+    .input-group {
+        margin-bottom: 22px;
+    }
+    
+    .input-group input {
+        font-size: 16px !important;
+        padding: 14px 14px !important;
+        height: 48px;
+    }
+    
+    .input-group label {
+        font-size: 14px !important;
+    }
+    
+    button[type="submit"] {
+        height: 48px !important;
+        font-size: 16px !important;
+        margin-top: 18px;
+    }
+    
+    .quick-buttons-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -1434,31 +1670,118 @@ button[type="submit"].loading::after {
     color: white;
 }
 
-/* Responsive Design */
+/* Responsive Design - TABLET (768px y menos) */
 @media (max-width: 768px) {
     .login-container {
         flex-direction: column;
-        max-width: 400px;
-    }
-    
-    .login-form, .logo-section {
-        order: initial !important;
-        transform: none !important;
+        max-width: 100%;
+        max-height: none;
         min-height: auto;
-    }
-    
-    .logo-section {
-        padding: 30px 20px;
+        border-radius: 16px;
+        margin: 10px;
+        background: url('/assets/fondoGamer2.jpg') center/cover no-repeat;
+        background-attachment: fixed;
+        background-color: #f0f0f0;
     }
     
     .login-form {
-        padding: 30px 25px;
+        order: 2;
+        transform: none !important;
+        min-height: auto;
+        padding: 35px 28px;
+        width: 100%;
+        border-top: 3px solid #e0e0e0;
+    }
+    
+    .logo-section {
+        order: 1;
+        transform: none !important;
+        min-height: auto;
+        padding: 45px 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        position: relative;
+    }
+    
+    /* Separador visual debajo del logo section */
+    .logo-section::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #e0e0e0 20%, #e0e0e0 80%, transparent);
+    }
+    
+    .login-title {
+        font-size: 28px !important;
+        margin-bottom: 12px;
+    }
+    
+    .login-subtitle {
+        font-size: 15px !important;
+        margin-bottom: 20px;
+    }
+    
+    .input-group {
+        margin-bottom: 22px;
+    }
+    
+    .input-group input {
+        font-size: 16px !important;
+        padding: 14px 14px !important;
+        height: 48px;
+    }
+    
+    .input-group label {
+        font-size: 14px !important;
+    }
+    
+    .login-btn {
+        font-size: 16px !important;
+        padding: 14px !important;
+        height: 48px;
+        margin-top: 15px;
     }
     
     .quick-buttons-grid {
         grid-template-columns: 1fr;
     }
+    
+    .terms-section {
+        padding: 14px;
+        margin: 18px 0;
+    }
+    
+    .terms-checkbox {
+        font-size: 14px;
+    }
+    
+    .password-requirements {
+        margin-top: 14px;
+        padding: 14px;
+        font-size: 13px;
+    }
 }
+    
+    .terms-section {
+        padding: 14px;
+        margin: 18px 0;
+    }
+    
+    .terms-checkbox {
+        font-size: 14px;
+    }
+    
+    .password-requirements {
+        margin-top: 14px;
+        padding: 14px;
+        font-size: 13px;
+    }
+
 
 /* Placeholder styling para inputs */
 .input-group input::placeholder {
@@ -1687,19 +2010,21 @@ button[type="submit"].loading::after {
   color: #000;
 }
 
-/* Media queries para responsividad */
+/* Media queries para responsividad en móvil */
 @media screen and (max-width: 768px) {
   .toggle-password {
     right: 12px;
-    width: 30px;
-    height: 30px;
-    font-size: 15px;
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
   }
   
   .password-group input {
-    padding-right: 45px !important;
+    padding-right: 48px !important;
   }
 }
+  
+
 
 
 /* Sección de Términos y Condiciones */
