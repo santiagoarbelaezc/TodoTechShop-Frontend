@@ -2143,3 +2143,13 @@ button[type="submit"].loading::after {
     height: 8px;
   }
 }
+
+/* Estilos para el footer de atribución */
+.attribution {
+  text-align: center;
+  padding: 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  background-color: transparent;
+  margin-top: 10px;
+}

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { BannerComponent, BannerImage } from '../banner/banner.component';
 import { TrioPresentationComponent, ContentCard } from '../trio-presentation/trio-presentation.component';
 import { FeatureBannerComponent } from '../feature-banner-component/feature-banner-component.component';
+import { NavbarStateService } from '../../../services/navbar-state.service';
 import * as AOS from 'aos';
 
 @Component({
@@ -126,9 +127,12 @@ export class CatalogoPresentacionComponent implements OnInit, AfterViewInit, OnD
   // Puntos de transición entre colores (en porcentaje del scroll total)
   private readonly transitionPoints = [0, 0.25, 0.5, 0.75, 1];
 
-  constructor() { }
+  constructor(private navbarState: NavbarStateService) { }
 
   ngOnInit(): void {
+    // Actualizar el estado del navbar
+    this.navbarState.setSeccionActiva('catalogo');
+    
     // Inicializar AOS
     AOS.init({
       duration: 800,

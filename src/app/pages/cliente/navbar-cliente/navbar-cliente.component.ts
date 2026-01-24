@@ -1,8 +1,10 @@
-import { Component, inject, HostListener, OnInit } from '@angular/core';
+import { Component, inject, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavbarSelectionStoreService } from '../../../services/navbar-selection-store.service';
+import { NavbarStateService } from '../../../services/navbar-state.service';
+import { Subscription } from 'rxjs';
 
 
 @Component({
@@ -12,14 +14,16 @@ import { NavbarSelectionStoreService } from '../../../services/navbar-selection-
   templateUrl: './navbar-cliente.component.html',
   styleUrls: ['./navbar-cliente.component.css']
 })
-export class NavbarClienteComponent implements OnInit {
+export class NavbarClienteComponent implements OnInit, OnDestroy {
 
   private router = inject(Router);
-  private selectionStore = inject(NavbarSelectionStoreService); // 👈 Inyectar servicio
+  private selectionStore = inject(NavbarSelectionStoreService);
+  private navbarState = inject(NavbarStateService);
   
   seccionActiva: string = 'inicio';
   menuAbierto: boolean = false;
   scrolled: boolean = false;
+  private subscription: Subscription = new Subscription();
 
   // ✅ INICIALIZA al cargar la página
   ngOnInit() {
@@ -27,6 +31,16 @@ export class NavbarClienteComponent implements OnInit {
     // Cargar la sección guardada al iniciar
     this.seccionActiva = this.selectionStore.obtenerSeccion();
     console.log(`📖 Navbar: Sección cargada -> "${this.seccionActiva}"`);
+
+    // Suscribirse al estado del navbar para actualizaciones en tiempo real
+    this.subscription = this.navbarState.seccionActiva$.subscribe(seccion => {
+      this.seccionActiva = seccion;
+      console.log(`🔄 Navbar actualizado: "${seccion}"`);
+    });
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 
   // ✅ HostListener mejorado para scroll y resize
@@ -68,56 +82,50 @@ export class NavbarClienteComponent implements OnInit {
   // NAVEGACIÓN - Ahora guarda la selección
   irABuscar(): void {
     console.log('🔍 Navegando a búsqueda');
-    this.selectionStore.guardarSeccion('buscar'); // 👈 Guardar
+    this.navbarState.setSeccionActiva('buscar');
     this.router.navigate(['/buscar-producto']);
   }
 
   irAInicio(): void { 
     console.log('🏠 Navegando a Inicio');
-    this.seccionActiva = 'inicio';
-    this.selectionStore.guardarSeccion('inicio'); // 👈 Guardar
+    this.navbarState.setSeccionActiva('inicio');
     this.router.navigate(['/catalogo-principal-todotech']); 
   }
 
   irAPhone(): void { 
     console.log('📱 Navegando a Phone');
-    this.seccionActiva = 'phone';
-    this.selectionStore.guardarSeccion('phone'); // 👈 Guardar
+    this.navbarState.setSeccionActiva('phone');
     this.router.navigate(['/phone']); 
   }
 
   irAGaming(): void { 
     console.log('🎮 Navegando a Gaming');
-    this.seccionActiva = 'gaming';
-    this.selectionStore.guardarSeccion('gaming'); // 👈 Guardar
+    this.navbarState.setSeccionActiva('gaming');
     this.router.navigate(['/catalogo-todotech-gaming']); 
   }
 
   irAAccesorios(): void { 
     console.log('🎧 Navegando a Accesorios');
-    this.seccionActiva = 'accesorios';
-    this.selectionStore.guardarSeccion('accesorios'); // 👈 Guardar
+    this.navbarState.setSeccionActiva('accesorios');
     this.router.navigate(['/accesorios']); 
   }
 
   irALaptops(): void { 
     console.log('💻 Navegando a Laptops');
-    this.seccionActiva = 'laptops';
-    this.selectionStore.guardarSeccion('laptops'); // 👈 Guardar
+    this.navbarState.setSeccionActiva('laptops');
     this.router.navigate(['/laptops']); 
   }
 
   irACatalogo(): void {
     console.log('🛍️ Navegando a Catálogo Público');
-    this.seccionActiva = 'catalogo';
-    this.selectionStore.guardarSeccion('catalogo'); // 👈 Guardar
+    this.navbarState.setSeccionActiva('catalogo');
     this.router.navigate(['/catalogo-todotech-presentacion']);
   }
 
   salir(): void {
     console.log('🚪 Redirigiendo al login');
     this.closeMenu();
-    this.selectionStore.limpiarSeleccion(); // 👈 Limpiar al salir (opcional)
+    this.navbarState.setSeccionActiva('inicio'); // Reset al salir
     this.router.navigate(['/login']);
   }
 }

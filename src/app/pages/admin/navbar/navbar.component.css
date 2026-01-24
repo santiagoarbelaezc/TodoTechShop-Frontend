@@ -26,7 +26,8 @@
 .nav-logo {
     justify-self: start;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .logo-text {
@@ -673,4 +674,14 @@
             0 4px 20px rgba(0, 0, 0, 0.25),
             0 2px 8px rgba(0, 0, 0, 0.15);
     }
+}
+
+/* Estilos para la atribución */
+.attribution {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 5px;
+  text-align: left;
+  max-width: 300px;
+  line-height: 1.2;
 }
