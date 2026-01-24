@@ -159,7 +159,7 @@ export class CatalogoPresentacionComponent implements OnInit, AfterViewInit, OnD
     AOS.refresh();
   }
 
-  @HostListener('window:scroll', ['$event'])
+  @HostListener('window:scroll')
   onWindowScroll(): void {
     this.updateScrollProgress();
     this.updateBackgroundColor();
