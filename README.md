@@ -113,15 +113,6 @@
 
 ---
 
-## 🔐 **Sistema de Autenticación**
-
-### **Login Multirol**
-```typescript
-interface User {
-  email: string;
-  role: 'CLIENTE' | 'VENDEDOR' | 'CAJERO' | 'DESPACHADOR';
-  permissions: string[];
-}
 
 👨‍💻 Desarrollador
 <div align="center">
