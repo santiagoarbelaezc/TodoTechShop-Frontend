@@ -188,8 +188,50 @@ jobs:
 
 📊 Flujo de CI/CD
 <div align="center"> <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white" /> <img width="8" /> <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" /> <img width="8" /> <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" /> </div>
+🔍 Etapas del Pipeline:
+✅ Validación de Código
+
+Detección automática de push/pull requests
+
+Configuración de entorno con Node.js 20
+
+Instalación limpia de dependencias (npm ci)
+
+🧪 Pruebas Automatizadas
+
+Ejecución de pruebas unitarias
+
+Configuración headless para CI
+
+Generación de reporte de cobertura
+
+🏗️ Construcción para Producción
+
+Build optimizado con flags de producción
+
+Minificación y bundling automático
+
+Generación de assets estáticos
+
+🚀 Despliegue Automático
+
+Despliegue a Firebase Hosting
+
+Configuración de canal live
+
+Integración con secrets seguros
+
+🔒 Seguridad y Configuración:
+Secrets Management: Variables sensibles en GitHub Secrets
+
+Build Cache: Optimización de tiempo con npm caching
+
+Branch Protection: Despliegue solo desde rama firebase
+
+Quality Gates: No deploy si las pruebas fallan
 
 
+---
 
 👨‍💻 Desarrollador
 <div align="center">
