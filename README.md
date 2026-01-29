@@ -127,9 +127,9 @@ on:
     branches: [ firebase ]
 
 jobs:
-  # ------------------------------
+---
   # PRUEBAS UNITARIAS
-  # ------------------------------
+--- 
   test:
     name: ✅ Ejecutar Pruebas
     runs-on: ubuntu-latest
@@ -150,9 +150,10 @@ jobs:
       - name: 🧪 Ejecutar pruebas unitarias
         run: npm test -- --watch=false --browsers=ChromeHeadless --code-coverage
 
-  # ------------------------------
+  ---
   # DESPLIEGUE A FIREBASE
-  # ------------------------------
+  ---
+  
   deploy:
     name: 🚀 Desplegar a Firebase
     runs-on: ubuntu-latest
