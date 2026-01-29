@@ -114,6 +114,83 @@
 ---
 
 
+🚀 CI/CD Pipeline
+⚙️ Configuración de GitHub Actions
+El proyecto implementa una pipeline de entrega continua que asegura calidad y despliegue automático.
+
+name: CI/CD TodoTech Frontend
+
+on:
+  push:
+    branches: [ firebase ]
+  pull_request:
+    branches: [ firebase ]
+
+jobs:
+  # ------------------------------
+  # PRUEBAS UNITARIAS
+  # ------------------------------
+  test:
+    name: ✅ Ejecutar Pruebas
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: ⬇️ Obtener código del repositorio
+        uses: actions/checkout@v4
+
+      - name: ⎔ Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar dependencias
+        run: npm ci
+
+      - name: 🧪 Ejecutar pruebas unitarias
+        run: npm test -- --watch=false --browsers=ChromeHeadless --code-coverage
+
+  # ------------------------------
+  # DESPLIEGUE A FIREBASE
+  # ------------------------------
+  deploy:
+    name: 🚀 Desplegar a Firebase
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/firebase'
+
+    steps:
+      - name: ⬇️ Obtener código del repositorio
+        uses: actions/checkout@v4
+
+      - name: ⎔ Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar dependencias
+        run: npm ci
+
+      - name: 🏗️ Construir aplicación Angular
+        run: npm run build -- --configuration production
+
+      - name: 🔥 Desplegar a Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: 'todotechshopfrontend'
+          channelId: live
+          entryPoint: './'
+
+---
+
+📊 Flujo de CI/CD
+<div align="center"> <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white" /> <img width="8" /> <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" /> <img width="8" /> <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" /> </div>
+
+
+
 👨‍💻 Desarrollador
 <div align="center">
 Santiago Arbelaez Contreras
